@@ -224,6 +224,8 @@ millis_t max_inactive_time, // = 0
   I2CPositionEncodersMgr I2CPEM;
 #endif
 
+#include "lcd/lgtdwlcd.h"
+
 /**
  * ***************************************************************************
  * ******************************** FUNCTIONS ********************************
@@ -756,6 +758,9 @@ void idle(
   #if ENABLED(POLL_JOG)
     joystick.inject_jog_moves();
   #endif
+
+  LGT_LCD.LGT_Main_Function();
+
 }
 
 /**
@@ -1182,7 +1187,7 @@ void setup() {
   #if ENABLED(MAX7219_DEBUG)
     SETUP_RUN(max7219.init());
   #endif
-
+   LGT_LCD.begin();
   marlin_state = MF_RUNNING;
 
   SETUP_LOG("setup() completed.");
@@ -1203,6 +1208,7 @@ void setup() {
  */
 void loop() {
   do {
+    LGT_LCD.LGT_LCD_startup_settings();
     idle();
 
     #if ENABLED(SDSUPPORT)
