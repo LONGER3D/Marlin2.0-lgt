@@ -14,6 +14,8 @@
 #define DEBUG_OUT ENABLED(DEBUG_LGTDWLCD)
 #include "../core/debug_out.h"
 
+#define U30_Pro	// for debug
+
 LGT_SCR LGT_LCD;
 DATA Rec_Data;
 DATA Send_Data;
@@ -178,6 +180,7 @@ void LGT_SCR::LGT_Get_MYSERIAL1_Cmd()
 		return;
 	else if (re_count >= 2 && (Rec_Data.head[0] == data_storage[0]) && (Rec_Data.head[1] == data_storage[1]))
 	{
+		// MYSERIAL0.print((char *)data_storage);
 		Rec_Data.cmd = data_storage[3];
 		if (Rec_Data.cmd == DW_CMD_VAR_R)
 		{
@@ -371,3 +374,28 @@ void LGT_SCR::LGT_DW_Setup()
 }
 
 #endif // LGT_LCD_DW
+
+/*************************************
+FUNCTION:	Analysising the commands of DWIN_Screen
+**************************************/
+void LGT_SCR::LGT_Analysis_DWIN_Screen_Cmd()
+{
+	DEBUG_ECHOPAIR("ADDR: ", Rec_Data.addr);
+	DEBUG_ECHOPAIR("VALUE:", Rec_Data.data[0]);
+	uint16_t LGT_feedrate = 0;
+	switch (Rec_Data.addr) {
+		case ADDR_VAL_MENU_TYPE:
+			menu_type = (E_MENU_TYPE)(Rec_Data.data[0]);
+			LGT_Printer_Data_Updata();
+			// write in page handle
+			if (menu_type == eMENU_UTILI_FILA || menu_type == eMENU_HOME_FILA)
+				menu_fila_type_chk = 0; // clear variable
+			else if (menu_type == eMENU_MOVE)
+				menu_move_dis_chk = 0; // clear variable
+			break;
+		default:
+			break;
+	}
+
+
+}
