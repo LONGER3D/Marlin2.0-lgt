@@ -2355,3 +2355,11 @@
 
 // Allow servo angle to be edited and saved to EEPROM
 //#define EDITABLE_SERVO_ANGLES
+
+
+// LGT definition
+#define LGT // comment to remove all code snippets from LGT(Longer 3D technology)
+#if ENABLED(LGT)
+  // #define LGT_LCD_28    // MCU LCD 2.8 inch
+  #define LGT_LCD_DW    // DWIN LCD 4.3 inch serial screen
+#endif

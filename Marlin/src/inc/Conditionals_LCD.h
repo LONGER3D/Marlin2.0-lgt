@@ -694,3 +694,11 @@
 #ifndef EXTRUDE_MINTEMP
   #define EXTRUDE_MINTEMP 170
 #endif
+
+
+// LGT LCD
+#if ENABLED(LGT)
+  #if BOTH(LGT_LCD_28, LGT_LCD_DW)
+    #error "Can't use two LGT LCD at same time"
+  #endif
+#endif
