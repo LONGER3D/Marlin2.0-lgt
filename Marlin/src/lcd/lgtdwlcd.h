@@ -73,7 +73,9 @@ public:
 	LGT_SCR();
 
     void begin();
+	void processButton();
     void LGT_LCD_startup_settings();
+
 
 	void LED_Bright_State(uint8_t LED, uint16_t per, uint8_t mod);
 	void LGT_MAC_Send_Filename(uint16_t Addr, uint16_t i);

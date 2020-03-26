@@ -81,6 +81,8 @@
 	#define FILAMENT_RUNOUT_MOVE_F 50
 #endif
 
+
+
 #define	BOARD_FW_VER    "Marlin2.0.5 LGT0.3.1" 
 // DWIN system variable address
 #define DW_ADDR_CHANGE_PAGE 0x0084
@@ -318,5 +320,10 @@ enum E_MENU_TYPE {
 #define ID_MENU_MEASU_S3            (116)
 #define ID_MENU_MEASU_FINISH        (123)
 
+
+  enum eAxis    : uint8_t { X=0, Y, Z };
+  enum eExtruder : uint8_t { E0=0, E1, E2, E3, E4, E5, E6, E7 };
+  enum eHeater   : uint8_t { H0=0, H1, H2, H3, H4, H5, BED, CHAMBER };
+  enum eFan      : uint8_t { FAN0=0, FAN1, FAN2, FAN3, FAN4, FAN5, FAN6, FAN7 };
 
 #endif      // LGT_LCD_DW
