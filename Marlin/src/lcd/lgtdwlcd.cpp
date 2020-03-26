@@ -1,13 +1,18 @@
 #include "lgtdwlcd.h"
+
+#if ENABLED(LGT_LCD_DW)
+
 #include "lgtdwdef.h"
 
 #include "../module/temperature.h"
 #include "../sd/cardreader.h"
+#include "../module/motion.h"
+#include "../module/planner.h"
 
+// debug define
 #define DEBUG_LGTDWLCD
 #define DEBUG_OUT ENABLED(DEBUG_LGTDWLCD)
 #include "../core/debug_out.h"
-
 
 LGT_SCR LGT_LCD;
 DATA Rec_Data;
@@ -97,7 +102,7 @@ void LGT_SCR::LGT_LCD_startup_settings()
         {
             tartemp_flag = true;
             if (card.isMounted())
-                ;//LGT_LCD.LGT_Display_Filename();
+                DEBUG_PRINT_P("sd ok");//LGT_LCD.LGT_Display_Filename();
             if (check_recovery == false)
             {
                 DEBUG_PRINT_P("got go home");
@@ -112,8 +117,8 @@ void LGT_SCR::LGT_LCD_startup_settings()
 
                 LGT_LCD.LGT_Change_Page(ID_DIALOG_PRINT_RECOVERY);
             }
-            //LGT_LCD.LGT_Printer_Data_Updata();
-            //LGT_LCD.LGT_DW_Setup(); //about machine
+            LGT_LCD.LGT_Printer_Data_Updata();
+            LGT_LCD.LGT_DW_Setup(); //about machine
             ii_setup = STARTUP_COUNTER;
         }
         ii_setup++;
@@ -129,7 +134,7 @@ void LGT_SCR::LGT_LCD_startup_settings()
 void LGT_SCR::LGT_Main_Function()
 {
     static millis_t Next_Temp_Time = 0;
-	//LGT_Get_MYSERIAL1_Cmd();
+	LGT_Get_MYSERIAL1_Cmd();
 	if (millis() >= Next_Temp_Time)
 	{
 		Next_Temp_Time += 2000;
@@ -144,7 +149,7 @@ void LGT_SCR::LGT_Main_Function()
 			LGT_Send_Data_To_Screen(ADDR_VAL_TAR_B, thermalManager.degTargetBed());            
 		}
 		LGT_Printer_Data_Updata();
-		//LGT_Get_MYSERIAL1_Cmd();
+		LGT_Get_MYSERIAL1_Cmd();
 	}
 	#ifdef U20_Pro
 		if (led_on == true)
@@ -293,14 +298,14 @@ void LGT_SCR::LGT_Printer_Data_Updata()
 		LGT_Send_Data_To_Screen(ADDR_VAL_CUR_B, (int16_t)thermalManager.degBed());
         // DEBUG_PRINT_P("home temp. update");
 		break;
-	// case eMENU_TUNE:
-	// 	LGT_Send_Data_To_Screen(ADDR_VAL_CUR_E, (int16_t)thermalManager.current_temperature[0]);
-	// 	LGT_Send_Data_To_Screen(ADDR_VAL_CUR_B, (int16_t)thermalManager.current_temperature_bed);
-	// 	LGT_Get_MYSERIAL1_Cmd();
-	// 	LGT_Send_Data_To_Screen(ADDR_VAL_FAN,fanSpeeds[0]);
-	// 	LGT_Send_Data_To_Screen(ADDR_VAL_FEED,feedrate_percentage);
-	// 	LGT_Send_Data_To_Screen(ADDR_VAL_FLOW,planner.flow_percentage[0]);
-	// 	break;
+	case eMENU_TUNE:
+		LGT_Send_Data_To_Screen(ADDR_VAL_CUR_E, (int16_t)thermalManager.degHotend(0));
+		LGT_Send_Data_To_Screen(ADDR_VAL_CUR_B, (int16_t)thermalManager.degBed());
+		LGT_Get_MYSERIAL1_Cmd();
+		LGT_Send_Data_To_Screen(ADDR_VAL_FAN,thermalManager.scaledFanSpeed(0));
+		LGT_Send_Data_To_Screen(ADDR_VAL_FEED,feedrate_percentage);
+		LGT_Send_Data_To_Screen(ADDR_VAL_FLOW,planner.flow_percentage[0]);
+		break;
 	// case eMENU_MOVE:
 	// 	LGT_Send_Data_To_Screen(ADDR_VAL_MOVE_POS_X, (int16_t)(current_position[X_AXIS] * 10));
 	// 	LGT_Send_Data_To_Screen(ADDR_VAL_MOVE_POS_Y, (int16_t)(current_position[Y_AXIS] * 10));
@@ -350,3 +355,19 @@ void LGT_SCR::LGT_Printer_Data_Updata()
 		break;
 	}
 }
+
+void LGT_SCR::LGT_DW_Setup()
+{
+	// if (eeprom_read_byte((const uint8_t*)(EEPROM_INDEX + 5)) != 0)
+	// {
+	// 	eeprom_write_dword((uint32_t*)EEPROM_INDEX, 0);
+	// 	eeprom_write_byte((uint8_t *)(EEPROM_INDEX + 5), 0);
+	// }
+	// total_print_time = eeprom_read_dword((const uint32_t*)EEPROM_INDEX);
+
+	LGT_Send_Data_To_Screen1(ADDR_TXT_ABOUT_MODEL, MAC_MODEL);
+	LGT_Send_Data_To_Screen1(ADDR_TXT_ABOUT_SIZE, MAC_SIZE);
+	LGT_Send_Data_To_Screen1(ADDR_TXT_ABOUT_FW_BOARD, BOARD_FW_VER);
+}
+
+#endif // LGT_LCD_DW

@@ -1,5 +1,6 @@
 #pragma once
 
+#if ENABLED(LGT_LCD_DW)
 
 #define RECOVER_E_ADD 4//8
 #define LOAD_FILA_LEN 500
@@ -48,22 +49,39 @@
 #define	MAC_LENGTH		X_BED_SIZE
 #define	MAC_WIDTH	    Y_BED_SIZE
 #define	MAC_HEIGHT		Z_MAX_POS
-#ifdef U20_Pro
-	#define MAC_MODEL       "U20 Pro"
-	#define MAC_SIZE		"300*300*400(mm)"
-	//#define FILAMENT_RUNOUT_MOVE "G1 X10 Y260 F3000"
+
+#if ANY(U20P, LK1P)
+    #if ENABLED(U20P)
+	    #define MAC_MODEL       "U20 Pro"
+	#else
+	    #define MAC_MODEL       "LK4 Pro"
+    #endif
+    #define MAC_SIZE		"300*300*400(mm)"
+    //#define FILAMENT_RUNOUT_MOVE "G1 X10 Y260 F3000"
 	#define FILAMENT_RUNOUT_MOVE_X 10
 	#define FILAMENT_RUNOUT_MOVE_Y 260
 	#define FILAMENT_RUNOUT_MOVE_F 50
-#else
-	#define MAC_MODEL       "U30 Pro"
+#elif ANY(U30P, LK4P)
+    #if ENABLED(U30P)
+	    #define MAC_MODEL       "U30 Pro"
+    #else
+	    #define MAC_MODEL       "LK4 Pro"
+    #endif
 	#define MAC_SIZE "220*220*250(mm)"
 	//#define FILAMENT_RUNOUT_MOVE "G1 X10 Y200 F3000"
 	#define FILAMENT_RUNOUT_MOVE_X 10
 	#define FILAMENT_RUNOUT_MOVE_Y 200
 	#define FILAMENT_RUNOUT_MOVE_F 50
-#endif // U20_Pro
-#define	BOARD_FW_VER    "Marlin1.1.9 LGT0.3.1" 
+#elif ENABLED(LK4)
+	#define MAC_MODEL       "LK4"
+	#define MAC_SIZE "220*220*250(mm)"
+	//#define FILAMENT_RUNOUT_MOVE "G1 X10 Y200 F3000"
+	#define FILAMENT_RUNOUT_MOVE_X 10
+	#define FILAMENT_RUNOUT_MOVE_Y 200
+	#define FILAMENT_RUNOUT_MOVE_F 50
+#endif
+
+#define	BOARD_FW_VER    "Marlin2.0.5 LGT0.3.1" 
 // DWIN system variable address
 #define DW_ADDR_CHANGE_PAGE 0x0084
 #define DW_PAGE_VAR_BASE 0x5A010000UL 
@@ -299,3 +317,6 @@ enum E_MENU_TYPE {
 #define ID_MENU_MEASU_S2            (114)
 #define ID_MENU_MEASU_S3            (116)
 #define ID_MENU_MEASU_FINISH        (123)
+
+
+#endif      // LGT_LCD_DW

@@ -1,6 +1,9 @@
 #pragma once
 
 #include "../inc/MarlinConfigPre.h"
+
+#if ENABLED(LGT_LCD_DW)
+
 #include "../MarlinCore.h"
 // #include "lgtdwdef.h"
 // #include "Marlin.h"
@@ -36,7 +39,6 @@ typedef struct Data_Buffer
 	char data_num[6];
 }DATA;
 
-
 enum PRINTER_STATUS
 {
 	PRINTER_SETUP,
@@ -46,7 +48,6 @@ enum PRINTER_STATUS
 	PRINTER_PAUSE,
 	PRINTER_PRINTING_F
 };
-
 
 enum PRINTER_KILL_STATUS
 {
@@ -65,11 +66,12 @@ enum PRINTER_KILL_STATUS
 	B_MAXTEMP_KILL,
 	E_RUNAWAY_KILL
 };
+
 class LGT_SCR
 {
 public:
 	LGT_SCR();
-    
+
     void begin();
     void LGT_LCD_startup_settings();
 
@@ -107,5 +109,6 @@ public:
 #define HILIGHT_FILE_NAME()				CHANGE_TXT_COLOR(SP_COLOR_SEL_FILE_NAME, COLOR_LIGHT_RED)
 #define DEHILIGHT_FILE_NAME()			CHANGE_TXT_COLOR(SP_COLOR_SEL_FILE_NAME, COLOR_WHITE)
 
-extern LGT_SCR LGT_LCD;
+extern LGT_SCR LGT_LCD;     // extern interface
 
+#endif // LGT_LCD_DW
