@@ -801,7 +801,7 @@ void LGT_SCR::processButton()
 		case eBT_MOVE_DISABLE:
 			queue.clear();
 			quickstop_stepper();
-	//			enqueue_and_echo_commands_P(PSTR("M84"));
+	//			queue.enqueue_now_P(PSTR("M84"));
 			break;
 		case eBT_MOVE_ENABLE:
 				enable_all_steppers();
@@ -866,7 +866,7 @@ void LGT_SCR::processButton()
 	// 		status_type = PRINTER_PAUSE;
 	// 		card.pauseSDPrint();
 	// 		print_job_timer.pause();
-	// 		enqueue_and_echo_commands_P(PSTR("M2001"));
+	// 		queue.enqueue_now_P(PSTR("M2001"));
 	// 		break;
 	// 	case eBT_PRINT_HOME_RESUME:
 	// 			LGT_Change_Page(ID_MENU_PRINT_HOME);
@@ -890,65 +890,65 @@ void LGT_SCR::processButton()
 	// 			LGT_Exit_Print_Page();
 	// 			LGT_is_printing = false;
 	// 		break;
-	
-	// ----- filament menu ----- 
-	// 	case eBT_UTILI_FILA_PLA:
-	// 		menu_fila_type_chk = 1;
-	// 		fila_type = 0;
-	// 		thermalManager.setTargetHotend(PLA_E_TEMP, eExtruder::E0);
-	// 		status_type = PRINTER_HEAT;
-	// 		thermalManager.setTargetBed(PLA_B_TEMP);
-	// 		LGT_Send_Data_To_Screen(ADDR_VAL_TAR_E, thermalManager.target_temperature[0]);
-	// 		delayMicroseconds(1);
-	// 		LGT_Send_Data_To_Screen(ADDR_VAL_TAR_B, thermalManager.target_temperature_bed);
-	// 		LGT_Send_Data_To_Screen(ADDR_VAL_FILA_CHANGE_TEMP, thermalManager.target_temperature[0]);
-	// 		break;
-	// 	case eBT_UTILI_FILA_ABS:
-	// 		fila_type = 1;
-	// 		menu_fila_type_chk = 2;
-	// 		thermalManager.setTargetHotend(ABS_E_TEMP, eExtruder::E0);
-	// 		status_type = PRINTER_HEAT;
-	// 		thermalManager.setTargetBed(ABS_B_TEMP);
-	// 		LGT_Send_Data_To_Screen(ADDR_VAL_TAR_E, thermalManager.target_temperature[0]);
-	// 		delayMicroseconds(1);
-	// 		LGT_Send_Data_To_Screen(ADDR_VAL_TAR_B, thermalManager.target_temperature_bed);
-	// 		LGT_Send_Data_To_Screen(ADDR_VAL_FILA_CHANGE_TEMP, thermalManager.target_temperature[0]);
-	// 		break;
-	// 	case eBT_UTILI_FILA_LOAD:
-	// 			if (thermalManager.current_temperature[0] >= (filament_temp - 5))
-	// 			{
-	// 				enqueue_and_echo_commands_P(PSTR("M2004"));
-	// 			}
-	// 			else
-	// 			{
-	// 				memset(cmd_E, 0, sizeof(cmd_E));
-	// 				if (menu_type == eMENU_UTILI_FILA)
-	// 				{
-	// 					LGT_Change_Page(ID_DIALOG_UTILI_FILA_WAIT);
-	// 				}
-	// 				else if (menu_type == eMENU_HOME_FILA)
-	// 				{
-	// 					LGT_Change_Page(ID_DIALOG_PRINT_FILA_WAIT);
-	// 				}
-	// 				sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
-	// 				enqueue_and_echo_command(cmd_E);
-	// 				enqueue_and_echo_commands_P(PSTR("M2004"));
-	// 			}
-	// 		break;
-	// 	case eBT_UTILI_FILA_UNLOAD:
-	// 		if (thermalManager.current_temperature[0] >= (filament_temp - 5))
-	// 		{
-	// 			enqueue_and_echo_commands_P(PSTR("M2005"));
-	// 		}
-	// 		else
-	// 		{
-	// 			memset(cmd_E, 0, sizeof(cmd_E));
-	// 			LGT_Change_Page(ID_DIALOG_UTILI_FILA_WAIT);
-	// 			sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
-	// 			enqueue_and_echo_command(cmd_E);
-	// 			enqueue_and_echo_commands_P(PSTR("M2005"));
-	// 		}
-	// 		break;
+
+	//----- filament menu ----- 
+		case eBT_UTILI_FILA_PLA:
+			menu_fila_type_chk = 1;
+			fila_type = 0;
+			thermalManager.setTargetHotend(PLA_E_TEMP, eExtruder::E0);
+			status_type = PRINTER_HEAT;
+			thermalManager.setTargetBed(PLA_B_TEMP);
+			LGT_Send_Data_To_Screen(ADDR_VAL_TAR_E, thermalManager.degTargetHotend(eExtruder::E0));
+			delayMicroseconds(1);
+			LGT_Send_Data_To_Screen(ADDR_VAL_TAR_B, thermalManager.degTargetBed());
+			LGT_Send_Data_To_Screen(ADDR_VAL_FILA_CHANGE_TEMP, thermalManager.degTargetHotend(eExtruder::E0));
+			break;
+		case eBT_UTILI_FILA_ABS:
+			fila_type = 1;
+			menu_fila_type_chk = 2;
+			thermalManager.setTargetHotend(ABS_E_TEMP, eExtruder::E0);
+			status_type = PRINTER_HEAT;
+			thermalManager.setTargetBed(ABS_B_TEMP);
+			LGT_Send_Data_To_Screen(ADDR_VAL_TAR_E, thermalManager.degTargetHotend(eExtruder::E0));
+			delayMicroseconds(1);
+			LGT_Send_Data_To_Screen(ADDR_VAL_TAR_B, thermalManager.degTargetBed());
+			LGT_Send_Data_To_Screen(ADDR_VAL_FILA_CHANGE_TEMP, thermalManager.degTargetHotend(eExtruder::E0));
+			break;
+		case eBT_UTILI_FILA_LOAD:
+				if (thermalManager.degHotend(eExtruder::E0) >= (filament_temp - 5))
+				{
+					queue.enqueue_now_P(PSTR("M2004"));
+				}
+				else
+				{
+					memset(cmd_E, 0, sizeof(cmd_E));
+					if (menu_type == eMENU_UTILI_FILA)
+					{
+						LGT_Change_Page(ID_DIALOG_UTILI_FILA_WAIT);
+					}
+					else if (menu_type == eMENU_HOME_FILA)
+					{
+						LGT_Change_Page(ID_DIALOG_PRINT_FILA_WAIT);
+					}
+					sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
+					queue.enqueue_one_now(cmd_E);
+					queue.enqueue_now_P(PSTR("M2004"));
+				}
+			break;
+		case eBT_UTILI_FILA_UNLOAD:
+			if (thermalManager.degHotend(eExtruder::E0) >= (filament_temp - 5))
+			{
+				queue.enqueue_now_P(PSTR("M2005"));
+			}
+			else
+			{
+				memset(cmd_E, 0, sizeof(cmd_E));
+				LGT_Change_Page(ID_DIALOG_UTILI_FILA_WAIT);
+				sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
+				queue.enqueue_one_now(cmd_E);
+				queue.enqueue_now_P(PSTR("M2005"));
+			}
+			break;
 
 	// ----- print filament menu ----- 
 	// 	case eBT_PRINT_FILA_HEAT_NO:
@@ -999,7 +999,7 @@ void LGT_SCR::processButton()
 	// 		status_type = PRINTER_PAUSE;
 	// 		card.pauseSDPrint();
 	// 		print_job_timer.pause();
-	// 		enqueue_and_echo_commands_P(PSTR("M2006"));
+	// 		queue.enqueue_now_P(PSTR("M2006"));
 	// 		break;
 
 	// ---- power loss recovery ----
@@ -1043,10 +1043,10 @@ void LGT_SCR::processButton()
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+					queue.enqueue_now_P(PSTR("G28 X0 Y0"));
 					xy_home = true;
 				}
-				enqueue_and_echo_commands_P(PSTR("G1 X50 Y50"));
+				queue.enqueue_now_P(PSTR("G1 X50 Y50"));
 			#else  //U30_Pro
 				if (xyz_home == false)
 				{
@@ -1067,10 +1067,10 @@ void LGT_SCR::processButton()
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+					queue.enqueue_now_P(PSTR("G28 X0 Y0"));
 					xy_home = true;
 				}
-				enqueue_and_echo_commands_P(PSTR("G1 X250 Y50"));
+				queue.enqueue_now_P(PSTR("G1 X250 Y50"));
 			#else  //U30_Pro
 				if (xyz_home == false)
 				{
@@ -1090,10 +1090,10 @@ void LGT_SCR::processButton()
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+					queue.enqueue_now_P(PSTR("G28 X0 Y0"));
 					xy_home = true;
 				}
-				enqueue_and_echo_commands_P(PSTR("G1 X250 Y250"));
+				queue.enqueue_now_P(PSTR("G1 X250 Y250"));
 			#else  //U30_Pro
 				if (xyz_home == false)
 				{
@@ -1113,10 +1113,10 @@ void LGT_SCR::processButton()
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+					queue.enqueue_now_P(PSTR("G28 X0 Y0"));
 					xy_home = true;
 				}
-				enqueue_and_echo_commands_P(PSTR("G1 X50 Y250"));
+				queue.enqueue_now_P(PSTR("G1 X50 Y250"));
 			#else  //U30_Pro
 				if (xyz_home == false)
 				{
@@ -1136,10 +1136,10 @@ void LGT_SCR::processButton()
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+					queue.enqueue_now_P(PSTR("G28 X0 Y0"));
 					xy_home = true;
 				}
-				enqueue_and_echo_commands_P(PSTR("G1 X150 Y150"));
+				queue.enqueue_now_P(PSTR("G1 X150 Y150"));
 			#else  //U30_Pro
 				if (xyz_home == false)
 				{
@@ -1177,10 +1177,10 @@ void LGT_SCR::processButton()
 			menu_measu_dis_chk = 1;
 			thermalManager.setTargetHotend(0, eExtruder::E0);
 			thermalManager.setTargetBed(0);
-			enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
-	//			enqueue_and_echo_commands_P(PSTR("G1 X150 Y150 F3000"));
-			enqueue_and_echo_commands_P(PSTR("G1 X180 Y153 F3000"));
-			enqueue_and_echo_commands_P(PSTR("M2002"));
+			queue.enqueue_now_P(PSTR("G28 X0 Y0"));
+	//			queue.enqueue_now_P(PSTR("G1 X150 Y150 F3000"));
+			queue.enqueue_now_P(PSTR("G1 X180 Y153 F3000"));
+			queue.enqueue_now_P(PSTR("M2002"));
 			xy_home = true;
 			break;
 		case eBT_UTILI_LEVEL_MEASU_DIS_0:
@@ -1197,8 +1197,8 @@ void LGT_SCR::processButton()
 			menu_measu_step = 3;
 			menu_measu_dis_chk = 1;
 			settings.reset();
-			enqueue_and_echo_commands_P(PSTR("G28"));
-			enqueue_and_echo_commands_P(PSTR("G29"));
+			queue.enqueue_now_P(PSTR("G28"));
+			queue.enqueue_now_P(PSTR("G29"));
 			break;
 		case eBT_UTILI_LEVEL_MEASU_S1_EXIT_NO:
 			LGT_Change_Page(ID_MENU_MEASU_S1 + menu_measu_dis_chk);
@@ -1209,7 +1209,7 @@ void LGT_SCR::processButton()
 		case eBT_UTILI_LEVEL_MEASU_EXIT_OK:
 			clear_command_queue();
 			quickstop_stepper();
-			enqueue_and_echo_commands_P(PSTR("M18"));
+			queue.enqueue_now_P(PSTR("M18"));
 			break;
 		case eBT_UTILI_LEVEL_MEASU_S3_EXIT_NO:
 			LGT_Change_Page(ID_MENU_MEASU_S3);
@@ -1219,7 +1219,7 @@ void LGT_SCR::processButton()
 			LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN, 0);
 			clear_command_queue();
 			quickstop_stepper();
-			enqueue_and_echo_commands_P(PSTR("M17"));
+			queue.enqueue_now_P(PSTR("M17"));
 			break;
 
 		case eBT_TUNE_SWITCH_LEDS:
