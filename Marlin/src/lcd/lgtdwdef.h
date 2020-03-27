@@ -81,6 +81,12 @@
 	#define FILAMENT_RUNOUT_MOVE_F 50
 #endif
 
+#if defined(MANUAL_FEEDRATE)
+	#undef MANUAL_FEEDRATE
+#endif
+#define MANUAL_FEEDRATE { 50*60, 50*60, 4*60, 60 } // Feedrates for manual moves along X, Y, Z, E from panel
+
+
 
 
 #define	BOARD_FW_VER    "Marlin2.0.5 LGT0.3.1" 

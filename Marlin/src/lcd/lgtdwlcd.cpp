@@ -310,12 +310,12 @@ void LGT_SCR::LGT_Printer_Data_Updata()
 		LGT_Send_Data_To_Screen(ADDR_VAL_FEED,feedrate_percentage);
 		LGT_Send_Data_To_Screen(ADDR_VAL_FLOW,planner.flow_percentage[0]);
 		break;
-	// case eMENU_MOVE:
-	// 	LGT_Send_Data_To_Screen(ADDR_VAL_MOVE_POS_X, (int16_t)(current_position[X_AXIS] * 10));
-	// 	LGT_Send_Data_To_Screen(ADDR_VAL_MOVE_POS_Y, (int16_t)(current_position[Y_AXIS] * 10));
-	// 	LGT_Send_Data_To_Screen(ADDR_VAL_MOVE_POS_Z, (int16_t)(current_position[Z_AXIS] * 10));
-	// 	LGT_Send_Data_To_Screen(ADDR_VAL_MOVE_POS_E, (int16_t)(current_position[E_AXIS] * 10));
-	// 	break;
+	case eMENU_MOVE:
+		LGT_Send_Data_To_Screen(ADDR_VAL_MOVE_POS_X, (int16_t)(current_position[X_AXIS] * 10));
+		LGT_Send_Data_To_Screen(ADDR_VAL_MOVE_POS_Y, (int16_t)(current_position[Y_AXIS] * 10));
+		LGT_Send_Data_To_Screen(ADDR_VAL_MOVE_POS_Z, (int16_t)(current_position[Z_AXIS] * 10));
+		LGT_Send_Data_To_Screen(ADDR_VAL_MOVE_POS_E, (int16_t)(current_position[E_AXIS] * 10));
+		break;
 	case eMENU_TUNE_E:
 		LGT_Send_Data_To_Screen(ADDR_VAL_CUR_E, (int16_t)thermalManager.degHotend(eExtruder::E0));
 		break;
@@ -368,7 +368,6 @@ void LGT_SCR::LGT_DW_Setup()
 	LGT_Send_Data_To_Screen1(ADDR_TXT_ABOUT_SIZE, MAC_SIZE);
 	LGT_Send_Data_To_Screen1(ADDR_TXT_ABOUT_FW_BOARD, BOARD_FW_VER);
 }
-
 
 
 /*************************************
@@ -438,11 +437,26 @@ void LGT_SCR::LGT_Analysis_DWIN_Screen_Cmd()
 
 }
 
+void LGT_Line_To_Current(AxisEnum axis) 
+{
+	const float manual_feedrate_mm_m[] = MANUAL_FEEDRATE;
+	if (!planner.is_full())
+		planner.buffer_line(current_position, MMM_TO_MMS(manual_feedrate_mm_m[(int8_t)axis]), active_extruder);
+}
 
+int LGT_SCR::LGT_Get_Extrude_Temp()
+{
+	if (fila_type == 0)
+	{
+		return (PLA_E_TEMP - 5);
+	}
+	else
+		return (ABS_E_TEMP - 5);
+}
 
 void LGT_SCR::processButton()
 {
-	#if 0
+	#if 1
 
 	switch ((E_BUTTON_KEY)Rec_Data.data[0]) {
 		case eBT_MOVE_X_PLUS_0:
@@ -454,7 +468,6 @@ void LGT_SCR::processButton()
 			}
 			break;
 		case eBT_MOVE_X_MINUS_0:
-	//			if (current_position[X_AXIS] > X_MIN_POS) {
 				current_position[X_AXIS] = current_position[X_AXIS] - 10;
 	#ifdef U20_Pro
 				if (xy_home == true)
@@ -466,7 +479,6 @@ void LGT_SCR::processButton()
 						current_position[X_AXIS] = X_MIN_POS;
 				}
 				LGT_Line_To_Current(X_AXIS);
-	//			}
 			break;
 		case eBT_MOVE_X_PLUS_1:
 			if (current_position[X_AXIS] < X_MAX_POS) {
@@ -477,7 +489,6 @@ void LGT_SCR::processButton()
 			}
 			break;
 		case eBT_MOVE_X_MINUS_1:
-	//			if (current_position[X_AXIS] > X_MIN_POS) {
 				current_position[X_AXIS] = current_position[X_AXIS] - 1;
 	#ifdef U20_Pro
 				if (xy_home == true)
@@ -489,7 +500,6 @@ void LGT_SCR::processButton()
 						current_position[X_AXIS] = X_MIN_POS;
 				}
 				LGT_Line_To_Current(X_AXIS);
-	//			}
 			break;
 		case eBT_MOVE_X_PLUS_2:
 			if (current_position[X_AXIS] < X_MAX_POS) {
@@ -500,8 +510,6 @@ void LGT_SCR::processButton()
 			}
 			break;
 		case eBT_MOVE_X_MINUS_2:
-	//			if (current_position[X_AXIS] > X_MIN_POS) {
-
 				current_position[X_AXIS] = current_position[X_AXIS] - 0.1;
 	#ifdef U20_Pro
 				if (xy_home == true)
@@ -513,7 +521,6 @@ void LGT_SCR::processButton()
 						current_position[X_AXIS] = X_MIN_POS;
 				}
 				LGT_Line_To_Current(X_AXIS);
-	//			}
 			break;
 			//Y Axis
 		case eBT_MOVE_Y_PLUS_0:
@@ -525,8 +532,6 @@ void LGT_SCR::processButton()
 			}
 			break;
 		case eBT_MOVE_Y_MINUS_0:
-	//			if (current_position[Y_AXIS] > Y_MIN_POS) {
-
 				current_position[Y_AXIS] = current_position[Y_AXIS] - 10;
 	#ifdef U20_Pro
 				if (xy_home == true)
@@ -538,7 +543,6 @@ void LGT_SCR::processButton()
 						current_position[Y_AXIS] = Y_MIN_POS;
 				}
 				LGT_Line_To_Current(Y_AXIS);
-	//			}
 			break;
 		case eBT_MOVE_Y_PLUS_1:
 			if (current_position[Y_AXIS] < Y_MAX_POS) {
@@ -549,19 +553,17 @@ void LGT_SCR::processButton()
 			}
 			break;
 		case eBT_MOVE_Y_MINUS_1:
-	//			if (current_position[Y_AXIS] > Y_MIN_POS) {
 				current_position[Y_AXIS] = current_position[Y_AXIS] - 1;
-	#ifdef U20_Pro
+		#ifdef U20_Pro
 				if (xy_home == true)
-	#else  //U30_Pro
+		#else  //U30_Pro
 				if (xyz_home == true || xy_home == true)
-	#endif
+		#endif
 				{
 					if (current_position[Y_AXIS] < Y_MIN_POS)
 						current_position[Y_AXIS] = Y_MIN_POS;
 				}
 				LGT_Line_To_Current(Y_AXIS);
-	//			}
 			break;
 		case eBT_MOVE_Y_PLUS_2:
 			if (current_position[Y_AXIS] < Y_MAX_POS) {
@@ -572,7 +574,6 @@ void LGT_SCR::processButton()
 			}
 			break;
 		case eBT_MOVE_Y_MINUS_2:
-	//			if (current_position[Y_AXIS] > Y_MIN_POS) {
 				current_position[Y_AXIS] = current_position[Y_AXIS] - 0.1;
 	#ifdef U20_Pro
 				if (xy_home == true)
@@ -584,7 +585,6 @@ void LGT_SCR::processButton()
 						current_position[Y_AXIS] = Y_MIN_POS;
 				}
 				LGT_Line_To_Current(Y_AXIS);
-	//			}
 			break;
 			//Z Axis
 		case eBT_MOVE_Z_PLUS_0:
@@ -593,7 +593,6 @@ void LGT_SCR::processButton()
 				if (current_position[Z_AXIS] > Z_MAX_POS)
 					current_position[Z_AXIS] = Z_MAX_POS;
 				LGT_Line_To_Current(Z_AXIS);
-
 	#ifdef U20_Pro
 				if (menu_type != eMENU_MOVE)
 				{
@@ -604,7 +603,6 @@ void LGT_SCR::processButton()
 			}
 			break;
 		case eBT_MOVE_Z_MINUS_0:
-	//			if (current_position[Z_AXIS] > Z_MIN_POS) {
 				current_position[Z_AXIS] = current_position[Z_AXIS] - 10;
 	#ifdef U30_Pro
 				if (xyz_home == true || z_home == true)
@@ -622,7 +620,6 @@ void LGT_SCR::processButton()
 					LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN, (uint16_t)(10 * level_z_height));
 				}
 	#endif // U20_Pro
-	//			}
 			break;
 		case eBT_MOVE_Z_PLUS_1:
 			if (current_position[Z_AXIS] < Z_MAX_POS) {
@@ -630,7 +627,6 @@ void LGT_SCR::processButton()
 				if (current_position[Z_AXIS] > Z_MAX_POS)
 					current_position[Z_AXIS] = Z_MAX_POS;
 				LGT_Line_To_Current(Z_AXIS);
-
 	#ifdef U20_Pro
 				if (menu_type != eMENU_MOVE)
 				{
@@ -641,8 +637,6 @@ void LGT_SCR::processButton()
 			}
 			break;
 		case eBT_MOVE_Z_MINUS_1:
-	//			if (current_position[Z_AXIS] > Z_MIN_POS) {
-
 				current_position[Z_AXIS] = current_position[Z_AXIS] - 1;
 	#ifdef U30_Pro
 				if (xyz_home == true || z_home == true)
@@ -652,7 +646,6 @@ void LGT_SCR::processButton()
 				}
 	#endif // U30_Pro
 				LGT_Line_To_Current(Z_AXIS);
-
 	#ifdef U20_Pro
 				if (menu_type != eMENU_MOVE)
 				{
@@ -660,7 +653,6 @@ void LGT_SCR::processButton()
 					LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN, (uint16_t)(10 * level_z_height));
 			}
 	#endif // U20_Pro
-	//			}
 			break;
 		case eBT_MOVE_Z_PLUS_2:
 			if (current_position[Z_AXIS] < Z_MAX_POS) {
@@ -679,7 +671,6 @@ void LGT_SCR::processButton()
 			}
 			break;
 		case eBT_MOVE_Z_MINUS_2:
-	//			if (current_position[Z_AXIS] > Z_MIN_POS) {
 				current_position[Z_AXIS] = current_position[Z_AXIS] - 0.1;
 	#ifdef U30_Pro
 				if (xyz_home == true || z_home == true)
@@ -697,11 +688,10 @@ void LGT_SCR::processButton()
 					LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN, (uint16_t)(10 * level_z_height));
 				}
 	#endif // U20_Pro
-	//			}
 			break;
 			//E Axis
 		case eBT_MOVE_E_PLUS_0:
-			if (thermalManager.current_temperature[0] >= LGT_Get_Extrude_Temp())
+			if (thermalManager.degHotend(eExtruder::E0) >= LGT_Get_Extrude_Temp())
 			{
 				current_position[E_AXIS] = current_position[E_AXIS]+10;
 				LGT_Line_To_Current(E_AXIS);
@@ -714,7 +704,7 @@ void LGT_SCR::processButton()
 			}
 			break;
 		case eBT_MOVE_E_MINUS_0:
-			if (thermalManager.current_temperature[0] >= LGT_Get_Extrude_Temp())
+			if (thermalManager.degHotend(eExtruder::E0) >= LGT_Get_Extrude_Temp())
 			{
 				current_position[E_AXIS] = current_position[E_AXIS]-10;
 				LGT_Line_To_Current(E_AXIS);
@@ -727,7 +717,7 @@ void LGT_SCR::processButton()
 			}
 			break;
 		case eBT_MOVE_E_PLUS_1:
-			if (thermalManager.current_temperature[0] >= LGT_Get_Extrude_Temp())
+			if (thermalManager.degHotend(eExtruder::E0) >= LGT_Get_Extrude_Temp())
 			{
 				current_position[E_AXIS] = current_position[E_AXIS]+1;
 				LGT_Line_To_Current(E_AXIS);
@@ -740,7 +730,7 @@ void LGT_SCR::processButton()
 			}
 			break;
 		case eBT_MOVE_E_MINUS_1:
-			if (thermalManager.current_temperature[0] >= LGT_Get_Extrude_Temp())
+			if (thermalManager.degHotend(eExtruder::E0) >= LGT_Get_Extrude_Temp())
 			{
 				current_position[E_AXIS] = current_position[E_AXIS]-1;
 				LGT_Line_To_Current(E_AXIS);
@@ -753,7 +743,7 @@ void LGT_SCR::processButton()
 			}
 			break;
 		case eBT_MOVE_E_PLUS_2:
-			if (thermalManager.current_temperature[0] >= LGT_Get_Extrude_Temp())
+			if (thermalManager.degHotend(eExtruder::E0) >= LGT_Get_Extrude_Temp())
 			{
 				current_position[E_AXIS] = current_position[E_AXIS]+0.1;
 				LGT_Line_To_Current(E_AXIS);
@@ -766,7 +756,7 @@ void LGT_SCR::processButton()
 			}
 			break;
 		case eBT_MOVE_E_MINUS_2:
-			if (thermalManager.current_temperature[0] >= LGT_Get_Extrude_Temp())
+			if (thermalManager.degHotend(eExtruder::E0) >= LGT_Get_Extrude_Temp())
 			{
 				current_position[E_AXIS] = current_position[E_AXIS]-0.1;
 				LGT_Line_To_Current(E_AXIS);
@@ -781,461 +771,461 @@ void LGT_SCR::processButton()
 			//Axis Homing
 		case eBT_MOVE_XY_HOME:
 			delay(5);
-			enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+			queue.enqueue_now_P(PSTR("G28 X0 Y0"));
 			xy_home = true;
 			break;
 		case eBT_MOVE_Z_HOME:
 			delay(5);
 			#ifdef U20_Pro
-				enqueue_and_echo_commands_P(PSTR("G28"));
+				queue.enqueue_now_P(PSTR("G28"));
 				xy_home = true;
 			#else
-				enqueue_and_echo_commands_P(PSTR("G28 Z0")); //U30_Pro
+				queue.enqueue_now_P(PSTR("G28 Z0")); //U30_Pro
 				z_home = true;
 			#endif
 			break;
-		case eBT_DIAL_MOVE_NO_TEMP_RET:   // ok button 
-			if (menu_move_dis_chk == 0)
-				LGT_Change_Page(ID_MENU_MOVE_0);
-			else // equal to 1 or 2
-				LGT_Change_Page(ID_MENU_MOVE_1 - 1 + menu_move_dis_chk);
-			break;
-		case eBT_DIAL_FILA_NO_TEMP_RET:
-			if (menu_type == eMENU_UTILI_FILA) {
-				LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
-			}
-			else {   // menu_type == eMENU_HOME_FILA
-				LGT_Change_Page(ID_MENU_HOME_FILA_0 + menu_fila_type_chk);
-			}
-			break;
-		case eBT_PRINT_FILE_OPEN:
-			if (sel_fileid >-1)
-			{
-				uint8_t i = sel_fileid / 5;
-				if (i == 0)
-					LGT_Change_Page(ID_DIALOG_PRINT_START_0);
-				else
-				{
-					LGT_Change_Page(ID_DIALOG_PRINT_START_1 - 1 + i);
-				}
-			}
-			break;
-		case eBT_PRINT_FILE_OPEN_YES:
-			if (sel_fileid > -1)
-			{
-					card.getfilename(gcode_id[sel_fileid]);
-					card.openFile(card.filename,true);
-					card.startFileprint();
-					print_job_timer.start();		
-					LGT_MAC_Send_Filename(ADDR_TXT_HOME_FILE_NAME, gcode_id[sel_fileid]);
-					delay(5);
-					menu_type = eMENU_PRINT_HOME;
-					LGT_Printer_Data_Updata();
-					status_type = PRINTER_PRINTING;
-					LGT_is_printing = true;
-					LGT_Send_Data_To_Screen(ADDR_VAL_ICON_HIDE, 0);
-					idle();
-					LGT_Change_Page(ID_MENU_PRINT_HOME);
-					fila_type = 0;    //PLA
-					LGT_Save_Recovery_Filename(DW_CMD_VAR_W, DW_FH_1, ADDR_TXT_HOME_FILE_NAME,32);
-			}
-			break;
-		case eBT_MOVE_DISABLE:
-			clear_command_queue();
-			quickstop_stepper();
-	//			enqueue_and_echo_commands_P(PSTR("M84"));
-			break;
-		case eBT_MOVE_ENABLE:
-				enable_all_steppers();
-			break;
+	// 	case eBT_DIAL_MOVE_NO_TEMP_RET:   // ok button 
+	// 		if (menu_move_dis_chk == 0)
+	// 			LGT_Change_Page(ID_MENU_MOVE_0);
+	// 		else // equal to 1 or 2
+	// 			LGT_Change_Page(ID_MENU_MOVE_1 - 1 + menu_move_dis_chk);
+	// 		break;
+	// 	case eBT_DIAL_FILA_NO_TEMP_RET:
+	// 		if (menu_type == eMENU_UTILI_FILA) {
+	// 			LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
+	// 		}
+	// 		else {   // menu_type == eMENU_HOME_FILA
+	// 			LGT_Change_Page(ID_MENU_HOME_FILA_0 + menu_fila_type_chk);
+	// 		}
+	// 		break;
+	// 	case eBT_PRINT_FILE_OPEN:
+	// 		if (sel_fileid >-1)
+	// 		{
+	// 			uint8_t i = sel_fileid / 5;
+	// 			if (i == 0)
+	// 				LGT_Change_Page(ID_DIALOG_PRINT_START_0);
+	// 			else
+	// 			{
+	// 				LGT_Change_Page(ID_DIALOG_PRINT_START_1 - 1 + i);
+	// 			}
+	// 		}
+	// 		break;
+	// 	case eBT_PRINT_FILE_OPEN_YES:
+	// 		if (sel_fileid > -1)
+	// 		{
+	// 				card.getfilename(gcode_id[sel_fileid]);
+	// 				card.openFile(card.filename,true);
+	// 				card.startFileprint();
+	// 				print_job_timer.start();		
+	// 				LGT_MAC_Send_Filename(ADDR_TXT_HOME_FILE_NAME, gcode_id[sel_fileid]);
+	// 				delay(5);
+	// 				menu_type = eMENU_PRINT_HOME;
+	// 				LGT_Printer_Data_Updata();
+	// 				status_type = PRINTER_PRINTING;
+	// 				LGT_is_printing = true;
+	// 				LGT_Send_Data_To_Screen(ADDR_VAL_ICON_HIDE, 0);
+	// 				idle();
+	// 				LGT_Change_Page(ID_MENU_PRINT_HOME);
+	// 				fila_type = 0;    //PLA
+	// 				LGT_Save_Recovery_Filename(DW_CMD_VAR_W, DW_FH_1, ADDR_TXT_HOME_FILE_NAME,32);
+	// 		}
+	// 		break;
+	// 	case eBT_MOVE_DISABLE:
+	// 		clear_command_queue();
+	// 		quickstop_stepper();
+	// //			enqueue_and_echo_commands_P(PSTR("M84"));
+	// 		break;
+	// 	case eBT_MOVE_ENABLE:
+	// 			enable_all_steppers();
+	// 		break;
 
-		case eBT_PRINT_HOME_PAUSE:
-			LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
-			status_type = PRINTER_PAUSE;
-			card.pauseSDPrint();
-			print_job_timer.pause();
-			enqueue_and_echo_commands_P(PSTR("M2001"));
-			break;
-		case eBT_PRINT_HOME_RESUME:
-				LGT_Change_Page(ID_MENU_PRINT_HOME);
-				do_blocking_move_to_xy(resume_x_position,resume_y_position,50); 
-				card.startFileprint();
-				print_job_timer.start();
-				runout.reset();
-				menu_type = eMENU_PRINT_HOME;
-				status_type = PRINTER_PRINTING;
-			break;
-		case eBT_PRINT_HOME_ABORT:
-				LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
-				wait_for_heatup = false;
-				LGT_stop_printing = true;
-				LGT_Printer_Total_Work_Time();
-				LGT_Exit_Print_Page();
-			break;
-		case eBT_PRINT_HOME_FINISH:
-				runout.reset();
-				LGT_Change_Page(ID_MENU_HOME);
-				LGT_Exit_Print_Page();
-				LGT_is_printing = false;
-			break;
-		case eBT_UTILI_FILA_PLA:
-			menu_fila_type_chk = 1;
-			fila_type = 0;
-			thermalManager.setTargetHotend(PLA_E_TEMP, target_extruder);
-			status_type = PRINTER_HEAT;
-			thermalManager.setTargetBed(PLA_B_TEMP);
-			LGT_Send_Data_To_Screen(ADDR_VAL_TAR_E, thermalManager.target_temperature[0]);
-			delayMicroseconds(1);
-			LGT_Send_Data_To_Screen(ADDR_VAL_TAR_B, thermalManager.target_temperature_bed);
-			LGT_Send_Data_To_Screen(ADDR_VAL_FILA_CHANGE_TEMP, thermalManager.target_temperature[0]);
-			break;
-		case eBT_UTILI_FILA_ABS:
-			fila_type = 1;
-			menu_fila_type_chk = 2;
-			thermalManager.setTargetHotend(ABS_E_TEMP, target_extruder);
-			status_type = PRINTER_HEAT;
-			thermalManager.setTargetBed(ABS_B_TEMP);
-			LGT_Send_Data_To_Screen(ADDR_VAL_TAR_E, thermalManager.target_temperature[0]);
-			delayMicroseconds(1);
-			LGT_Send_Data_To_Screen(ADDR_VAL_TAR_B, thermalManager.target_temperature_bed);
-			LGT_Send_Data_To_Screen(ADDR_VAL_FILA_CHANGE_TEMP, thermalManager.target_temperature[0]);
-			break;
-		case eBT_UTILI_FILA_LOAD:
-				if (thermalManager.current_temperature[0] >= (filament_temp - 5))
-				{
-					enqueue_and_echo_commands_P(PSTR("M2004"));
-				}
-				else
-				{
-					memset(cmd_E, 0, sizeof(cmd_E));
-					if (menu_type == eMENU_UTILI_FILA)
-					{
-						LGT_Change_Page(ID_DIALOG_UTILI_FILA_WAIT);
-					}
-					else if (menu_type == eMENU_HOME_FILA)
-					{
-						LGT_Change_Page(ID_DIALOG_PRINT_FILA_WAIT);
-					}
-					sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
-					enqueue_and_echo_command(cmd_E);
-					enqueue_and_echo_commands_P(PSTR("M2004"));
-				}
-			break;
-		case eBT_UTILI_FILA_UNLOAD:
-			if (thermalManager.current_temperature[0] >= (filament_temp - 5))
-			{
-				enqueue_and_echo_commands_P(PSTR("M2005"));
-			}
-			else
-			{
-				memset(cmd_E, 0, sizeof(cmd_E));
-				LGT_Change_Page(ID_DIALOG_UTILI_FILA_WAIT);
-				sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
-				enqueue_and_echo_command(cmd_E);
-				enqueue_and_echo_commands_P(PSTR("M2005"));
-			}
-			break;
-		case eBT_PRINT_FILA_HEAT_NO:
-			clear_command_queue();
-			wait_for_heatup = false;
-			if (menu_type == eMENU_UTILI_FILA)
-			{
-				thermalManager.disable_all_heaters();
-				LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
-			}
-			else if (menu_type == eMENU_HOME_FILA)
-			{
-				planner.set_e_position_mm((destination[E_CART] = current_position[E_CART] = (resume_e_position-2)));
-				LGT_Change_Page(ID_MENU_HOME_FILA_0);
-			}
-			break;
-		case eBT_PRINT_FILA_UNLOAD_OK:
-			clear_command_queue();
-			quickstop_stepper();
-			delay(5);
-			if (menu_type == eMENU_UTILI_FILA)
-			{
-				LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
-			}
-			else if (menu_type == eMENU_HOME_FILA)
-			{
-				LGT_Change_Page(ID_MENU_HOME_FILA_0);
-			}
-			break;
-		case eBT_PRINT_FILA_LOAD_OK:
-			clear_command_queue();
-			quickstop_stepper();
-			delay(5);
-			if (menu_type == eMENU_UTILI_FILA)
-			{
-				LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
-			}
-			else if (menu_type == eMENU_HOME_FILA)
-			{
-				LGT_Change_Page(ID_DIALOG_LOAD_FINISH);
-			}
-			break;
-		case eBT_PRINT_FILA_CHANGE_YES:
-			if(menu_type==eMENU_PRINT_HOME)
-				LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
-			else if(menu_type== eMENU_TUNE)
-				LGT_Change_Page(ID_DIALOG_PRINT_TUNE_WAIT);
-			status_type = PRINTER_PAUSE;
-			card.pauseSDPrint();
-			print_job_timer.pause();
-			enqueue_and_echo_commands_P(PSTR("M2006"));
-			break;
-		case eBT_HOME_RECOVERY_YES:
-			LGT_Send_Data_To_Screen(ADDR_VAL_ICON_HIDE, 0);
-			return_home = false;
-			#ifdef U20_Pro
-				status_type = PRINTER_PRINTING;
-			#endif // U20_Pro
-			delay(5);
-		#if ENABLED(POWER_LOSS_RECOVERY)
-			LGT_is_printing = true;
-			LGT_Save_Recovery_Filename(DW_CMD_VAR_W, DW_FH_0, ADDR_TXT_HOME_FILE_NAME, 32);
-			LGT_Power_Loss_Recovery_Resume();
-			menu_type = eMENU_PRINT_HOME;
-			LGT_Printer_Data_Updata();
-			LGT_Change_Page(ID_MENU_PRINT_HOME);
-		#endif
-			break;
-		case eBT_HOME_RECOVERY_NO:
-			total_print_time = total_print_time+job_recovery_info.print_job_elapsed/60;
-			eeprom_write_dword((uint32_t*)EEPROM_INDEX, total_print_time);
+	// 	case eBT_PRINT_HOME_PAUSE:
+	// 		LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
+	// 		status_type = PRINTER_PAUSE;
+	// 		card.pauseSDPrint();
+	// 		print_job_timer.pause();
+	// 		enqueue_and_echo_commands_P(PSTR("M2001"));
+	// 		break;
+	// 	case eBT_PRINT_HOME_RESUME:
+	// 			LGT_Change_Page(ID_MENU_PRINT_HOME);
+	// 			do_blocking_move_to_xy(resume_x_position,resume_y_position,50); 
+	// 			card.startFileprint();
+	// 			print_job_timer.start();
+	// 			runout.reset();
+	// 			menu_type = eMENU_PRINT_HOME;
+	// 			status_type = PRINTER_PRINTING;
+	// 		break;
+	// 	case eBT_PRINT_HOME_ABORT:
+	// 			LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
+	// 			wait_for_heatup = false;
+	// 			LGT_stop_printing = true;
+	// 			LGT_Printer_Total_Work_Time();
+	// 			LGT_Exit_Print_Page();
+	// 		break;
+	// 	case eBT_PRINT_HOME_FINISH:
+	// 			runout.reset();
+	// 			LGT_Change_Page(ID_MENU_HOME);
+	// 			LGT_Exit_Print_Page();
+	// 			LGT_is_printing = false;
+	// 		break;
+	// 	case eBT_UTILI_FILA_PLA:
+	// 		menu_fila_type_chk = 1;
+	// 		fila_type = 0;
+	// 		thermalManager.setTargetHotend(PLA_E_TEMP, target_extruder);
+	// 		status_type = PRINTER_HEAT;
+	// 		thermalManager.setTargetBed(PLA_B_TEMP);
+	// 		LGT_Send_Data_To_Screen(ADDR_VAL_TAR_E, thermalManager.target_temperature[0]);
+	// 		delayMicroseconds(1);
+	// 		LGT_Send_Data_To_Screen(ADDR_VAL_TAR_B, thermalManager.target_temperature_bed);
+	// 		LGT_Send_Data_To_Screen(ADDR_VAL_FILA_CHANGE_TEMP, thermalManager.target_temperature[0]);
+	// 		break;
+	// 	case eBT_UTILI_FILA_ABS:
+	// 		fila_type = 1;
+	// 		menu_fila_type_chk = 2;
+	// 		thermalManager.setTargetHotend(ABS_E_TEMP, target_extruder);
+	// 		status_type = PRINTER_HEAT;
+	// 		thermalManager.setTargetBed(ABS_B_TEMP);
+	// 		LGT_Send_Data_To_Screen(ADDR_VAL_TAR_E, thermalManager.target_temperature[0]);
+	// 		delayMicroseconds(1);
+	// 		LGT_Send_Data_To_Screen(ADDR_VAL_TAR_B, thermalManager.target_temperature_bed);
+	// 		LGT_Send_Data_To_Screen(ADDR_VAL_FILA_CHANGE_TEMP, thermalManager.target_temperature[0]);
+	// 		break;
+	// 	case eBT_UTILI_FILA_LOAD:
+	// 			if (thermalManager.current_temperature[0] >= (filament_temp - 5))
+	// 			{
+	// 				enqueue_and_echo_commands_P(PSTR("M2004"));
+	// 			}
+	// 			else
+	// 			{
+	// 				memset(cmd_E, 0, sizeof(cmd_E));
+	// 				if (menu_type == eMENU_UTILI_FILA)
+	// 				{
+	// 					LGT_Change_Page(ID_DIALOG_UTILI_FILA_WAIT);
+	// 				}
+	// 				else if (menu_type == eMENU_HOME_FILA)
+	// 				{
+	// 					LGT_Change_Page(ID_DIALOG_PRINT_FILA_WAIT);
+	// 				}
+	// 				sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
+	// 				enqueue_and_echo_command(cmd_E);
+	// 				enqueue_and_echo_commands_P(PSTR("M2004"));
+	// 			}
+	// 		break;
+	// 	case eBT_UTILI_FILA_UNLOAD:
+	// 		if (thermalManager.current_temperature[0] >= (filament_temp - 5))
+	// 		{
+	// 			enqueue_and_echo_commands_P(PSTR("M2005"));
+	// 		}
+	// 		else
+	// 		{
+	// 			memset(cmd_E, 0, sizeof(cmd_E));
+	// 			LGT_Change_Page(ID_DIALOG_UTILI_FILA_WAIT);
+	// 			sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
+	// 			enqueue_and_echo_command(cmd_E);
+	// 			enqueue_and_echo_commands_P(PSTR("M2005"));
+	// 		}
+	// 		break;
+	// 	case eBT_PRINT_FILA_HEAT_NO:
+	// 		clear_command_queue();
+	// 		wait_for_heatup = false;
+	// 		if (menu_type == eMENU_UTILI_FILA)
+	// 		{
+	// 			thermalManager.disable_all_heaters();
+	// 			LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
+	// 		}
+	// 		else if (menu_type == eMENU_HOME_FILA)
+	// 		{
+	// 			planner.set_e_position_mm((destination[E_CART] = current_position[E_CART] = (resume_e_position-2)));
+	// 			LGT_Change_Page(ID_MENU_HOME_FILA_0);
+	// 		}
+	// 		break;
+	// 	case eBT_PRINT_FILA_UNLOAD_OK:
+	// 		clear_command_queue();
+	// 		quickstop_stepper();
+	// 		delay(5);
+	// 		if (menu_type == eMENU_UTILI_FILA)
+	// 		{
+	// 			LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
+	// 		}
+	// 		else if (menu_type == eMENU_HOME_FILA)
+	// 		{
+	// 			LGT_Change_Page(ID_MENU_HOME_FILA_0);
+	// 		}
+	// 		break;
+	// 	case eBT_PRINT_FILA_LOAD_OK:
+	// 		clear_command_queue();
+	// 		quickstop_stepper();
+	// 		delay(5);
+	// 		if (menu_type == eMENU_UTILI_FILA)
+	// 		{
+	// 			LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
+	// 		}
+	// 		else if (menu_type == eMENU_HOME_FILA)
+	// 		{
+	// 			LGT_Change_Page(ID_DIALOG_LOAD_FINISH);
+	// 		}
+	// 		break;
+	// 	case eBT_PRINT_FILA_CHANGE_YES:
+	// 		if(menu_type==eMENU_PRINT_HOME)
+	// 			LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
+	// 		else if(menu_type== eMENU_TUNE)
+	// 			LGT_Change_Page(ID_DIALOG_PRINT_TUNE_WAIT);
+	// 		status_type = PRINTER_PAUSE;
+	// 		card.pauseSDPrint();
+	// 		print_job_timer.pause();
+	// 		enqueue_and_echo_commands_P(PSTR("M2006"));
+	// 		break;
+	// 	case eBT_HOME_RECOVERY_YES:
+	// 		LGT_Send_Data_To_Screen(ADDR_VAL_ICON_HIDE, 0);
+	// 		return_home = false;
+	// 		#ifdef U20_Pro
+	// 			status_type = PRINTER_PRINTING;
+	// 		#endif // U20_Pro
+	// 		delay(5);
+	// 	#if ENABLED(POWER_LOSS_RECOVERY)
+	// 		LGT_is_printing = true;
+	// 		LGT_Save_Recovery_Filename(DW_CMD_VAR_W, DW_FH_0, ADDR_TXT_HOME_FILE_NAME, 32);
+	// 		LGT_Power_Loss_Recovery_Resume();
+	// 		menu_type = eMENU_PRINT_HOME;
+	// 		LGT_Printer_Data_Updata();
+	// 		LGT_Change_Page(ID_MENU_PRINT_HOME);
+	// 	#endif
+	// 		break;
+	// 	case eBT_HOME_RECOVERY_NO:
+	// 		total_print_time = total_print_time+job_recovery_info.print_job_elapsed/60;
+	// 		eeprom_write_dword((uint32_t*)EEPROM_INDEX, total_print_time);
 
-			#if ENABLED(POWER_LOSS_RECOVERY)
-				card.removeJobRecoveryFile();
-			#endif
-				disable_Z();
-				return_home = false;
-				recovery_time = 0;
-				recovery_percent = 0;
-				recovery_z_height = 0.0;
-				recovery_E_len = 0.0;
-				LGT_Change_Page(ID_MENU_HOME);
-				menu_type = eMENU_HOME;
-			break;
-		case eBT_PRINT_FILE_CLEAN: //Cleaning sel_fileid
-			if (sel_fileid > -1)
-			{
-				DEHILIGHT_FILE_NAME();
-				sel_fileid = -1;
-				LGT_Clean_DW_Display_Data(ADDR_TXT_PRINT_FILE_SELECT); //Cleaning sel_file txt
-				LGT_Clean_DW_Display_Data(ADDR_TXT_HOME_ELAP_TIME);    //Cleaning time
-			}
-			menu_type = eMENU_FILE;
-			break;
-	//////////////////////////////////////////////////////////////////////////
-		case eBT_UTILI_LEVEL_CORNER_POS_1:
-			#ifdef U20_Pro
-				if (xy_home == false)
-				{
-					thermalManager.setTargetHotend(0, target_extruder);
-					thermalManager.setTargetBed(0);
-					enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
-					xy_home = true;
-				}
-				enqueue_and_echo_commands_P(PSTR("G1 X50 Y50"));
-			#else  //U30_Pro
-				if (xyz_home == false)
-				{
-					thermalManager.setTargetHotend(0, target_extruder);
-					thermalManager.setTargetBed(0);
-					enqueue_and_echo_commands_P(PSTR("G28"));
-					xyz_home = true;
-				}
-				enqueue_and_echo_commands_P(PSTR("G1 Z10"));
-				enqueue_and_echo_commands_P(PSTR("G1 X30 Y30 F3000"));
-				enqueue_and_echo_commands_P(PSTR("G1 Z0"));
-			#endif
-			break;
-		case eBT_UTILI_LEVEL_CORNER_POS_2: //45 002D
-			#ifdef U20_Pro
-				if (xy_home == false)
-				{
-					thermalManager.setTargetHotend(0, target_extruder);
-					thermalManager.setTargetBed(0);
-					enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
-					xy_home = true;
-				}
-				enqueue_and_echo_commands_P(PSTR("G1 X250 Y50"));
-			#else  //U30_Pro
-				if (xyz_home == false)
-				{
-					thermalManager.setTargetHotend(0, target_extruder);
-					thermalManager.setTargetBed(0);
-					enqueue_and_echo_commands_P(PSTR("G28"));
-					xyz_home = true;
-				}
-				enqueue_and_echo_commands_P(PSTR("G1 Z10"));
-				enqueue_and_echo_commands_P(PSTR("G1 X190 Y30 F3000"));
-				enqueue_and_echo_commands_P(PSTR("G1 Z0"));
-			#endif
-			break;
-		case eBT_UTILI_LEVEL_CORNER_POS_3:
-			#ifdef U20_Pro
-				if (xy_home == false)
-				{
-					thermalManager.setTargetHotend(0, target_extruder);
-					thermalManager.setTargetBed(0);
-					enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
-					xy_home = true;
-				}
-				enqueue_and_echo_commands_P(PSTR("G1 X250 Y250"));
-			#else  //U30_Pro
-				if (xyz_home == false)
-				{
-					thermalManager.setTargetHotend(0, target_extruder);
-					thermalManager.setTargetBed(0);
-					enqueue_and_echo_commands_P(PSTR("G28"));
-					xyz_home = true;
-				}
-				enqueue_and_echo_commands_P(PSTR("G1 Z10"));
-				enqueue_and_echo_commands_P(PSTR("G1 X190 Y190 F3000"));
-				enqueue_and_echo_commands_P(PSTR("G1 Z0"));
-			#endif
-			break;
-		case eBT_UTILI_LEVEL_CORNER_POS_4:
-			#ifdef U20_Pro
-				if (xy_home == false)
-				{
-					thermalManager.setTargetHotend(0, target_extruder);
-					thermalManager.setTargetBed(0);
-					enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
-					xy_home = true;
-				}
-				enqueue_and_echo_commands_P(PSTR("G1 X50 Y250"));
-			#else  //U30_Pro
-				if (xyz_home == false)
-				{
-					thermalManager.setTargetHotend(0, target_extruder);
-					thermalManager.setTargetBed(0);
-					enqueue_and_echo_commands_P(PSTR("G28"));
-					xyz_home = true;
-				}
-				enqueue_and_echo_commands_P(PSTR("G1 Z10"));
-				enqueue_and_echo_commands_P(PSTR("G1 X30 Y190 F3000"));
-				enqueue_and_echo_commands_P(PSTR("G1 Z0"));
-			#endif
-			break;
-		case eBT_UTILI_LEVEL_CORNER_POS_5:
-			#ifdef U20_Pro
-				if (xy_home == false)
-				{
-					thermalManager.setTargetHotend(0, target_extruder);
-					thermalManager.setTargetBed(0);
-					enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
-					xy_home = true;
-				}
-				enqueue_and_echo_commands_P(PSTR("G1 X150 Y150"));
-			#else  //U30_Pro
-				if (xyz_home == false)
-				{
-					thermalManager.setTargetHotend(0, target_extruder);
-					thermalManager.setTargetBed(0);
-					enqueue_and_echo_commands_P(PSTR("G28"));
-					xyz_home = true;
-				}
-				enqueue_and_echo_commands_P(PSTR("G1 Z10"));
-				enqueue_and_echo_commands_P(PSTR("G1 X110 Y110 F3000"));
-				enqueue_and_echo_commands_P(PSTR("G1 Z0"));
-			#endif
-			break;
-		case eBT_UTILI_LEVEL_CORNER_BACK:
-			#ifdef U20_Pro
-				if (xy_home) {
-					xy_home = false;
-					enqueue_and_echo_commands_P(PSTR("G1 Z10"));	//up 10mm to prevent from damaging bed
-				}
-			#else
-				if (xyz_home) {
-					xyz_home = false;
-					enqueue_and_echo_commands_P(PSTR("G1 Z10"));	//up 10mm to prevent from damaging bed
-				}
-			#endif
-			break;
-	#ifdef U20_Pro
-		case eBT_UTILI_LEVEL_MEASU_START:  // == PREVIOUS
-			LGT_Change_Page(ID_DIALOG_LEVEL_WAIT);
-			level_z_height = 0;
-			LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN,0);
-			menu_measu_step = 1;
-			menu_measu_dis_chk = 1;
-			thermalManager.setTargetHotend(0, target_extruder);
-			thermalManager.setTargetBed(0);
-			enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
-	//			enqueue_and_echo_commands_P(PSTR("G1 X150 Y150 F3000"));
-			enqueue_and_echo_commands_P(PSTR("G1 X180 Y153 F3000"));
-			enqueue_and_echo_commands_P(PSTR("M2002"));
-			xy_home = true;
-			break;
-		case eBT_UTILI_LEVEL_MEASU_DIS_0:
-			menu_measu_dis_chk = 0;
-			break;
-		case eBT_UTILI_LEVEL_MEASU_DIS_1:    //50 0032
-			menu_measu_dis_chk = 1;
-			break;
-		case eBT_UTILI_LEVEL_MEASU_S1_NEXT:
-			menu_measu_step = 2;
-			menu_measu_dis_chk = 1;
-			break;
-		case eBT_UTILI_LEVEL_MEASU_S2_NEXT:
-			menu_measu_step = 3;
-			menu_measu_dis_chk = 1;
-			settings.reset();
-			enqueue_and_echo_commands_P(PSTR("G28"));
-			enqueue_and_echo_commands_P(PSTR("G29"));
-			break;
-		case eBT_UTILI_LEVEL_MEASU_S1_EXIT_NO:
-			LGT_Change_Page(ID_MENU_MEASU_S1 + menu_measu_dis_chk);
-			break;
-		case eBT_UTILI_LEVEL_MEASU_S2_EXIT_NO:
-			LGT_Change_Page(ID_MENU_MEASU_S2 + menu_measu_dis_chk);
-			break;
-		case eBT_UTILI_LEVEL_MEASU_EXIT_OK:
-			clear_command_queue();
-			quickstop_stepper();
-			enqueue_and_echo_commands_P(PSTR("M18"));
-			break;
-		case eBT_UTILI_LEVEL_MEASU_S3_EXIT_NO:
-			LGT_Change_Page(ID_MENU_MEASU_S3);
-			break;
-		case eBT_UTILI_LEVEL_MEASU_STOP_MOVE:
-			level_z_height = 0;
-			LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN, 0);
-			clear_command_queue();
-			quickstop_stepper();
-			enqueue_and_echo_commands_P(PSTR("M17"));
-			break;
-	#endif  //U20_Pro
-		case eBT_MOVE_P0:
-			menu_move_dis_chk = 0;
-			break;
-		case eBT_MOVE_P1:
-			menu_move_dis_chk = 1;
-			break;
-		case eBT_MOVE_P2:
-			menu_move_dis_chk = 2;
-			break;
+	// 		#if ENABLED(POWER_LOSS_RECOVERY)
+	// 			card.removeJobRecoveryFile();
+	// 		#endif
+	// 			disable_Z();
+	// 			return_home = false;
+	// 			recovery_time = 0;
+	// 			recovery_percent = 0;
+	// 			recovery_z_height = 0.0;
+	// 			recovery_E_len = 0.0;
+	// 			LGT_Change_Page(ID_MENU_HOME);
+	// 			menu_type = eMENU_HOME;
+	// 		break;
+	// 	case eBT_PRINT_FILE_CLEAN: //Cleaning sel_fileid
+	// 		if (sel_fileid > -1)
+	// 		{
+	// 			DEHILIGHT_FILE_NAME();
+	// 			sel_fileid = -1;
+	// 			LGT_Clean_DW_Display_Data(ADDR_TXT_PRINT_FILE_SELECT); //Cleaning sel_file txt
+	// 			LGT_Clean_DW_Display_Data(ADDR_TXT_HOME_ELAP_TIME);    //Cleaning time
+	// 		}
+	// 		menu_type = eMENU_FILE;
+	// 		break;
+	// //////////////////////////////////////////////////////////////////////////
+	// 	case eBT_UTILI_LEVEL_CORNER_POS_1:
+	// 		#ifdef U20_Pro
+	// 			if (xy_home == false)
+	// 			{
+	// 				thermalManager.setTargetHotend(0, target_extruder);
+	// 				thermalManager.setTargetBed(0);
+	// 				enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+	// 				xy_home = true;
+	// 			}
+	// 			enqueue_and_echo_commands_P(PSTR("G1 X50 Y50"));
+	// 		#else  //U30_Pro
+	// 			if (xyz_home == false)
+	// 			{
+	// 				thermalManager.setTargetHotend(0, target_extruder);
+	// 				thermalManager.setTargetBed(0);
+	// 				enqueue_and_echo_commands_P(PSTR("G28"));
+	// 				xyz_home = true;
+	// 			}
+	// 			enqueue_and_echo_commands_P(PSTR("G1 Z10"));
+	// 			enqueue_and_echo_commands_P(PSTR("G1 X30 Y30 F3000"));
+	// 			enqueue_and_echo_commands_P(PSTR("G1 Z0"));
+	// 		#endif
+	// 		break;
+	// 	case eBT_UTILI_LEVEL_CORNER_POS_2: //45 002D
+	// 		#ifdef U20_Pro
+	// 			if (xy_home == false)
+	// 			{
+	// 				thermalManager.setTargetHotend(0, target_extruder);
+	// 				thermalManager.setTargetBed(0);
+	// 				enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+	// 				xy_home = true;
+	// 			}
+	// 			enqueue_and_echo_commands_P(PSTR("G1 X250 Y50"));
+	// 		#else  //U30_Pro
+	// 			if (xyz_home == false)
+	// 			{
+	// 				thermalManager.setTargetHotend(0, target_extruder);
+	// 				thermalManager.setTargetBed(0);
+	// 				enqueue_and_echo_commands_P(PSTR("G28"));
+	// 				xyz_home = true;
+	// 			}
+	// 			enqueue_and_echo_commands_P(PSTR("G1 Z10"));
+	// 			enqueue_and_echo_commands_P(PSTR("G1 X190 Y30 F3000"));
+	// 			enqueue_and_echo_commands_P(PSTR("G1 Z0"));
+	// 		#endif
+	// 		break;
+	// 	case eBT_UTILI_LEVEL_CORNER_POS_3:
+	// 		#ifdef U20_Pro
+	// 			if (xy_home == false)
+	// 			{
+	// 				thermalManager.setTargetHotend(0, target_extruder);
+	// 				thermalManager.setTargetBed(0);
+	// 				enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+	// 				xy_home = true;
+	// 			}
+	// 			enqueue_and_echo_commands_P(PSTR("G1 X250 Y250"));
+	// 		#else  //U30_Pro
+	// 			if (xyz_home == false)
+	// 			{
+	// 				thermalManager.setTargetHotend(0, target_extruder);
+	// 				thermalManager.setTargetBed(0);
+	// 				enqueue_and_echo_commands_P(PSTR("G28"));
+	// 				xyz_home = true;
+	// 			}
+	// 			enqueue_and_echo_commands_P(PSTR("G1 Z10"));
+	// 			enqueue_and_echo_commands_P(PSTR("G1 X190 Y190 F3000"));
+	// 			enqueue_and_echo_commands_P(PSTR("G1 Z0"));
+	// 		#endif
+	// 		break;
+	// 	case eBT_UTILI_LEVEL_CORNER_POS_4:
+	// 		#ifdef U20_Pro
+	// 			if (xy_home == false)
+	// 			{
+	// 				thermalManager.setTargetHotend(0, target_extruder);
+	// 				thermalManager.setTargetBed(0);
+	// 				enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+	// 				xy_home = true;
+	// 			}
+	// 			enqueue_and_echo_commands_P(PSTR("G1 X50 Y250"));
+	// 		#else  //U30_Pro
+	// 			if (xyz_home == false)
+	// 			{
+	// 				thermalManager.setTargetHotend(0, target_extruder);
+	// 				thermalManager.setTargetBed(0);
+	// 				enqueue_and_echo_commands_P(PSTR("G28"));
+	// 				xyz_home = true;
+	// 			}
+	// 			enqueue_and_echo_commands_P(PSTR("G1 Z10"));
+	// 			enqueue_and_echo_commands_P(PSTR("G1 X30 Y190 F3000"));
+	// 			enqueue_and_echo_commands_P(PSTR("G1 Z0"));
+	// 		#endif
+	// 		break;
+	// 	case eBT_UTILI_LEVEL_CORNER_POS_5:
+	// 		#ifdef U20_Pro
+	// 			if (xy_home == false)
+	// 			{
+	// 				thermalManager.setTargetHotend(0, target_extruder);
+	// 				thermalManager.setTargetBed(0);
+	// 				enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+	// 				xy_home = true;
+	// 			}
+	// 			enqueue_and_echo_commands_P(PSTR("G1 X150 Y150"));
+	// 		#else  //U30_Pro
+	// 			if (xyz_home == false)
+	// 			{
+	// 				thermalManager.setTargetHotend(0, target_extruder);
+	// 				thermalManager.setTargetBed(0);
+	// 				enqueue_and_echo_commands_P(PSTR("G28"));
+	// 				xyz_home = true;
+	// 			}
+	// 			enqueue_and_echo_commands_P(PSTR("G1 Z10"));
+	// 			enqueue_and_echo_commands_P(PSTR("G1 X110 Y110 F3000"));
+	// 			enqueue_and_echo_commands_P(PSTR("G1 Z0"));
+	// 		#endif
+	// 		break;
+	// 	case eBT_UTILI_LEVEL_CORNER_BACK:
+	// 		#ifdef U20_Pro
+	// 			if (xy_home) {
+	// 				xy_home = false;
+	// 				enqueue_and_echo_commands_P(PSTR("G1 Z10"));	//up 10mm to prevent from damaging bed
+	// 			}
+	// 		#else
+	// 			if (xyz_home) {
+	// 				xyz_home = false;
+	// 				enqueue_and_echo_commands_P(PSTR("G1 Z10"));	//up 10mm to prevent from damaging bed
+	// 			}
+	// 		#endif
+	// 		break;
+	// #ifdef U20_Pro
+	// 	case eBT_UTILI_LEVEL_MEASU_START:  // == PREVIOUS
+	// 		LGT_Change_Page(ID_DIALOG_LEVEL_WAIT);
+	// 		level_z_height = 0;
+	// 		LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN,0);
+	// 		menu_measu_step = 1;
+	// 		menu_measu_dis_chk = 1;
+	// 		thermalManager.setTargetHotend(0, target_extruder);
+	// 		thermalManager.setTargetBed(0);
+	// 		enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+	// //			enqueue_and_echo_commands_P(PSTR("G1 X150 Y150 F3000"));
+	// 		enqueue_and_echo_commands_P(PSTR("G1 X180 Y153 F3000"));
+	// 		enqueue_and_echo_commands_P(PSTR("M2002"));
+	// 		xy_home = true;
+	// 		break;
+	// 	case eBT_UTILI_LEVEL_MEASU_DIS_0:
+	// 		menu_measu_dis_chk = 0;
+	// 		break;
+	// 	case eBT_UTILI_LEVEL_MEASU_DIS_1:    //50 0032
+	// 		menu_measu_dis_chk = 1;
+	// 		break;
+	// 	case eBT_UTILI_LEVEL_MEASU_S1_NEXT:
+	// 		menu_measu_step = 2;
+	// 		menu_measu_dis_chk = 1;
+	// 		break;
+	// 	case eBT_UTILI_LEVEL_MEASU_S2_NEXT:
+	// 		menu_measu_step = 3;
+	// 		menu_measu_dis_chk = 1;
+	// 		settings.reset();
+	// 		enqueue_and_echo_commands_P(PSTR("G28"));
+	// 		enqueue_and_echo_commands_P(PSTR("G29"));
+	// 		break;
+	// 	case eBT_UTILI_LEVEL_MEASU_S1_EXIT_NO:
+	// 		LGT_Change_Page(ID_MENU_MEASU_S1 + menu_measu_dis_chk);
+	// 		break;
+	// 	case eBT_UTILI_LEVEL_MEASU_S2_EXIT_NO:
+	// 		LGT_Change_Page(ID_MENU_MEASU_S2 + menu_measu_dis_chk);
+	// 		break;
+	// 	case eBT_UTILI_LEVEL_MEASU_EXIT_OK:
+	// 		clear_command_queue();
+	// 		quickstop_stepper();
+	// 		enqueue_and_echo_commands_P(PSTR("M18"));
+	// 		break;
+	// 	case eBT_UTILI_LEVEL_MEASU_S3_EXIT_NO:
+	// 		LGT_Change_Page(ID_MENU_MEASU_S3);
+	// 		break;
+	// 	case eBT_UTILI_LEVEL_MEASU_STOP_MOVE:
+	// 		level_z_height = 0;
+	// 		LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN, 0);
+	// 		clear_command_queue();
+	// 		quickstop_stepper();
+	// 		enqueue_and_echo_commands_P(PSTR("M17"));
+	// 		break;
+	// #endif  //U20_Pro
+	// 	case eBT_MOVE_P0:
+	// 		menu_move_dis_chk = 0;
+	// 		break;
+	// 	case eBT_MOVE_P1:
+	// 		menu_move_dis_chk = 1;
+	// 		break;
+	// 	case eBT_MOVE_P2:
+	// 		menu_move_dis_chk = 2;
+	// 		break;
 
-	#ifdef U20_Pro
-		case eBT_TUNE_SWITCH_LEDS:
-			led_on = !led_on;
-			if (led_on == false)
-			{
-				LED_Bright_State(LED_BLUE, 10, 0);  //close LED
-				LGT_Send_Data_To_Screen(ADDR_VAL_LEDS_SWITCH, 1);
-				delay(5);
-			}
-			else
-			{
-				LGT_Send_Data_To_Screen(ADDR_VAL_LEDS_SWITCH, 0);
-				delay(5);
-			}
-			break;
-	#endif
+	// #ifdef U20_Pro
+	// 	case eBT_TUNE_SWITCH_LEDS:
+	// 		led_on = !led_on;
+	// 		if (led_on == false)
+	// 		{
+	// 			LED_Bright_State(LED_BLUE, 10, 0);  //close LED
+	// 			LGT_Send_Data_To_Screen(ADDR_VAL_LEDS_SWITCH, 1);
+	// 			delay(5);
+	// 		}
+	// 		else
+	// 		{
+	// 			LGT_Send_Data_To_Screen(ADDR_VAL_LEDS_SWITCH, 0);
+	// 			delay(5);
+	// 		}
+	// 		break;
+	// #endif
 		default: break;
 	}
 #endif // 0
