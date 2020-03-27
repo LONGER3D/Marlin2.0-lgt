@@ -33,7 +33,7 @@ float level_z_height = 0.0;
 float recovery_z_height = 0.0,recovery_E_len=0.0;
 float resume_x_position=0.0,resume_y_position=0.0,resume_e_position= 0.0;
 bool sd_init_flag = true;
-bool tartemp_flag = false;
+bool tartemp_flag = false;	// flag for target temp whether is changed
 bool LGT_is_printing = false;
 bool LGT_stop_printing = false;
 bool return_home = false;
@@ -86,7 +86,7 @@ void LGT_SCR_DW::begin()
     #if ENABLED(POWER_LOSS_RECOVERY)
         // check_print_job_recovery();
     #endif
-    DEBUG_PRINT_P("dw begin");
+    DEBUG_PRINT_P("dw: begin");
     // lgtLcdDw.LGT_Change_Page(ID_MENU_HOME);
 
 }
@@ -104,11 +104,13 @@ void LGT_SCR_DW::LGT_LCD_startup_settings()
         if (ii_setup >= (STARTUP_COUNTER-1000))
         {
             tartemp_flag = true;
-            if (card.isMounted())
-                DEBUG_PRINT_P("sd ok");//lgtLcdDw.LGT_Display_Filename();
+            if (card.isMounted()) {
+                DEBUG_PRINT_P("dw: sd ok");
+				//lgtLcdDw.LGT_Display_Filename();
+			}
             if (check_recovery == false)
             {
-                DEBUG_PRINT_P("got go home");
+                DEBUG_PRINT_P("dw: go home");
                 menu_type = eMENU_HOME;
                 lgtLcdDw.LGT_Change_Page(ID_MENU_HOME);
             }

@@ -33,6 +33,11 @@
   #include "../feature/power.h"
 #endif
 
+#if ENABLED(LGT_LCD_DW)
+  #include "../lcd/lgtdwlcd.h"
+  extern bool tartemp_flag;
+#endif
+
 #ifndef SOFT_PWM_SCALE
   #define SOFT_PWM_SCALE 0
 #endif
@@ -627,6 +632,9 @@ class Temperature {
     #if HOTENDS
 
       static void setTargetHotend(const int16_t celsius, const uint8_t E_NAME) {
+        #ifdef LGT_LCD_DW
+          tartemp_flag = true;
+        #endif // LGT_MAC
         const uint8_t ee = HOTEND_INDEX;
         #ifdef MILLISECONDS_PREHEAT_TIME
           if (celsius == 0)
@@ -680,6 +688,9 @@ class Temperature {
       #endif
 
       static void setTargetBed(const int16_t celsius) {
+        #ifdef LGT_LCD_DW
+          tartemp_flag = true;
+        #endif // LGT_MAC
         #if ENABLED(AUTO_POWER_CONTROL)
           powerManager.power_on();
         #endif

@@ -99,9 +99,7 @@
   #include "../libs/buzzer.h"
 #endif
 
-#if ENABLED(LGT_LCD_DW)
-  #include "../lcd/lgtdwlcd.h"
-#endif
+
 
 #if HOTEND_USES_THERMISTOR
   #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
