@@ -99,6 +99,10 @@
   #include "../libs/buzzer.h"
 #endif
 
+#if ENABLED(LGT_LCD_DW)
+  #include "../lcd/lgtdwlcd.h"
+#endif
+
 #if HOTEND_USES_THERMISTOR
   #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
     static const void* heater_ttbl_map[2] = { (void*)HEATER_0_TEMPTABLE, (void*)HEATER_1_TEMPTABLE };
@@ -343,6 +347,8 @@ volatile bool Temperature::raw_temps_ready = false;
 #if ENABLED(PID_EXTRUSION_SCALING)
   int16_t Temperature::lpq_len; // Initialized in configuration_store
 #endif
+
+
 
 #if HAS_PID_HEATING
 
@@ -629,6 +635,10 @@ volatile bool Temperature::raw_temps_ready = false;
         goto EXIT_M303;
       }
       ui.update();
+      #if ENABLED(LGT_LCD_DW)
+        lgtLcdDw.LGT_Main_Function();
+      #endif
+
     }
 
     disable_all_heaters();

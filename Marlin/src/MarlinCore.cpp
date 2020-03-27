@@ -181,6 +181,10 @@
   #include "libs/L64XX/L64XX_Marlin.h"
 #endif
 
+#if ENABLED(LGT_LCD_DW)
+  #include "lcd/lgtdwlcd.h"
+#endif
+
 const char NUL_STR[] PROGMEM = "",
            M112_KILL_STR[] PROGMEM = "M112 Shutdown",
            G28_STR[] PROGMEM = "G28",
@@ -224,7 +228,6 @@ millis_t max_inactive_time, // = 0
   I2CPositionEncodersMgr I2CPEM;
 #endif
 
-#include "lcd/lgtdwlcd.h"
 
 /**
  * ***************************************************************************
@@ -759,8 +762,9 @@ void idle(
     joystick.inject_jog_moves();
   #endif
 
-  LGT_LCD.LGT_Main_Function();
-
+  #if ENABLED(LGT_LCD_DW)
+    lgtLcdDw.LGT_Main_Function();
+  #endif
 }
 
 /**
@@ -1187,7 +1191,7 @@ void setup() {
   #if ENABLED(MAX7219_DEBUG)
     SETUP_RUN(max7219.init());
   #endif
-   LGT_LCD.begin();
+   lgtLcdDw.begin();
   marlin_state = MF_RUNNING;
 
   SETUP_LOG("setup() completed.");
@@ -1208,7 +1212,7 @@ void setup() {
  */
 void loop() {
   do {
-    LGT_LCD.LGT_LCD_startup_settings();
+    lgtLcdDw.LGT_LCD_startup_settings();
     idle();
 
     #if ENABLED(SDSUPPORT)

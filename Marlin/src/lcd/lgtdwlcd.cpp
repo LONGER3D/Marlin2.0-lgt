@@ -17,7 +17,7 @@
 
 #define U30_Pro	// for debug
 
-LGT_SCR LGT_LCD;
+LGT_SCR_DW lgtLcdDw;
 DATA Rec_Data;
 DATA Send_Data;
 duration_t Duration_Time;
@@ -65,7 +65,7 @@ unsigned int filament_temp = 200;
 #define MYSERIAL1 MSerial2
 
 
-LGT_SCR::LGT_SCR()
+LGT_SCR_DW::LGT_SCR_DW()
 {
 	memset(data_storage, 0, sizeof(data_storage));
 	memset(&Rec_Data,0,sizeof(Rec_Data));
@@ -77,7 +77,7 @@ LGT_SCR::LGT_SCR()
 	Send_Data.head[1] = DW_FH_1;
 }
 
-void LGT_SCR::begin()
+void LGT_SCR_DW::begin()
 {
 
     MYSERIAL1.begin(115200);
@@ -87,7 +87,7 @@ void LGT_SCR::begin()
         // check_print_job_recovery();
     #endif
     DEBUG_PRINT_P("dw begin");
-    // LGT_LCD.LGT_Change_Page(ID_MENU_HOME);
+    // lgtLcdDw.LGT_Change_Page(ID_MENU_HOME);
 
 }
 
@@ -95,7 +95,7 @@ void LGT_SCR::begin()
 bool check_recovery = false;
 // char leveling_sta = 0;
 int ii_setup = 0;
-void LGT_SCR::LGT_LCD_startup_settings()
+void LGT_SCR_DW::LGT_LCD_startup_settings()
 {
 
     
@@ -105,12 +105,12 @@ void LGT_SCR::LGT_LCD_startup_settings()
         {
             tartemp_flag = true;
             if (card.isMounted())
-                DEBUG_PRINT_P("sd ok");//LGT_LCD.LGT_Display_Filename();
+                DEBUG_PRINT_P("sd ok");//lgtLcdDw.LGT_Display_Filename();
             if (check_recovery == false)
             {
                 DEBUG_PRINT_P("got go home");
                 menu_type = eMENU_HOME;
-                LGT_LCD.LGT_Change_Page(ID_MENU_HOME);
+                lgtLcdDw.LGT_Change_Page(ID_MENU_HOME);
             }
             else
             {
@@ -118,10 +118,10 @@ void LGT_SCR::LGT_LCD_startup_settings()
                 check_recovery = false;
                 // enable_Z();
 
-                LGT_LCD.LGT_Change_Page(ID_DIALOG_PRINT_RECOVERY);
+                lgtLcdDw.LGT_Change_Page(ID_DIALOG_PRINT_RECOVERY);
             }
-            LGT_LCD.LGT_Printer_Data_Updata();
-            LGT_LCD.LGT_DW_Setup(); //about machine
+            lgtLcdDw.LGT_Printer_Data_Updata();
+            lgtLcdDw.LGT_DW_Setup(); //about machine
             ii_setup = STARTUP_COUNTER;
         }
         ii_setup++;
@@ -129,12 +129,12 @@ void LGT_SCR::LGT_LCD_startup_settings()
     if (LGT_stop_printing == true)
     {
         LGT_stop_printing = false;
-        //LGT_LCD.LGT_Stop_Printing();
+        //lgtLcdDw.LGT_Stop_Printing();
     }
 }
 
 
-void LGT_SCR::LGT_Main_Function()
+void LGT_SCR_DW::LGT_Main_Function()
 {
     static millis_t Next_Temp_Time = 0;
 	LGT_Get_MYSERIAL1_Cmd();
@@ -162,7 +162,7 @@ void LGT_SCR::LGT_Main_Function()
 /*************************************
 FUNCTION:	Getting and saving commands of MYSERIAL1(DWIN_Screen)
 **************************************/
-void LGT_SCR::LGT_Get_MYSERIAL1_Cmd()
+void LGT_SCR_DW::LGT_Get_MYSERIAL1_Cmd()
 {
 	memset(data_storage, 0, sizeof(data_storage));
 	while (re_count<DATA_SIZE &&MYSERIAL1.available() > 0)
@@ -211,7 +211,7 @@ void LGT_SCR::LGT_Get_MYSERIAL1_Cmd()
 	}
 }
 
-void LGT_SCR::LGT_Change_Page(unsigned int pageid)
+void LGT_SCR_DW::LGT_Change_Page(unsigned int pageid)
 {
 	memset(data_storage, 0, sizeof(data_storage));
     // unsigned char data_storage[10];
@@ -229,7 +229,7 @@ void LGT_SCR::LGT_Change_Page(unsigned int pageid)
 		MYSERIAL1.write(data_storage[i]);
 }
 
-void LGT_SCR::LGT_Send_Data_To_Screen(uint16_t Addr, int16_t Num)
+void LGT_SCR_DW::LGT_Send_Data_To_Screen(uint16_t Addr, int16_t Num)
 {
 	    memset(data_storage, 0, sizeof(data_storage));
 		data_storage[0] = Send_Data.head[0];
@@ -248,7 +248,7 @@ void LGT_SCR::LGT_Send_Data_To_Screen(uint16_t Addr, int16_t Num)
 }
 
 
-void LGT_SCR::LGT_Send_Data_To_Screen(unsigned int addr, char* buf)
+void LGT_SCR_DW::LGT_Send_Data_To_Screen(unsigned int addr, char* buf)
 {
 	memset(data_storage, 0, sizeof(data_storage));
 	data_storage[0] = Send_Data.head[0];
@@ -267,7 +267,7 @@ void LGT_SCR::LGT_Send_Data_To_Screen(unsigned int addr, char* buf)
 		delayMicroseconds(1);
 	}
 }
-void LGT_SCR::LGT_Send_Data_To_Screen1(unsigned int addr,const char* buf)
+void LGT_SCR_DW::LGT_Send_Data_To_Screen1(unsigned int addr,const char* buf)
 {
 	memset(data_storage, 0, sizeof(data_storage));
 	data_storage[0] = Send_Data.head[0];
@@ -289,7 +289,7 @@ void LGT_SCR::LGT_Send_Data_To_Screen1(unsigned int addr,const char* buf)
 }
 
 
-void LGT_SCR::LGT_Printer_Data_Updata()
+void LGT_SCR_DW::LGT_Printer_Data_Updata()
 {
 	uint8_t progress_percent = 0;
 	uint16_t LGT_feedrate = 0;
@@ -355,7 +355,7 @@ void LGT_SCR::LGT_Printer_Data_Updata()
 	}
 }
 
-void LGT_SCR::LGT_DW_Setup()
+void LGT_SCR_DW::LGT_DW_Setup()
 {
 	// if (eeprom_read_byte((const uint8_t*)(EEPROM_INDEX + 5)) != 0)
 	// {
@@ -373,7 +373,7 @@ void LGT_SCR::LGT_DW_Setup()
 /*************************************
 FUNCTION:	Analysising the commands of DWIN_Screen
 **************************************/
-void LGT_SCR::LGT_Analysis_DWIN_Screen_Cmd()
+void LGT_SCR_DW::LGT_Analysis_DWIN_Screen_Cmd()
 {
 	DEBUG_ECHOPAIR("ADDR: ", Rec_Data.addr);
 	DEBUG_ECHOPAIR("VALUE:", Rec_Data.data[0]);
@@ -444,7 +444,7 @@ void LGT_Line_To_Current(AxisEnum axis)
 		planner.buffer_line(current_position, MMM_TO_MMS(manual_feedrate_mm_m[(int8_t)axis]), active_extruder);
 }
 
-int LGT_SCR::LGT_Get_Extrude_Temp()
+int LGT_SCR_DW::LGT_Get_Extrude_Temp()
 {
 	if (fila_type == 0)
 	{
@@ -454,7 +454,7 @@ int LGT_SCR::LGT_Get_Extrude_Temp()
 		return (ABS_E_TEMP - 5);
 }
 
-void LGT_SCR::processButton()
+void LGT_SCR_DW::processButton()
 {
 	#if 1
 

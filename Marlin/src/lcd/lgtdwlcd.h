@@ -67,10 +67,10 @@ enum PRINTER_KILL_STATUS
 	E_RUNAWAY_KILL
 };
 
-class LGT_SCR
+class LGT_SCR_DW
 {
 public:
-	LGT_SCR();
+	LGT_SCR_DW();
 
     void begin();
 	void processButton();
@@ -111,6 +111,6 @@ public:
 #define HILIGHT_FILE_NAME()				CHANGE_TXT_COLOR(SP_COLOR_SEL_FILE_NAME, COLOR_LIGHT_RED)
 #define DEHILIGHT_FILE_NAME()			CHANGE_TXT_COLOR(SP_COLOR_SEL_FILE_NAME, COLOR_WHITE)
 
-extern LGT_SCR LGT_LCD;     // extern interface
+extern LGT_SCR_DW lgtLcdDw;     // extern interface
 
 #endif // LGT_LCD_DW
