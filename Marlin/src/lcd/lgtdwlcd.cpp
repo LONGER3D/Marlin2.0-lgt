@@ -784,20 +784,39 @@ void LGT_SCR::processButton()
 				z_home = true;
 			#endif
 			break;
-	// 	case eBT_DIAL_MOVE_NO_TEMP_RET:   // ok button 
-	// 		if (menu_move_dis_chk == 0)
-	// 			LGT_Change_Page(ID_MENU_MOVE_0);
-	// 		else // equal to 1 or 2
-	// 			LGT_Change_Page(ID_MENU_MOVE_1 - 1 + menu_move_dis_chk);
-	// 		break;
-	// 	case eBT_DIAL_FILA_NO_TEMP_RET:
-	// 		if (menu_type == eMENU_UTILI_FILA) {
-	// 			LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
-	// 		}
-	// 		else {   // menu_type == eMENU_HOME_FILA
-	// 			LGT_Change_Page(ID_MENU_HOME_FILA_0 + menu_fila_type_chk);
-	// 		}
-	// 		break;
+		case eBT_DIAL_MOVE_NO_TEMP_RET:   // ok button 
+			if (menu_move_dis_chk == 0)
+				LGT_Change_Page(ID_MENU_MOVE_0);
+			else // equal to 1 or 2
+				LGT_Change_Page(ID_MENU_MOVE_1 - 1 + menu_move_dis_chk);
+			break;
+		case eBT_DIAL_FILA_NO_TEMP_RET:
+			if (menu_type == eMENU_UTILI_FILA) {
+				LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
+			}
+			else {   // menu_type == eMENU_HOME_FILA
+				LGT_Change_Page(ID_MENU_HOME_FILA_0 + menu_fila_type_chk);
+			}
+			break;
+		case eBT_MOVE_DISABLE:
+			queue.clear();
+			quickstop_stepper();
+	//			enqueue_and_echo_commands_P(PSTR("M84"));
+			break;
+		case eBT_MOVE_ENABLE:
+				enable_all_steppers();
+			break;
+		case eBT_MOVE_P0:
+			menu_move_dis_chk = 0;
+			break;
+		case eBT_MOVE_P1:
+			menu_move_dis_chk = 1;
+			break;
+		case eBT_MOVE_P2:
+			menu_move_dis_chk = 2;
+			break;
+
+	// ----- file menu -----
 	// 	case eBT_PRINT_FILE_OPEN:
 	// 		if (sel_fileid >-1)
 	// 		{
@@ -830,15 +849,18 @@ void LGT_SCR::processButton()
 	// 				LGT_Save_Recovery_Filename(DW_CMD_VAR_W, DW_FH_1, ADDR_TXT_HOME_FILE_NAME,32);
 	// 		}
 	// 		break;
-	// 	case eBT_MOVE_DISABLE:
-	// 		clear_command_queue();
-	// 		quickstop_stepper();
-	// //			enqueue_and_echo_commands_P(PSTR("M84"));
-	// 		break;
-	// 	case eBT_MOVE_ENABLE:
-	// 			enable_all_steppers();
+	// 	case eBT_PRINT_FILE_CLEAN: //Cleaning sel_fileid
+	// 		if (sel_fileid > -1)
+	// 		{
+	// 			DEHILIGHT_FILE_NAME();
+	// 			sel_fileid = -1;
+	// 			LGT_Clean_DW_Display_Data(ADDR_TXT_PRINT_FILE_SELECT); //Cleaning sel_file txt
+	// 			LGT_Clean_DW_Display_Data(ADDR_TXT_HOME_ELAP_TIME);    //Cleaning time
+	// 		}
+	// 		menu_type = eMENU_FILE;
 	// 		break;
 
+	// ----- print home menu -----
 	// 	case eBT_PRINT_HOME_PAUSE:
 	// 		LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
 	// 		status_type = PRINTER_PAUSE;
@@ -868,10 +890,12 @@ void LGT_SCR::processButton()
 	// 			LGT_Exit_Print_Page();
 	// 			LGT_is_printing = false;
 	// 		break;
+	
+	// ----- filament menu ----- 
 	// 	case eBT_UTILI_FILA_PLA:
 	// 		menu_fila_type_chk = 1;
 	// 		fila_type = 0;
-	// 		thermalManager.setTargetHotend(PLA_E_TEMP, target_extruder);
+	// 		thermalManager.setTargetHotend(PLA_E_TEMP, eExtruder::E0);
 	// 		status_type = PRINTER_HEAT;
 	// 		thermalManager.setTargetBed(PLA_B_TEMP);
 	// 		LGT_Send_Data_To_Screen(ADDR_VAL_TAR_E, thermalManager.target_temperature[0]);
@@ -882,7 +906,7 @@ void LGT_SCR::processButton()
 	// 	case eBT_UTILI_FILA_ABS:
 	// 		fila_type = 1;
 	// 		menu_fila_type_chk = 2;
-	// 		thermalManager.setTargetHotend(ABS_E_TEMP, target_extruder);
+	// 		thermalManager.setTargetHotend(ABS_E_TEMP, eExtruder::E0);
 	// 		status_type = PRINTER_HEAT;
 	// 		thermalManager.setTargetBed(ABS_B_TEMP);
 	// 		LGT_Send_Data_To_Screen(ADDR_VAL_TAR_E, thermalManager.target_temperature[0]);
@@ -925,6 +949,8 @@ void LGT_SCR::processButton()
 	// 			enqueue_and_echo_commands_P(PSTR("M2005"));
 	// 		}
 	// 		break;
+
+	// ----- print filament menu ----- 
 	// 	case eBT_PRINT_FILA_HEAT_NO:
 	// 		clear_command_queue();
 	// 		wait_for_heatup = false;
@@ -975,6 +1001,8 @@ void LGT_SCR::processButton()
 	// 		print_job_timer.pause();
 	// 		enqueue_and_echo_commands_P(PSTR("M2006"));
 	// 		break;
+
+	// ---- power loss recovery ----
 	// 	case eBT_HOME_RECOVERY_YES:
 	// 		LGT_Send_Data_To_Screen(ADDR_VAL_ICON_HIDE, 0);
 	// 		return_home = false;
@@ -1007,225 +1035,208 @@ void LGT_SCR::processButton()
 	// 			LGT_Change_Page(ID_MENU_HOME);
 	// 			menu_type = eMENU_HOME;
 	// 		break;
-	// 	case eBT_PRINT_FILE_CLEAN: //Cleaning sel_fileid
-	// 		if (sel_fileid > -1)
-	// 		{
-	// 			DEHILIGHT_FILE_NAME();
-	// 			sel_fileid = -1;
-	// 			LGT_Clean_DW_Display_Data(ADDR_TXT_PRINT_FILE_SELECT); //Cleaning sel_file txt
-	// 			LGT_Clean_DW_Display_Data(ADDR_TXT_HOME_ELAP_TIME);    //Cleaning time
-	// 		}
-	// 		menu_type = eMENU_FILE;
-	// 		break;
-	// //////////////////////////////////////////////////////////////////////////
-	// 	case eBT_UTILI_LEVEL_CORNER_POS_1:
-	// 		#ifdef U20_Pro
-	// 			if (xy_home == false)
-	// 			{
-	// 				thermalManager.setTargetHotend(0, target_extruder);
-	// 				thermalManager.setTargetBed(0);
-	// 				enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
-	// 				xy_home = true;
-	// 			}
-	// 			enqueue_and_echo_commands_P(PSTR("G1 X50 Y50"));
-	// 		#else  //U30_Pro
-	// 			if (xyz_home == false)
-	// 			{
-	// 				thermalManager.setTargetHotend(0, target_extruder);
-	// 				thermalManager.setTargetBed(0);
-	// 				enqueue_and_echo_commands_P(PSTR("G28"));
-	// 				xyz_home = true;
-	// 			}
-	// 			enqueue_and_echo_commands_P(PSTR("G1 Z10"));
-	// 			enqueue_and_echo_commands_P(PSTR("G1 X30 Y30 F3000"));
-	// 			enqueue_and_echo_commands_P(PSTR("G1 Z0"));
-	// 		#endif
-	// 		break;
-	// 	case eBT_UTILI_LEVEL_CORNER_POS_2: //45 002D
-	// 		#ifdef U20_Pro
-	// 			if (xy_home == false)
-	// 			{
-	// 				thermalManager.setTargetHotend(0, target_extruder);
-	// 				thermalManager.setTargetBed(0);
-	// 				enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
-	// 				xy_home = true;
-	// 			}
-	// 			enqueue_and_echo_commands_P(PSTR("G1 X250 Y50"));
-	// 		#else  //U30_Pro
-	// 			if (xyz_home == false)
-	// 			{
-	// 				thermalManager.setTargetHotend(0, target_extruder);
-	// 				thermalManager.setTargetBed(0);
-	// 				enqueue_and_echo_commands_P(PSTR("G28"));
-	// 				xyz_home = true;
-	// 			}
-	// 			enqueue_and_echo_commands_P(PSTR("G1 Z10"));
-	// 			enqueue_and_echo_commands_P(PSTR("G1 X190 Y30 F3000"));
-	// 			enqueue_and_echo_commands_P(PSTR("G1 Z0"));
-	// 		#endif
-	// 		break;
-	// 	case eBT_UTILI_LEVEL_CORNER_POS_3:
-	// 		#ifdef U20_Pro
-	// 			if (xy_home == false)
-	// 			{
-	// 				thermalManager.setTargetHotend(0, target_extruder);
-	// 				thermalManager.setTargetBed(0);
-	// 				enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
-	// 				xy_home = true;
-	// 			}
-	// 			enqueue_and_echo_commands_P(PSTR("G1 X250 Y250"));
-	// 		#else  //U30_Pro
-	// 			if (xyz_home == false)
-	// 			{
-	// 				thermalManager.setTargetHotend(0, target_extruder);
-	// 				thermalManager.setTargetBed(0);
-	// 				enqueue_and_echo_commands_P(PSTR("G28"));
-	// 				xyz_home = true;
-	// 			}
-	// 			enqueue_and_echo_commands_P(PSTR("G1 Z10"));
-	// 			enqueue_and_echo_commands_P(PSTR("G1 X190 Y190 F3000"));
-	// 			enqueue_and_echo_commands_P(PSTR("G1 Z0"));
-	// 		#endif
-	// 		break;
-	// 	case eBT_UTILI_LEVEL_CORNER_POS_4:
-	// 		#ifdef U20_Pro
-	// 			if (xy_home == false)
-	// 			{
-	// 				thermalManager.setTargetHotend(0, target_extruder);
-	// 				thermalManager.setTargetBed(0);
-	// 				enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
-	// 				xy_home = true;
-	// 			}
-	// 			enqueue_and_echo_commands_P(PSTR("G1 X50 Y250"));
-	// 		#else  //U30_Pro
-	// 			if (xyz_home == false)
-	// 			{
-	// 				thermalManager.setTargetHotend(0, target_extruder);
-	// 				thermalManager.setTargetBed(0);
-	// 				enqueue_and_echo_commands_P(PSTR("G28"));
-	// 				xyz_home = true;
-	// 			}
-	// 			enqueue_and_echo_commands_P(PSTR("G1 Z10"));
-	// 			enqueue_and_echo_commands_P(PSTR("G1 X30 Y190 F3000"));
-	// 			enqueue_and_echo_commands_P(PSTR("G1 Z0"));
-	// 		#endif
-	// 		break;
-	// 	case eBT_UTILI_LEVEL_CORNER_POS_5:
-	// 		#ifdef U20_Pro
-	// 			if (xy_home == false)
-	// 			{
-	// 				thermalManager.setTargetHotend(0, target_extruder);
-	// 				thermalManager.setTargetBed(0);
-	// 				enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
-	// 				xy_home = true;
-	// 			}
-	// 			enqueue_and_echo_commands_P(PSTR("G1 X150 Y150"));
-	// 		#else  //U30_Pro
-	// 			if (xyz_home == false)
-	// 			{
-	// 				thermalManager.setTargetHotend(0, target_extruder);
-	// 				thermalManager.setTargetBed(0);
-	// 				enqueue_and_echo_commands_P(PSTR("G28"));
-	// 				xyz_home = true;
-	// 			}
-	// 			enqueue_and_echo_commands_P(PSTR("G1 Z10"));
-	// 			enqueue_and_echo_commands_P(PSTR("G1 X110 Y110 F3000"));
-	// 			enqueue_and_echo_commands_P(PSTR("G1 Z0"));
-	// 		#endif
-	// 		break;
-	// 	case eBT_UTILI_LEVEL_CORNER_BACK:
-	// 		#ifdef U20_Pro
-	// 			if (xy_home) {
-	// 				xy_home = false;
-	// 				enqueue_and_echo_commands_P(PSTR("G1 Z10"));	//up 10mm to prevent from damaging bed
-	// 			}
-	// 		#else
-	// 			if (xyz_home) {
-	// 				xyz_home = false;
-	// 				enqueue_and_echo_commands_P(PSTR("G1 Z10"));	//up 10mm to prevent from damaging bed
-	// 			}
-	// 		#endif
-	// 		break;
-	// #ifdef U20_Pro
-	// 	case eBT_UTILI_LEVEL_MEASU_START:  // == PREVIOUS
-	// 		LGT_Change_Page(ID_DIALOG_LEVEL_WAIT);
-	// 		level_z_height = 0;
-	// 		LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN,0);
-	// 		menu_measu_step = 1;
-	// 		menu_measu_dis_chk = 1;
-	// 		thermalManager.setTargetHotend(0, target_extruder);
-	// 		thermalManager.setTargetBed(0);
-	// 		enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
-	// //			enqueue_and_echo_commands_P(PSTR("G1 X150 Y150 F3000"));
-	// 		enqueue_and_echo_commands_P(PSTR("G1 X180 Y153 F3000"));
-	// 		enqueue_and_echo_commands_P(PSTR("M2002"));
-	// 		xy_home = true;
-	// 		break;
-	// 	case eBT_UTILI_LEVEL_MEASU_DIS_0:
-	// 		menu_measu_dis_chk = 0;
-	// 		break;
-	// 	case eBT_UTILI_LEVEL_MEASU_DIS_1:    //50 0032
-	// 		menu_measu_dis_chk = 1;
-	// 		break;
-	// 	case eBT_UTILI_LEVEL_MEASU_S1_NEXT:
-	// 		menu_measu_step = 2;
-	// 		menu_measu_dis_chk = 1;
-	// 		break;
-	// 	case eBT_UTILI_LEVEL_MEASU_S2_NEXT:
-	// 		menu_measu_step = 3;
-	// 		menu_measu_dis_chk = 1;
-	// 		settings.reset();
-	// 		enqueue_and_echo_commands_P(PSTR("G28"));
-	// 		enqueue_and_echo_commands_P(PSTR("G29"));
-	// 		break;
-	// 	case eBT_UTILI_LEVEL_MEASU_S1_EXIT_NO:
-	// 		LGT_Change_Page(ID_MENU_MEASU_S1 + menu_measu_dis_chk);
-	// 		break;
-	// 	case eBT_UTILI_LEVEL_MEASU_S2_EXIT_NO:
-	// 		LGT_Change_Page(ID_MENU_MEASU_S2 + menu_measu_dis_chk);
-	// 		break;
-	// 	case eBT_UTILI_LEVEL_MEASU_EXIT_OK:
-	// 		clear_command_queue();
-	// 		quickstop_stepper();
-	// 		enqueue_and_echo_commands_P(PSTR("M18"));
-	// 		break;
-	// 	case eBT_UTILI_LEVEL_MEASU_S3_EXIT_NO:
-	// 		LGT_Change_Page(ID_MENU_MEASU_S3);
-	// 		break;
-	// 	case eBT_UTILI_LEVEL_MEASU_STOP_MOVE:
-	// 		level_z_height = 0;
-	// 		LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN, 0);
-	// 		clear_command_queue();
-	// 		quickstop_stepper();
-	// 		enqueue_and_echo_commands_P(PSTR("M17"));
-	// 		break;
-	// #endif  //U20_Pro
-	// 	case eBT_MOVE_P0:
-	// 		menu_move_dis_chk = 0;
-	// 		break;
-	// 	case eBT_MOVE_P1:
-	// 		menu_move_dis_chk = 1;
-	// 		break;
-	// 	case eBT_MOVE_P2:
-	// 		menu_move_dis_chk = 2;
-	// 		break;
 
-	// #ifdef U20_Pro
-	// 	case eBT_TUNE_SWITCH_LEDS:
-	// 		led_on = !led_on;
-	// 		if (led_on == false)
-	// 		{
-	// 			LED_Bright_State(LED_BLUE, 10, 0);  //close LED
-	// 			LGT_Send_Data_To_Screen(ADDR_VAL_LEDS_SWITCH, 1);
-	// 			delay(5);
-	// 		}
-	// 		else
-	// 		{
-	// 			LGT_Send_Data_To_Screen(ADDR_VAL_LEDS_SWITCH, 0);
-	// 			delay(5);
-	// 		}
-	// 		break;
-	// #endif
+	// ----- mannual leveling menu -----
+		case eBT_UTILI_LEVEL_CORNER_POS_1:
+			#ifdef U20_Pro
+				if (xy_home == false)
+				{
+					thermalManager.setTargetHotend(0, eExtruder::E0);
+					thermalManager.setTargetBed(0);
+					enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+					xy_home = true;
+				}
+				enqueue_and_echo_commands_P(PSTR("G1 X50 Y50"));
+			#else  //U30_Pro
+				if (xyz_home == false)
+				{
+					thermalManager.setTargetHotend(0, eExtruder::E0);
+					thermalManager.setTargetBed(0);
+					queue.enqueue_now_P(PSTR("G28"));
+
+					xyz_home = true;
+				}
+				queue.enqueue_now_P(PSTR("G1 Z10 F420"));
+				queue.enqueue_now_P(PSTR("G1 X30 Y30 F3000"));
+				queue.enqueue_now_P(PSTR("G1 Z0 F420"));
+			#endif
+			break;
+		case eBT_UTILI_LEVEL_CORNER_POS_2: //45 002D
+			#ifdef U20_Pro
+				if (xy_home == false)
+				{
+					thermalManager.setTargetHotend(0, eExtruder::E0);
+					thermalManager.setTargetBed(0);
+					enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+					xy_home = true;
+				}
+				enqueue_and_echo_commands_P(PSTR("G1 X250 Y50"));
+			#else  //U30_Pro
+				if (xyz_home == false)
+				{
+					thermalManager.setTargetHotend(0, eExtruder::E0);
+					thermalManager.setTargetBed(0);
+					queue.enqueue_now_P(PSTR("G28"));
+					xyz_home = true;
+				}
+				queue.enqueue_now_P(PSTR("G1 Z10 F420"));
+				queue.enqueue_now_P(PSTR("G1 X190 Y30 F3000"));
+				queue.enqueue_now_P(PSTR("G1 Z0 F420"));
+			#endif
+			break;
+		case eBT_UTILI_LEVEL_CORNER_POS_3:
+			#ifdef U20_Pro
+				if (xy_home == false)
+				{
+					thermalManager.setTargetHotend(0, eExtruder::E0);
+					thermalManager.setTargetBed(0);
+					enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+					xy_home = true;
+				}
+				enqueue_and_echo_commands_P(PSTR("G1 X250 Y250"));
+			#else  //U30_Pro
+				if (xyz_home == false)
+				{
+					thermalManager.setTargetHotend(0, eExtruder::E0);
+					thermalManager.setTargetBed(0);
+					queue.enqueue_now_P(PSTR("G28"));
+					xyz_home = true;
+				}
+				queue.enqueue_now_P(PSTR("G1 Z10 F420"));
+				queue.enqueue_now_P(PSTR("G1 X190 Y190 F3000"));
+				queue.enqueue_now_P(PSTR("G1 Z0 F420"));
+			#endif
+			break;
+		case eBT_UTILI_LEVEL_CORNER_POS_4:
+			#ifdef U20_Pro
+				if (xy_home == false)
+				{
+					thermalManager.setTargetHotend(0, eExtruder::E0);
+					thermalManager.setTargetBed(0);
+					enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+					xy_home = true;
+				}
+				enqueue_and_echo_commands_P(PSTR("G1 X50 Y250"));
+			#else  //U30_Pro
+				if (xyz_home == false)
+				{
+					thermalManager.setTargetHotend(0, eExtruder::E0);
+					thermalManager.setTargetBed(0);
+					queue.enqueue_now_P(PSTR("G28"));
+					xyz_home = true;
+				}
+				queue.enqueue_now_P(PSTR("G1 Z10 F420"));
+				queue.enqueue_now_P(PSTR("G1 X30 Y190 F3000"));
+				queue.enqueue_now_P(PSTR("G1 Z0 F420"));  
+			#endif
+			break;
+		case eBT_UTILI_LEVEL_CORNER_POS_5:
+			#ifdef U20_Pro
+				if (xy_home == false)
+				{
+					thermalManager.setTargetHotend(0, eExtruder::E0);
+					thermalManager.setTargetBed(0);
+					enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+					xy_home = true;
+				}
+				enqueue_and_echo_commands_P(PSTR("G1 X150 Y150"));
+			#else  //U30_Pro
+				if (xyz_home == false)
+				{
+					thermalManager.setTargetHotend(0, eExtruder::E0);
+					thermalManager.setTargetBed(0);
+					queue.enqueue_now_P(PSTR("G28"));
+					xyz_home = true;
+				}
+				queue.enqueue_now_P(PSTR("G1 Z10 F420"));
+				queue.enqueue_now_P(PSTR("G1 X110 Y110 F3000"));
+				queue.enqueue_now_P(PSTR("G1 Z0 F420"));
+			#endif
+			break;
+		case eBT_UTILI_LEVEL_CORNER_BACK:
+			#ifdef U20_Pro
+				if (xy_home) {
+					xy_home = false;
+					queue.enqueue_now_P(PSTR("G1 Z10 F420"));	//up 10mm to prevent from damaging bed
+				}
+			#else
+				if (xyz_home) {
+					xyz_home = false;
+					queue.enqueue_now_P(PSTR("G1 Z10 F420"));	//up 10mm to prevent from damaging bed
+				}
+			#endif
+			break;
+
+	// ----- u20 auto leveling with probe -----
+	#ifdef U20_Pro
+		case eBT_UTILI_LEVEL_MEASU_START:  // == PREVIOUS
+			LGT_Change_Page(ID_DIALOG_LEVEL_WAIT);
+			level_z_height = 0;
+			LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN,0);
+			menu_measu_step = 1;
+			menu_measu_dis_chk = 1;
+			thermalManager.setTargetHotend(0, eExtruder::E0);
+			thermalManager.setTargetBed(0);
+			enqueue_and_echo_commands_P(PSTR("G28 X0 Y0"));
+	//			enqueue_and_echo_commands_P(PSTR("G1 X150 Y150 F3000"));
+			enqueue_and_echo_commands_P(PSTR("G1 X180 Y153 F3000"));
+			enqueue_and_echo_commands_P(PSTR("M2002"));
+			xy_home = true;
+			break;
+		case eBT_UTILI_LEVEL_MEASU_DIS_0:
+			menu_measu_dis_chk = 0;
+			break;
+		case eBT_UTILI_LEVEL_MEASU_DIS_1:    //50 0032
+			menu_measu_dis_chk = 1;
+			break;
+		case eBT_UTILI_LEVEL_MEASU_S1_NEXT:
+			menu_measu_step = 2;
+			menu_measu_dis_chk = 1;
+			break;
+		case eBT_UTILI_LEVEL_MEASU_S2_NEXT:
+			menu_measu_step = 3;
+			menu_measu_dis_chk = 1;
+			settings.reset();
+			enqueue_and_echo_commands_P(PSTR("G28"));
+			enqueue_and_echo_commands_P(PSTR("G29"));
+			break;
+		case eBT_UTILI_LEVEL_MEASU_S1_EXIT_NO:
+			LGT_Change_Page(ID_MENU_MEASU_S1 + menu_measu_dis_chk);
+			break;
+		case eBT_UTILI_LEVEL_MEASU_S2_EXIT_NO:
+			LGT_Change_Page(ID_MENU_MEASU_S2 + menu_measu_dis_chk);
+			break;
+		case eBT_UTILI_LEVEL_MEASU_EXIT_OK:
+			clear_command_queue();
+			quickstop_stepper();
+			enqueue_and_echo_commands_P(PSTR("M18"));
+			break;
+		case eBT_UTILI_LEVEL_MEASU_S3_EXIT_NO:
+			LGT_Change_Page(ID_MENU_MEASU_S3);
+			break;
+		case eBT_UTILI_LEVEL_MEASU_STOP_MOVE:
+			level_z_height = 0;
+			LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN, 0);
+			clear_command_queue();
+			quickstop_stepper();
+			enqueue_and_echo_commands_P(PSTR("M17"));
+			break;
+
+		case eBT_TUNE_SWITCH_LEDS:
+			led_on = !led_on;
+			if (led_on == false)
+			{
+				LED_Bright_State(LED_BLUE, 10, 0);  //close LED
+				LGT_Send_Data_To_Screen(ADDR_VAL_LEDS_SWITCH, 1);
+				delay(5);
+			}
+			else
+			{
+				LGT_Send_Data_To_Screen(ADDR_VAL_LEDS_SWITCH, 0);
+				delay(5);
+			}
+			break;
+	#endif //U20_Pro
 		default: break;
 	}
 #endif // 0

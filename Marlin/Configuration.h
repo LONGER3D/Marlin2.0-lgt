@@ -693,7 +693,7 @@
   //#define ENDSTOPPULLUP_XMIN
   //#define ENDSTOPPULLUP_YMIN
   //#define ENDSTOPPULLUP_ZMIN
-  #define ENDSTOPPULLUP_ZMIN_PROBE
+  //#define ENDSTOPPULLUP_ZMIN_PROBE
 #endif
 
 // Enable pulldown for all endstops to prevent a floating state
@@ -890,7 +890,7 @@
  *
  * Enable this option for a probe connected to the Z Min endstop pin.
  */
-#define Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN
+//#define Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN
 
 /**
  * Z_MIN_PROBE_PIN
@@ -946,7 +946,7 @@
 /**
  * The BLTouch probe uses a Hall effect sensor and emulates a servo.
  */
-#define BLTOUCH
+// #define BLTOUCH
 
 /**
  * Touch-MI Probe by hotends.fr
@@ -1043,7 +1043,7 @@
  * A total of 2 does fast/slow probes with a weighted average.
  * A total of 3 or more adds more slow probes, taking the average.
  */
-#define MULTIPLE_PROBING 2
+// #define MULTIPLE_PROBING 2
 //#define EXTRA_PROBING    1
 
 /**
@@ -1072,7 +1072,7 @@
 #define Z_PROBE_OFFSET_RANGE_MAX 20
 
 // Enable the M48 repeatability test to test probe accuracy
-#define Z_MIN_PROBE_REPEATABILITY_TEST
+//#define Z_MIN_PROBE_REPEATABILITY_TEST
 
 // Before deploy/stow pause for user confirmation
 //#define PAUSE_BEFORE_DEPLOY_STOW
@@ -1434,7 +1434,7 @@
 // - Move the Z probe (or nozzle) to a defined XY point before Z Homing when homing all axes (G28).
 // - Prevent Z homing when the Z probe is outside bed area.
 //
-#define Z_SAFE_HOMING
+//#define Z_SAFE_HOMING
 
 #if ENABLED(Z_SAFE_HOMING)
   #define Z_SAFE_HOMING_X_POINT ((X_BED_SIZE) / 2)    // X point for Z homing when homing all axes (G28).
