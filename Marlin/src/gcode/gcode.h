@@ -976,6 +976,21 @@ private:
     static void M710();
   #endif
 
+  #if ENABLED(LGT_LCD_DW)
+    static void M2000();
+    static void M2001();
+    #if ENABLED(U20_PLUS)
+      static void M2002();
+    #endif    
+    static void M2003();
+    static void M2004();
+    static void M2005();
+    static void M2006();    
+    static void M2007();
+  #endif
+
+
+
   static void T(const uint8_t tool_index);
 
 };

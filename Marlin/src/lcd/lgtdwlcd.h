@@ -112,5 +112,7 @@ public:
 #define DEHILIGHT_FILE_NAME()			CHANGE_TXT_COLOR(SP_COLOR_SEL_FILE_NAME, COLOR_WHITE)
 
 extern LGT_SCR_DW lgtLcdDw;     // extern interface
+extern bool LGT_is_printing;
+extern char leveling_sta; 
 
 #endif // LGT_LCD_DW

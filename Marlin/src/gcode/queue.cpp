@@ -639,7 +639,12 @@ void GCodeQueue::advance() {
   #endif // SDSUPPORT
 
   // The queue may be reset by a command handler or by code invoked by idle() within a handler
-  --length;
-  if (++index_r >= BUFSIZE) index_r = 0;
-
+  #if ENABLED(LGT)
+    if (length) {   // prevent -1(255) error
+  #endif
+      --length;
+      if (++index_r >= BUFSIZE) index_r = 0;
+  #if ENABLED(LGT)
+    }
+  #endif
 }

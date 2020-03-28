@@ -864,6 +864,19 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 7219: M7219(); break;                                // M7219: Set LEDs, columns, and rows
       #endif
 
+      #if ENABLED(LGT_LCD_DW)
+        case 2000: M2000(); break;
+        case 2001: M2001(); break;
+        #if ENABLED(U20_PLUS)
+          case M2002(); break;
+        #endif    
+        case 2003: M2003(); break;
+        case 2004: M2004(); break;
+        case 2005: M2005(); break;
+        case 2006: M2006(); break;    
+        case 2007: M2007(); break;
+      #endif
+
       default: parser.unknown_command_warning(); break;
     }
     break;

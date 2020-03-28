@@ -62,8 +62,17 @@ char cmd_E[16] = { 0 };
 unsigned int filament_len = 10;
 unsigned int filament_temp = 200;
 
+bool check_recovery = false; // for recovery dialog
+char leveling_sta = 0; // for leveling menu
+
 #define MYSERIAL1 MSerial2
 
+static void LGT_Line_To_Current(AxisEnum axis) 
+{
+	const float manual_feedrate_mm_m[] = MANUAL_FEEDRATE;
+	if (!planner.is_full())
+		planner.buffer_line(current_position, MMM_TO_MMS(manual_feedrate_mm_m[(int8_t)axis]), active_extruder);
+}
 
 LGT_SCR_DW::LGT_SCR_DW()
 {
@@ -91,14 +100,9 @@ void LGT_SCR_DW::begin()
 
 }
 
-
-bool check_recovery = false;
-// char leveling_sta = 0;
-int ii_setup = 0;
 void LGT_SCR_DW::LGT_LCD_startup_settings()
 {
-
-    
+    static int ii_setup = 0;
     if (ii_setup < STARTUP_COUNTER)
     {
         if (ii_setup >= (STARTUP_COUNTER-1000))
@@ -437,13 +441,6 @@ void LGT_SCR_DW::LGT_Analysis_DWIN_Screen_Cmd()
 	}
 
 
-}
-
-void LGT_Line_To_Current(AxisEnum axis) 
-{
-	const float manual_feedrate_mm_m[] = MANUAL_FEEDRATE;
-	if (!planner.is_full())
-		planner.buffer_line(current_position, MMM_TO_MMS(manual_feedrate_mm_m[(int8_t)axis]), active_extruder);
 }
 
 int LGT_SCR_DW::LGT_Get_Extrude_Temp()
@@ -803,7 +800,6 @@ void LGT_SCR_DW::processButton()
 		case eBT_MOVE_DISABLE:
 			queue.clear();
 			quickstop_stepper();
-	//			queue.enqueue_now_P(PSTR("M84"));
 			break;
 		case eBT_MOVE_ENABLE:
 				enable_all_steppers();
@@ -953,56 +949,60 @@ void LGT_SCR_DW::processButton()
 			break;
 
 	// ----- print filament menu ----- 
-	// 	case eBT_PRINT_FILA_HEAT_NO:
-	// 		clear_command_queue();
-	// 		wait_for_heatup = false;
-	// 		if (menu_type == eMENU_UTILI_FILA)
-	// 		{
-	// 			thermalManager.disable_all_heaters();
-	// 			LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
-	// 		}
-	// 		else if (menu_type == eMENU_HOME_FILA)
-	// 		{
-	// 			planner.set_e_position_mm((destination[E_CART] = current_position[E_CART] = (resume_e_position-2)));
-	// 			LGT_Change_Page(ID_MENU_HOME_FILA_0);
-	// 		}
-	// 		break;
-	// 	case eBT_PRINT_FILA_UNLOAD_OK:
-	// 		clear_command_queue();
-	// 		quickstop_stepper();
-	// 		delay(5);
-	// 		if (menu_type == eMENU_UTILI_FILA)
-	// 		{
-	// 			LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
-	// 		}
-	// 		else if (menu_type == eMENU_HOME_FILA)
-	// 		{
-	// 			LGT_Change_Page(ID_MENU_HOME_FILA_0);
-	// 		}
-	// 		break;
-	// 	case eBT_PRINT_FILA_LOAD_OK:
-	// 		clear_command_queue();
-	// 		quickstop_stepper();
-	// 		delay(5);
-	// 		if (menu_type == eMENU_UTILI_FILA)
-	// 		{
-	// 			LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
-	// 		}
-	// 		else if (menu_type == eMENU_HOME_FILA)
-	// 		{
-	// 			LGT_Change_Page(ID_DIALOG_LOAD_FINISH);
-	// 		}
-	// 		break;
-	// 	case eBT_PRINT_FILA_CHANGE_YES:
-	// 		if(menu_type==eMENU_PRINT_HOME)
-	// 			LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
-	// 		else if(menu_type== eMENU_TUNE)
-	// 			LGT_Change_Page(ID_DIALOG_PRINT_TUNE_WAIT);
-	// 		status_type = PRINTER_PAUSE;
-	// 		card.pauseSDPrint();
-	// 		print_job_timer.pause();
-	// 		queue.enqueue_now_P(PSTR("M2006"));
-	// 		break;
+		case eBT_PRINT_FILA_HEAT_NO:
+			DEBUG_ECHOLNPGM("fila heating canceled");
+			// DEBUG_ECHOLNPAIR("menu type", menu_type);
+			queue.clear();
+			wait_for_heatup = false;
+			if (menu_type == eMENU_UTILI_FILA)
+			{
+				thermalManager.disable_all_heaters();
+				LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
+			}
+			else if (menu_type == eMENU_HOME_FILA)
+			{
+				planner.set_e_position_mm((destination[E_AXIS] = current_position[E_AXIS] = (resume_e_position-2)));
+				LGT_Change_Page(ID_MENU_HOME_FILA_0);
+			}
+			break;
+		case eBT_PRINT_FILA_UNLOAD_OK:
+			DEBUG_ECHOLNPGM("unload ok");
+			queue.clear();
+			quickstop_stepper();
+			delay(5);
+			if (menu_type == eMENU_UTILI_FILA)
+			{
+				LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
+			}
+			else if (menu_type == eMENU_HOME_FILA)
+			{
+				LGT_Change_Page(ID_MENU_HOME_FILA_0);
+			}
+			break;
+		case eBT_PRINT_FILA_LOAD_OK:
+			DEBUG_ECHOLNPGM("load ok");
+			queue.clear();
+			quickstop_stepper();
+			delay(5);
+			if (menu_type == eMENU_UTILI_FILA)
+			{
+				LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
+			}
+			else if (menu_type == eMENU_HOME_FILA)
+			{
+				LGT_Change_Page(ID_DIALOG_LOAD_FINISH);
+			}
+			break;
+		// case eBT_PRINT_FILA_CHANGE_YES:
+		// 	if(menu_type==eMENU_PRINT_HOME)
+		// 		LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
+		// 	else if(menu_type== eMENU_TUNE)
+		// 		LGT_Change_Page(ID_DIALOG_PRINT_TUNE_WAIT);
+		// 	status_type = PRINTER_PAUSE;
+		// 	card.pauseSDPrint();
+		// 	print_job_timer.pause();
+		// 	queue.enqueue_now_P(PSTR("M2006"));
+		// 	break;
 
 	// ---- power loss recovery ----
 	// 	case eBT_HOME_RECOVERY_YES:
@@ -1209,7 +1209,7 @@ void LGT_SCR_DW::processButton()
 			LGT_Change_Page(ID_MENU_MEASU_S2 + menu_measu_dis_chk);
 			break;
 		case eBT_UTILI_LEVEL_MEASU_EXIT_OK:
-			clear_command_queue();
+			queue.clear();
 			quickstop_stepper();
 			queue.enqueue_now_P(PSTR("M18"));
 			break;
@@ -1219,7 +1219,7 @@ void LGT_SCR_DW::processButton()
 		case eBT_UTILI_LEVEL_MEASU_STOP_MOVE:
 			level_z_height = 0;
 			LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN, 0);
-			clear_command_queue();
+			queue.clear();
 			quickstop_stepper();
 			queue.enqueue_now_P(PSTR("M17"));
 			break;
@@ -1241,9 +1241,61 @@ void LGT_SCR_DW::processButton()
 	#endif //U20_Pro
 		default: break;
 	}
-#endif // 0
-		
+#endif // 0		
 }
 
+
+void LGT_SCR_DW::LGT_Change_Filament(int fila_len)
+{
+	if (fila_len >= 0)
+	{
+		if (menu_type == eMENU_UTILI_FILA)
+		{
+			LGT_Change_Page(ID_DIALOG_PRINT_FILA_LOAD);
+		}
+		else if (menu_type == eMENU_HOME_FILA)
+		{
+			LGT_Change_Page(ID_DIALOG_PRINT_FILA_LOAD);
+		}
+	}
+	else
+	{
+		if (menu_type == eMENU_UTILI_FILA)
+		{
+			LGT_Change_Page(ID_DIALOG_UTILI_FILA_UNLOAD);
+		}
+		else if (menu_type == eMENU_HOME_FILA)
+		{
+			LGT_Change_Page(ID_DIALOG_PRINT_FILA_UNLOAD);
+		}
+	}
+	current_position[E_AXIS] = current_position[E_AXIS]+ fila_len;
+	if (fila_len>=0)      //load filament
+	{
+		LGT_Line_To_Current(E_AXIS);
+	}
+	else                //unload filament
+	{ 
+		if (!planner.is_full())
+			planner.buffer_line(current_position, 600, 0, current_position[E_AXIS]);
+	}
+	planner.synchronize();
+	if (menu_type == eMENU_UTILI_FILA)
+	{
+		LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
+	}
+	else if (menu_type == eMENU_HOME_FILA)
+	{
+		planner.set_e_position_mm((destination[E_AXIS] = current_position[E_AXIS] = (resume_e_position - 2)));
+		if (fila_len >= 0)
+		{
+			LGT_Change_Page(ID_DIALOG_LOAD_FINISH);
+		}
+		else
+		{
+			LGT_Change_Page(ID_MENU_HOME_FILA_0);
+		}
+	}
+}
 
 #endif // LGT_LCD_DW
