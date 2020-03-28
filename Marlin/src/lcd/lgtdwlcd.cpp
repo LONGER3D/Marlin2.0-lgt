@@ -9,6 +9,7 @@
 #include "../module/motion.h"
 #include "../module/planner.h"
 #include "../module/printcounter.h"
+#include "../feature/runout.h"
 
 // debug define
 #define DEBUG_LGTDWLCD
@@ -134,7 +135,7 @@ void LGT_SCR_DW::LGT_LCD_startup_settings()
     if (LGT_stop_printing == true)
     {
         LGT_stop_printing = false;
-        //lgtLcdDw.LGT_Stop_Printing();
+        lgtLcdDw.LGT_Stop_Printing();
     }
 }
 
@@ -826,26 +827,26 @@ void LGT_SCR_DW::processButton()
 				}
 			}
 			break;
-		// case eBT_PRINT_FILE_OPEN_YES:
-		// 	if (sel_fileid > -1)
-		// 	{
-		// 			card.getfilename(gcode_id[sel_fileid]);
-		// 			card.openFile(card.filename,true);
-		// 			card.startFileprint();
-		// 			print_job_timer.start();		
-		// 			LGT_MAC_Send_Filename(ADDR_TXT_HOME_FILE_NAME, gcode_id[sel_fileid]);
-		// 			delay(5);
-		// 			menu_type = eMENU_PRINT_HOME;
-		// 			LGT_Printer_Data_Updata();
-		// 			status_type = PRINTER_PRINTING;
-		// 			LGT_is_printing = true;
-		// 			LGT_Send_Data_To_Screen(ADDR_VAL_ICON_HIDE, 0);
-		// 			idle();
-		// 			LGT_Change_Page(ID_MENU_PRINT_HOME);
-		// 			fila_type = 0;    //PLA
-		// 			LGT_Save_Recovery_Filename(DW_CMD_VAR_W, DW_FH_1, ADDR_TXT_HOME_FILE_NAME,32);
-		// 	}
-		// 	break;
+		case eBT_PRINT_FILE_OPEN_YES:
+			if (sel_fileid > -1)
+			{
+					card.getfilename_sorted(gcode_id[sel_fileid]);
+					card.openFileRead(card.filename,true);
+					card.startFileprint();
+					print_job_timer.start();		
+					LGT_MAC_Send_Filename(ADDR_TXT_HOME_FILE_NAME, gcode_id[sel_fileid]);
+					delay(5);
+					menu_type = eMENU_PRINT_HOME;
+					LGT_Printer_Data_Updata();
+					status_type = PRINTER_PRINTING;
+					LGT_is_printing = true;
+					LGT_Send_Data_To_Screen(ADDR_VAL_ICON_HIDE, int16_t(0));
+					idle();
+					LGT_Change_Page(ID_MENU_PRINT_HOME);
+					fila_type = 0;    //PLA
+					LGT_Save_Recovery_Filename(DW_CMD_VAR_W, DW_FH_1, ADDR_TXT_HOME_FILE_NAME,32);
+			}
+			break;
 		case eBT_PRINT_FILE_CLEAN: //Cleaning sel_fileid
 			if (sel_fileid > -1)
 			{
@@ -858,35 +859,36 @@ void LGT_SCR_DW::processButton()
 			break;
 
 	// ----- print home menu -----
-	// 	case eBT_PRINT_HOME_PAUSE:
-	// 		LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
-	// 		status_type = PRINTER_PAUSE;
-	// 		card.pauseSDPrint();
-	// 		print_job_timer.pause();
-	// 		queue.enqueue_now_P(PSTR("M2001"));
-	// 		break;
-	// 	case eBT_PRINT_HOME_RESUME:
-	// 			LGT_Change_Page(ID_MENU_PRINT_HOME);
-	// 			do_blocking_move_to_xy(resume_x_position,resume_y_position,50); 
-	// 			card.startFileprint();
-	// 			print_job_timer.start();
-	// 			runout.reset();
-	// 			menu_type = eMENU_PRINT_HOME;
-	// 			status_type = PRINTER_PRINTING;
-	// 		break;
-	// 	case eBT_PRINT_HOME_ABORT:
-	// 			LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
-	// 			wait_for_heatup = false;
-	// 			LGT_stop_printing = true;
-	// 			LGT_Printer_Total_Work_Time();
-	// 			LGT_Exit_Print_Page();
-	// 		break;
-	// 	case eBT_PRINT_HOME_FINISH:
-	// 			runout.reset();
-	// 			LGT_Change_Page(ID_MENU_HOME);
-	// 			LGT_Exit_Print_Page();
-	// 			LGT_is_printing = false;
-	// 		break;
+		case eBT_PRINT_HOME_PAUSE:
+			LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
+			status_type = PRINTER_PAUSE;
+			card.pauseSDPrint();
+			print_job_timer.pause();
+			queue.enqueue_now_P(PSTR("M2001"));
+			break;
+		case eBT_PRINT_HOME_RESUME:
+				LGT_Change_Page(ID_MENU_PRINT_HOME);
+				do_blocking_move_to_xy(resume_x_position,resume_y_position,50); 
+				card.startFileprint();
+				print_job_timer.start();
+				runout.reset();
+				menu_type = eMENU_PRINT_HOME;
+				status_type = PRINTER_PRINTING;
+			break;
+		case eBT_PRINT_HOME_ABORT:
+				DEBUG_ECHOLNPAIR_P("abort");
+				LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
+				wait_for_heatup = false;
+				LGT_stop_printing = true;
+				// // LGT_Printer_Total_Work_Time();
+				LGT_Exit_Print_Page();
+			break;
+		case eBT_PRINT_HOME_FINISH:
+				runout.reset();
+				LGT_Change_Page(ID_MENU_HOME);
+				LGT_Exit_Print_Page();
+				LGT_is_printing = false;
+			break;
 
 	//----- filament menu ----- 
 		case eBT_UTILI_FILA_PLA:
@@ -1344,6 +1346,168 @@ void LGT_SCR_DW::LGT_MAC_Send_Filename(uint16_t Addr, uint16_t Serial_Num)
 		MYSERIAL1.write(data_storage[i]);
 		delayMicroseconds(1);
 	}
+}
+
+/*************************************
+FUNCTION:	Checking sdcard and updating file list on screen
+**************************************/
+void LGT_SCR_DW::LGT_SDCard_Status_Update()
+{
+#if  ENABLED(SDSUPPORT) && PIN_EXISTS(SD_DETECT)
+    const uint8_t sd_status = (uint8_t)IS_SD_INSERTED;
+	if (!sd_status)
+	{
+		if (sd_init_flag ==true)
+		{
+			sd_init_flag = false;
+			if (!card.isMounted())
+			{
+				card.initsd();
+				delay(2);
+				if (card.cardOK)
+				{
+					check_print_job_recovery();
+					if (!check_recovery)
+					{
+						if (menu_type == eMENU_FILE)
+						{
+							if (ii_setup == (STARTUP_COUNTER + 1))
+							{
+								LGT_Change_Page(ID_MENU_PRINT_FILES_O);
+							}
+						}
+					}
+					else
+					{
+						return_home = true;
+						check_recovery = false;
+						enable_Z();
+						LGT_LCD.LGT_Change_Page(ID_DIALOG_PRINT_RECOVERY);
+					}
+					LGT_Display_Filename();
+				}
+			}
+		}
+	}
+	else
+	{
+		if (sd_init_flag == false)
+		{
+			if (return_home)
+			{
+				return_home = false;
+				menu_type = eMENU_HOME;
+				LGT_Change_Page(ID_MENU_HOME);
+			}
+			DEHILIGHT_FILE_NAME();
+			sel_fileid = -1;
+			uint16_t var_addr = ADDR_TXT_PRINT_FILE_ITEM_0;
+			for (int i = 0; i < gcode_num; i++)   //Cleaning filename
+			{
+				LGT_Clean_DW_Display_Data(var_addr);
+				var_addr = var_addr+LEN_FILE_NAME;
+				if (i == 10 || i == 20)
+					LGT_Get_MYSERIAL1_Cmd();
+			}
+			LGT_Clean_DW_Display_Data(ADDR_TXT_PRINT_FILE_SELECT);
+			card.release();
+			gcode_num = 0;
+		}
+		sd_init_flag = true;
+	}
+#endif
+}
+
+void LGT_SCR_DW::LGT_Save_Recovery_Filename(unsigned char cmd, unsigned char sys_cmd,unsigned int addr, unsigned int length)
+{
+	memset(data_storage, 0, sizeof(data_storage));
+	data_storage[0] = Send_Data.head[0];
+	data_storage[1] = Send_Data.head[1];
+	data_storage[2] = 0x0B;
+	data_storage[3] = DW_CMD_VAR_W;
+	data_storage[4] = 0x00;
+	data_storage[5] = 0x08;
+	data_storage[6] = sys_cmd;
+	data_storage[7] = 0x00;
+	data_storage[8] = 0x00;
+	data_storage[9] = 0x00;
+	data_storage[10] = (unsigned char)(addr >> 8);
+	data_storage[11] = (unsigned char)(addr & 0x00FF);
+	data_storage[12] = (unsigned char)(length >> 8);
+	data_storage[13] = (unsigned char)(length & 0x00FF);
+	for (int i = 0; i < 14; i++)
+	{
+		MYSERIAL1.write(data_storage[i]);
+		delayMicroseconds(1);
+	}
+}
+
+void LGT_SCR_DW::LGT_Exit_Print_Page()   //return to home menu
+{
+	feedrate_percentage = 100;
+	planner.flow_percentage[0] = 100;
+	LGT_Clean_DW_Display_Data(ADDR_TXT_HOME_FILE_NAME);
+	LGT_Clean_DW_Display_Data(ADDR_VAL_FAN);
+	LGT_Send_Data_To_Screen(ADDR_VAL_HOME_PROGRESS, int16_t(0));
+	recovery_time = 0;
+	recovery_percent = 0;
+	recovery_z_height = 0.0;
+	recovery_E_len = 0.0;
+	menu_type = eMENU_HOME;
+	LGT_Printer_Data_Updata();
+	status_type = PRINTER_STANDBY;
+	idle();
+	planner.set_e_position_mm((destination[E_AXIS] = current_position[E_AXIS] = 0));
+}
+
+void LGT_SCR_DW::LGT_Clean_DW_Display_Data(unsigned int addr)
+{
+	memset(data_storage, 0, sizeof(data_storage));
+	data_storage[0] = DW_FH_0;
+	data_storage[1] = DW_FH_1;
+	data_storage[2] = 0x05;
+	data_storage[3] = DW_CMD_VAR_W;
+	data_storage[4] = (addr & 0xFF00) >> 8;
+	data_storage[5] = addr;
+	data_storage[6] = 0xFF;
+	data_storage[7] = 0xFF;
+	for (int i = 0; i < 8; i++)
+		MYSERIAL1.write(data_storage[i]);
+}
+
+// abort sd printing
+void LGT_SCR_DW::LGT_Stop_Printing()
+{
+// 		card.stopSDPrint(
+// #if SD_RESORT
+// 			true
+// #endif
+// 		);
+	card.endFilePrint(
+      #if SD_RESORT
+        true
+      #endif
+    );
+	// card.flag.abort_sd_printing = true;
+	queue.clear();
+	quickstop_stepper();
+	delay(100);
+	print_job_timer.stop();
+	thermalManager.disable_all_heaters();
+	thermalManager.zero_fan_speeds();
+	wait_for_heatup = false;
+	#if ENABLED(POWER_LOSS_RECOVERY)
+		// card.openJobRecoveryFile();
+		// job_recovery_info.valid_head =0;
+		// job_recovery_info.valid_foot =0;
+		// (void)card.saveJobRecoveryInfo();
+		// card.closeJobRecoveryFile();
+		// job_recovery_commands_count = 0;
+	#endif
+	queue.enqueue_now_P(PSTR("G91"));
+	queue.enqueue_now_P(PSTR("G1 Z10"));
+	queue.enqueue_now_P(PSTR("G28 X0"));
+	queue.enqueue_now_P(PSTR("M2000"));
 }
 
 #endif // LGT_LCD_DW

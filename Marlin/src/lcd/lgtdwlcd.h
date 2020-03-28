@@ -77,9 +77,10 @@ public:
     void LGT_LCD_startup_settings();
 
 
-	void LED_Bright_State(uint8_t LED, uint16_t per, uint8_t mod);
+	//void LED_Bright_State(uint8_t LED, uint16_t per, uint8_t mod);
+
 	void LGT_MAC_Send_Filename(uint16_t Addr, uint16_t i);
-	void LGT_Print_Cause_Of_Kill();
+	//void LGT_Print_Cause_Of_Kill();
 	void LGT_Get_MYSERIAL1_Cmd();
 	void LGT_Analysis_DWIN_Screen_Cmd();
 	void LGT_Send_Data_To_Screen(uint16_t Addr, int16_t Num);
@@ -92,15 +93,15 @@ public:
 	void LGT_Clean_DW_Display_Data(unsigned int addr);
 	void LGT_SDCard_Status_Update();
 	void LGT_Change_Page(unsigned int pageid);
-	void LGT_Power_Loss_Recovery_Resume();
-	void LGT_Disable_Enable_Screen_Button(unsigned int pageid, unsigned int buttonid, unsigned int sta);
-	void LGT_Screen_System_Reset();
+	// void LGT_Power_Loss_Recovery_Resume();
+	// void LGT_Disable_Enable_Screen_Button(unsigned int pageid, unsigned int buttonid, unsigned int sta);
+	// void LGT_Screen_System_Reset();
 	void LGT_Stop_Printing();
 	void LGT_Exit_Print_Page();
 	int LGT_Get_Extrude_Temp();
 	void LGT_Save_Recovery_Filename(unsigned char cmd, unsigned char sys_cmd, /*unsigned int sys_addr,*/unsigned int addr, unsigned int length);
-	void LGT_Printer_Status_Light();
-	void LGT_Printer_Light_Update();
+	//void LGT_Printer_Status_Light();
+	//void LGT_Printer_Light_Update();
 	void LGT_Printer_Data_Updata();
 	void LGT_DW_Setup();
 	void LGT_Change_Filament(int fila_len);
