@@ -1015,16 +1015,16 @@ void LGT_SCR_DW::processButton()
 				LGT_Change_Page(ID_DIALOG_LOAD_FINISH);
 			}
 			break;
-		// case eBT_PRINT_FILA_CHANGE_YES:
-		// 	if(menu_type==eMENU_PRINT_HOME)
-		// 		LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
-		// 	else if(menu_type== eMENU_TUNE)
-		// 		LGT_Change_Page(ID_DIALOG_PRINT_TUNE_WAIT);
-		// 	status_type = PRINTER_PAUSE;
-		// 	card.pauseSDPrint();
-		// 	print_job_timer.pause();
-		// 	queue.enqueue_now_P(PSTR("M2006"));
-		// 	break;
+		case eBT_PRINT_FILA_CHANGE_YES:
+			if(menu_type==eMENU_PRINT_HOME)
+				LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
+			else if(menu_type== eMENU_TUNE)
+				LGT_Change_Page(ID_DIALOG_PRINT_TUNE_WAIT);
+			status_type = PRINTER_PAUSE;
+			card.pauseSDPrint();
+			print_job_timer.pause();
+			queue.inject_P(PSTR("M2006"));
+			break;
 
 	// ---- power loss recovery ----
 	// 	case eBT_HOME_RECOVERY_YES:

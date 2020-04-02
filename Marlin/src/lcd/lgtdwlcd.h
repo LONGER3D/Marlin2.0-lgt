@@ -118,5 +118,4 @@ public:
 extern LGT_SCR_DW lgtLcdDw;     // extern interface
 extern bool LGT_is_printing;
 extern char leveling_sta; 
-
 #endif // LGT_LCD_DW
