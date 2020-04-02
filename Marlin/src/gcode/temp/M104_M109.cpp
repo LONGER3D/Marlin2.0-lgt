@@ -119,6 +119,10 @@ void GcodeSuite::M109() {
     #endif
     thermalManager.setTargetHotend(temp, target_extruder);
 
+    #if ENABLED(LGT_LCD_DW)
+      lgtLcdDw.hideButtonsBeforeHeating();
+    #endif
+
     #if ENABLED(DUAL_X_CARRIAGE)
       if (dxc_is_duplicating() && target_extruder == 0)
         thermalManager.setTargetHotend(temp ? temp + duplicate_extruder_temp_offset : 0, 1);
@@ -145,6 +149,10 @@ void GcodeSuite::M109() {
 
   if (set_temp)
     (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling);
+
+  #if ENABLED(LGT_LCD_DW)
+    lgtLcdDw.showButtonsAfterHeating();
+  #endif
 }
 
 #endif // EXTRUDERS

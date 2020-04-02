@@ -74,6 +74,11 @@ void GcodeSuite::M190() {
   const bool no_wait_for_cooling = parser.seenval('S');
   if (no_wait_for_cooling || parser.seenval('R')) {
     thermalManager.setTargetBed(parser.value_celsius());
+
+    #if ENABLED(LGT_LCD_DW)
+      lgtLcdDw.hideButtonsBeforeHeating();
+    #endif
+
     #if ENABLED(PRINTJOB_TIMER_AUTOSTART)
       thermalManager.check_timer_autostart(true, false);
     #endif

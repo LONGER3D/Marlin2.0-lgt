@@ -32,7 +32,7 @@ millis_t recovery_time=0;
 uint8_t recovery_percent = 0;
 float level_z_height = 0.0;
 float recovery_z_height = 0.0,recovery_E_len=0.0;
-float resume_x_position=0.0,resume_y_position=0.0,resume_e_position= 0.0;
+float resume_x_position=0.0,resume_y_position=0.0,resume_e_position= 0.0, resume_feedrate = 0.0;
 bool sd_init_flag = true;
 bool tartemp_flag = false;	// flag for target temp whether is changed
 bool LGT_is_printing = false;
@@ -75,6 +75,23 @@ static void LGT_Line_To_Current(AxisEnum axis)
 		planner.buffer_line(current_position, MMM_TO_MMS(manual_feedrate_mm_m[(int8_t)axis]), active_extruder);
 }
 
+void LGT_SCR_DW::LGT_Pause_Move()
+{
+	resume_x_position = current_position[X_AXIS];
+	resume_y_position = current_position[Y_AXIS];
+	resume_e_position = current_position[E_AXIS];
+	resume_feedrate = feedrate_mm_s;
+	DEBUG_ECHOLNPAIR_F("save X:", resume_x_position);
+	DEBUG_ECHOLNPAIR_F("save Y:", resume_y_position);
+	DEBUG_ECHOLNPAIR_F("save E:", resume_e_position);
+	DEBUG_ECHOLNPAIR_F("save feedrate", feedrate_mm_s);
+
+	char buff[32] = {0};
+	sprintf_P(buff, PSTR("G1 F3000 X10 Y200 E%f"), resume_e_position - 3);
+	queue.enqueue_one_now(buff);
+	planner.synchronize();
+}
+
 LGT_SCR_DW::LGT_SCR_DW()
 {
 	memset(data_storage, 0, sizeof(data_storage));
@@ -96,7 +113,7 @@ void LGT_SCR_DW::begin()
     #if ENABLED(POWER_LOSS_RECOVERY)
         // check_print_job_recovery();
     #endif
-    DEBUG_PRINT_P("dw: begin");
+    DEBUG_PRINT_P("dw: begin\n");
 
 }
 
@@ -860,14 +877,18 @@ void LGT_SCR_DW::processButton()
 
 	// ----- print home menu -----
 		case eBT_PRINT_HOME_PAUSE:
+			DEBUG_ECHOLNPAIR_P("pause");
 			LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
 			status_type = PRINTER_PAUSE;
 			card.pauseSDPrint();
 			print_job_timer.pause();
-			queue.enqueue_now_P(PSTR("M2001"));
+			queue.inject_P(PSTR("M2001"));
 			break;
 		case eBT_PRINT_HOME_RESUME:
+			DEBUG_ECHOLNPAIR_P("resume");
 				LGT_Change_Page(ID_MENU_PRINT_HOME);
+				DEBUG_ECHOLNPAIR_F("cur feedrate", feedrate_mm_s);
+				feedrate_mm_s = resume_feedrate;
 				do_blocking_move_to_xy(resume_x_position,resume_y_position,50); 
 				card.startFileprint();
 				print_job_timer.start();
@@ -1382,7 +1403,7 @@ void LGT_SCR_DW::LGT_SDCard_Status_Update()
 						return_home = true;
 						check_recovery = false;
 						enable_Z();
-						LGT_LCD.LGT_Change_Page(ID_DIALOG_PRINT_RECOVERY);
+						LGT_Change_Page(ID_DIALOG_PRINT_RECOVERY);
 					}
 					LGT_Display_Filename();
 				}
@@ -1478,17 +1499,11 @@ void LGT_SCR_DW::LGT_Clean_DW_Display_Data(unsigned int addr)
 // abort sd printing
 void LGT_SCR_DW::LGT_Stop_Printing()
 {
-// 		card.stopSDPrint(
-// #if SD_RESORT
-// 			true
-// #endif
-// 		);
 	card.endFilePrint(
       #if SD_RESORT
         true
       #endif
     );
-	// card.flag.abort_sd_printing = true;
 	queue.clear();
 	quickstop_stepper();
 	delay(100);
@@ -1508,6 +1523,95 @@ void LGT_SCR_DW::LGT_Stop_Printing()
 	queue.enqueue_now_P(PSTR("G1 Z10"));
 	queue.enqueue_now_P(PSTR("G28 X0"));
 	queue.enqueue_now_P(PSTR("M2000"));
+}
+
+/*************************************
+FUNCTION:	Disable  and enable button of DWIN_Screen
+pageid: page n (page 1:0001)
+buttonid:button n + return value (button 5+06:0506)
+sta:disable or enable  (0000:disable  0001:enable)
+**************************************/
+void LGT_SCR_DW::LGT_Disable_Enable_Screen_Button(unsigned int pageid, unsigned int buttonid, unsigned int sta) 
+{
+	memset(data_storage, 0, sizeof(data_storage));
+	data_storage[0] = Send_Data.head[0];
+	data_storage[1] = Send_Data.head[1];
+	data_storage[2] = 0x0B;
+	data_storage[3] = DW_CMD_VAR_W;
+	data_storage[4] = 0x00;
+	data_storage[5] = 0xB0;
+	data_storage[6] = 0x5A;
+	data_storage[7] = 0xA5;
+	data_storage[8] = (unsigned char)(pageid>>8);
+	data_storage[9] = (unsigned char)(pageid&0x00FF);
+	data_storage[10] = (unsigned char)(buttonid>>8);
+	data_storage[11] = (unsigned char)(buttonid & 0x00FF);
+	data_storage[12] = (unsigned char)(sta >> 8);
+	data_storage[13] = (unsigned char)(sta & 0x00FF);
+	for (int i = 0; i < 14; i++)
+	{
+		MYSERIAL1.write(data_storage[i]);
+		delayMicroseconds(1);
+	}
+}
+
+void LGT_SCR_DW::LGT_Screen_System_Reset()
+{
+	memset(data_storage, 0, sizeof(data_storage));
+	data_storage[0] = Send_Data.head[0];
+	data_storage[1] = Send_Data.head[1];
+	data_storage[2] = 0x07;
+	data_storage[3] = DW_CMD_VAR_W;
+	data_storage[4] = 0x00;
+	data_storage[5] = 0x04;
+	data_storage[6] = 0x55;
+	data_storage[7] = 0xAA;
+	data_storage[8] = 0x5A;
+	data_storage[9] = 0xA5;
+	for (int i = 0; i < 10; i++)
+	{
+		MYSERIAL1.write(data_storage[i]);
+		delayMicroseconds(1);
+	}
+}
+
+void LGT_SCR_DW::hideButtonsBeforeHeating()
+{
+	if (LGT_is_printing)
+	{
+		LGT_Send_Data_To_Screen(ADDR_VAL_ICON_HIDE, int16_t(0));
+		LGT_Get_MYSERIAL1_Cmd();
+		LGT_Disable_Enable_Screen_Button(ID_MENU_PRINT_HOME, 5, 0);
+		LGT_Get_MYSERIAL1_Cmd();
+		delay(50);
+#ifdef U20_Pro
+		LGT_Disable_Enable_Screen_Button(ID_MENU_PRINT_TUNE, 1797, 0);
+#else
+		LGT_Disable_Enable_Screen_Button(ID_MENU_PRINT_TUNE, 1541, 0);
+#endif
+		LGT_Get_MYSERIAL1_Cmd();
+		delay(50);
+		LGT_Disable_Enable_Screen_Button(ID_MENU_PRINT_HOME, 517, 0);
+	}
+}
+
+void LGT_SCR_DW::showButtonsAfterHeating()
+{
+	if (LGT_is_printing)
+	{
+		LGT_Send_Data_To_Screen(ADDR_VAL_ICON_HIDE, int16_t(1));
+		LGT_Disable_Enable_Screen_Button(ID_MENU_PRINT_HOME, 5, 1);
+		LGT_Get_MYSERIAL1_Cmd();
+		delay(50);
+#ifdef U20_Pro
+		LGT_Disable_Enable_Screen_Button(ID_MENU_PRINT_TUNE, 1797, 1);
+#else
+		LGT_Disable_Enable_Screen_Button(ID_MENU_PRINT_TUNE, 1541, 1);
+#endif
+		LGT_Get_MYSERIAL1_Cmd();
+		delay(50);
+		LGT_Disable_Enable_Screen_Button(ID_MENU_PRINT_HOME, 517, 1);
+	}
 }
 
 #endif // LGT_LCD_DW

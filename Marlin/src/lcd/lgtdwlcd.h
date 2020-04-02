@@ -74,8 +74,11 @@ public:
 
     void begin();
 	void processButton();
-    void LGT_LCD_startup_settings();
+	void hideButtonsBeforeHeating();
+	void showButtonsAfterHeating();
+	void LGT_Pause_Move();
 
+    void LGT_LCD_startup_settings();
 
 	//void LED_Bright_State(uint8_t LED, uint16_t per, uint8_t mod);
 
@@ -94,8 +97,8 @@ public:
 	void LGT_SDCard_Status_Update();
 	void LGT_Change_Page(unsigned int pageid);
 	// void LGT_Power_Loss_Recovery_Resume();
-	// void LGT_Disable_Enable_Screen_Button(unsigned int pageid, unsigned int buttonid, unsigned int sta);
-	// void LGT_Screen_System_Reset();
+	void LGT_Disable_Enable_Screen_Button(unsigned int pageid, unsigned int buttonid, unsigned int sta);
+	void LGT_Screen_System_Reset();
 	void LGT_Stop_Printing();
 	void LGT_Exit_Print_Page();
 	int LGT_Get_Extrude_Temp();

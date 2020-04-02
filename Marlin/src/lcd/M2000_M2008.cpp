@@ -10,7 +10,7 @@
   // #include "../../module/stepper.h"
   // #include "../../module/endstops.h"
 
-  // stop printing and return to home menu
+  // abort printing and return to home menu
   void GcodeSuite::M2000()
   {
       SERIAL_ECHOLNPGM("run M2000");
@@ -31,8 +31,9 @@
   // wait for printing pausing
   void GcodeSuite::M2001()
   {
-      // LGT_Pause_Move();
-		  // lgtLcdDw.LGT_Change_Page(ID_MENU_PRINT_HOME_PAUSE);
+      SERIAL_ECHOLNPGM("run M2001");
+      lgtLcdDw.LGT_Pause_Move();
+		  lgtLcdDw.LGT_Change_Page(ID_MENU_PRINT_HOME_PAUSE);
   }
 
   #if ENABLED(U20_PLUS)
@@ -47,6 +48,7 @@
   // save position and filament runout  move
   void GcodeSuite::M2003()
   {
+
   }
 
   // load filament
