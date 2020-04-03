@@ -59,7 +59,7 @@ char menu_move_dis_chk = 0;
 static char menu_measu_dis_chk = 1;	//step 1 to 1mm and step 2 to 0.1mm
 static char menu_measu_step = 0;	// 0 for not start, 1 for step 1, 2 for step 2, 3 for step 3
 
-char cmd_E[16] = { 0 };
+char cmd_E[24] = { 0 };
 unsigned int filament_len = 10;
 unsigned int filament_temp = 200;
 
@@ -85,11 +85,13 @@ void LGT_SCR_DW::LGT_Pause_Move()
 	DEBUG_ECHOLNPAIR_F("save Y:", resume_y_position);
 	DEBUG_ECHOLNPAIR_F("save E:", resume_e_position);
 	DEBUG_ECHOLNPAIR_F("save feedrate", feedrate_mm_s);
+	current_position[E_AXIS] = current_position[E_AXIS] - 3;
 
-	char buff[32] = {0};
-	sprintf_P(buff, PSTR("G1 F3000 X10 Y200 E%f"), resume_e_position - 3);
-	queue.enqueue_one_now(buff);
 	planner.synchronize();
+	LGT_Line_To_Current(E_AXIS);
+	do_blocking_move_to_xy(FILAMENT_RUNOUT_MOVE_X, FILAMENT_RUNOUT_MOVE_Y, FILAMENT_RUNOUT_MOVE_F);
+	planner.synchronize();
+	DEBUG_ECHOLNPAIR("queue-length", queue.length);
 }
 
 LGT_SCR_DW::LGT_SCR_DW()
@@ -888,8 +890,9 @@ void LGT_SCR_DW::processButton()
 			DEBUG_ECHOLNPAIR_P("resume");
 				LGT_Change_Page(ID_MENU_PRINT_HOME);
 				DEBUG_ECHOLNPAIR_F("cur feedrate", feedrate_mm_s);
-				feedrate_mm_s = resume_feedrate;
+				// back to break posion
 				do_blocking_move_to_xy(resume_x_position,resume_y_position,50); 
+				feedrate_mm_s = resume_feedrate;
 				card.startFileprint();
 				print_job_timer.start();
 				runout.reset();
@@ -937,44 +940,52 @@ void LGT_SCR_DW::processButton()
 		case eBT_UTILI_FILA_LOAD:
 				if (thermalManager.degHotend(eExtruder::E0) >= (filament_temp - 5))
 				{
-					queue.enqueue_now_P(PSTR("M2004"));
+					if (menu_type == eMENU_HOME_FILA)
+						queue.inject_P(PSTR("M2004"));
+					else if (menu_type == eMENU_UTILI_FILA)
+						queue.enqueue_now_P(PSTR("M2004"));
 				}
 				else
 				{
 					memset(cmd_E, 0, sizeof(cmd_E));
-					if (menu_type == eMENU_UTILI_FILA)
-					{
+					sprintf_P(cmd_E, PSTR("M109 S%i\nM2004"), filament_temp);
+					if (menu_type == eMENU_UTILI_FILA) {
 						LGT_Change_Page(ID_DIALOG_UTILI_FILA_WAIT);
-					}
-					else if (menu_type == eMENU_HOME_FILA)
-					{
+						queue.enqueue_now_P(cmd_E);
+					} else if (menu_type == eMENU_HOME_FILA) {
 						LGT_Change_Page(ID_DIALOG_PRINT_FILA_WAIT);
+						queue.inject_P(cmd_E);
 					}
-					sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
-					queue.enqueue_one_now(cmd_E);
-					queue.enqueue_now_P(PSTR("M2004"));
 				}
 			break;
 		case eBT_UTILI_FILA_UNLOAD:
 			if (thermalManager.degHotend(eExtruder::E0) >= (filament_temp - 5))
 			{
-				queue.enqueue_now_P(PSTR("M2005"));
+				if (menu_type == eMENU_HOME_FILA)
+					queue.inject_P(PSTR("M2005"));
+				else if (menu_type == eMENU_UTILI_FILA)
+					queue.enqueue_now_P(PSTR("M2005"));
+
 			}
 			else
 			{
 				memset(cmd_E, 0, sizeof(cmd_E));
 				LGT_Change_Page(ID_DIALOG_UTILI_FILA_WAIT);
-				sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
-				queue.enqueue_one_now(cmd_E);
-				queue.enqueue_now_P(PSTR("M2005"));
+				sprintf_P(cmd_E, PSTR("M109 S%i\nM2005"), filament_temp);
+				if (menu_type == eMENU_UTILI_FILA)
+					queue.enqueue_now_P(cmd_E);
+				else if (menu_type == eMENU_HOME_FILA)
+					queue.inject_P(cmd_E);	
 			}
 			break;
 
 	// ----- print filament menu ----- 
 		case eBT_PRINT_FILA_HEAT_NO:
 			DEBUG_ECHOLNPGM("fila heating canceled");
-			// DEBUG_ECHOLNPAIR("menu type", menu_type);
-			queue.clear();
+			if (menu_type == eMENU_UTILI_FILA)
+				queue.clear();
+			else if (menu_type == eMENU_HOME_FILA) 
+				queue.clearInject();
 			wait_for_heatup = false;
 			if (menu_type == eMENU_UTILI_FILA)
 			{
@@ -989,7 +1000,10 @@ void LGT_SCR_DW::processButton()
 			break;
 		case eBT_PRINT_FILA_UNLOAD_OK:
 			DEBUG_ECHOLNPGM("unload ok");
-			queue.clear();
+			if (menu_type == eMENU_UTILI_FILA)
+				queue.clear();
+			else if (menu_type == eMENU_HOME_FILA) 
+				queue.clearInject();
 			quickstop_stepper();
 			delay(5);
 			if (menu_type == eMENU_UTILI_FILA)
@@ -1003,7 +1017,10 @@ void LGT_SCR_DW::processButton()
 			break;
 		case eBT_PRINT_FILA_LOAD_OK:
 			DEBUG_ECHOLNPGM("load ok");
-			queue.clear();
+			if (menu_type == eMENU_UTILI_FILA)
+				queue.clear();
+			else if (menu_type == eMENU_HOME_FILA) 
+				queue.clearInject();
 			quickstop_stepper();
 			delay(5);
 			if (menu_type == eMENU_UTILI_FILA)

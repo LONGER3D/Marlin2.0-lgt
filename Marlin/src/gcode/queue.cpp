@@ -205,6 +205,13 @@ bool GCodeQueue::process_injected_command() {
  */
 void GCodeQueue::inject_P(PGM_P const pgcode) { injected_commands_P = pgcode; }
 
+#if ENABLED(LGT_LCD_DW)
+/**
+ * Clean injected command
+ */
+void GCodeQueue::clearInject() { injected_commands_P = nullptr; }
+#endif
+
 /**
  * Enqueue and return only when commands are actually enqueued.
  * Never call this from a G-code handler!
@@ -598,6 +605,11 @@ void GCodeQueue::advance() {
 
   // Return if the G-code buffer is empty
   if (!length) return;
+
+  #if ENABLED(LGT)
+    if (IS_SD_PAUSED())   // prevent from process buffered commands
+      return;
+  #endif
 
   #if ENABLED(SDSUPPORT)
 

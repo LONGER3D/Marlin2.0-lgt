@@ -71,7 +71,9 @@ public:
    * Note: process_injected_command() will process them.
    */
   static void inject_P(PGM_P const pgcode);
-
+  #if ENABLED(LGT_LCD_DW)
+    static void clearInject();
+  #endif
   /**
    * Enqueue and return only when commands are actually enqueued
    */
