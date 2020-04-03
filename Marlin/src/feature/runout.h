@@ -41,7 +41,7 @@
   #include "pause.h"
 #endif
 
-#if ENABLED(LGT)
+#if ENABLED(LGT_LCD_DW)
   #include "../lcd/lgtdwlcd.h"
 #endif
 //#define FILAMENT_RUNOUT_SENSOR_DEBUG
@@ -107,7 +107,7 @@ class TFilamentMonitor : public FilamentMonitorBase {
         #if ENABLED(ADVANCED_PAUSE_FEATURE)
           || did_pause_print
         #endif
-        #if ENABLED(LGT)
+        #if ENABLED(LGT_LCD_DW)
         	&& (LGT_is_printing == true)
         #endif
       )) {

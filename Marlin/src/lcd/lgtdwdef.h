@@ -50,8 +50,8 @@
 #define	MAC_WIDTH	    Y_BED_SIZE
 #define	MAC_HEIGHT		Z_MAX_POS
 
-#if ANY(U20P, LK1P)
-    #if ENABLED(U20P)
+#if ANY(U20_PRO, LK1_PRO)
+    #if ENABLED(U20_PRO)
 	    #define MAC_MODEL       "U20 Pro"
 	#else
 	    #define MAC_MODEL       "LK4 Pro"
@@ -61,8 +61,8 @@
 	#define FILAMENT_RUNOUT_MOVE_X 10
 	#define FILAMENT_RUNOUT_MOVE_Y 260
 	#define FILAMENT_RUNOUT_MOVE_F 50
-#elif ANY(U30P, LK4P)
-    #if ENABLED(U30P)
+#elif ANY(U30_PRO, LK4_PRO)
+    #if ENABLED(U30_PRO)
 	    #define MAC_MODEL       "U30 Pro"
     #else
 	    #define MAC_MODEL       "LK4 Pro"

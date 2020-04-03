@@ -1233,7 +1233,7 @@
 
   // Set one or more commands to execute on filament runout.
   // (After 'M412 H' Marlin will ask the host to handle the process.)
- #if ENABLED(LGT)
+ #if ENABLED(LGT_LCD_DW)
   #define FILAMENT_RUNOUT_SCRIPT "M25\nM2003"
  #else
   #define FILAMENT_RUNOUT_SCRIPT "M25"

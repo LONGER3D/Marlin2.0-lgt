@@ -77,7 +77,8 @@ public:
 	void hideButtonsBeforeHeating();
 	void showButtonsAfterHeating();
 	void LGT_Pause_Move();
-
+	void goFinishPage();
+	void saveFinishTime();
     void LGT_LCD_startup_settings();
 
 	//void LED_Bright_State(uint8_t LED, uint16_t per, uint8_t mod);

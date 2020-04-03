@@ -464,6 +464,9 @@ void startOrResumeJob() {
 
         SERIAL_ECHOLNPGM(STR_FILE_PRINTED);
 
+        #if ENABLED(LGT_LCD_DW)
+          lgtLcdDw.goFinishPage();
+        #endif
       default:
         did_state = false;
         card.sdprinting_done_state = 0;

@@ -38,9 +38,9 @@ bool tartemp_flag = false;	// flag for target temp whether is changed
 bool LGT_is_printing = false;
 bool LGT_stop_printing = false;
 bool return_home = false;
-#ifdef U20_Pro
+#ifdef U20_PRO
 	bool led_on = true;
-#endif // U20_Pro
+#endif // U20_PRO
 bool xy_home = false;
 #ifdef U30_Pro
 	bool xyz_home = false,z_home=false;
@@ -56,8 +56,10 @@ static char fila_type = 0;  // 0 refer to PLA, 1 refer to ABS
 char menu_fila_type_chk = 0;
 // 0 for 10 mm, 1 for 1 mm, 2 for 0.1 mm, used for "no enough temp" dialog in move [OK] return
 char menu_move_dis_chk = 0;
+#if ENABLED(U20_PRO)
 static char menu_measu_dis_chk = 1;	//step 1 to 1mm and step 2 to 0.1mm
 static char menu_measu_step = 0;	// 0 for not start, 1 for step 1, 2 for step 2, 3 for step 3
+#endif
 
 char cmd_E[24] = { 0 };
 unsigned int filament_len = 10;
@@ -74,6 +76,15 @@ static void LGT_Line_To_Current(AxisEnum axis)
 	if (!planner.is_full())
 		planner.buffer_line(current_position, MMM_TO_MMS(manual_feedrate_mm_m[(int8_t)axis]), active_extruder);
 }
+
+
+static inline void LGT_Total_Time_To_String(char* buf, uint32_t time)
+{
+	uint32_t h = time / 60;
+	uint32_t m = time % 60;
+	sprintf_P(buf, PSTR("%lu h %lu m"), h, m);
+}
+
 
 void LGT_SCR_DW::LGT_Pause_Move()
 {
@@ -92,6 +103,19 @@ void LGT_SCR_DW::LGT_Pause_Move()
 	do_blocking_move_to_xy(FILAMENT_RUNOUT_MOVE_X, FILAMENT_RUNOUT_MOVE_Y, FILAMENT_RUNOUT_MOVE_F);
 	planner.synchronize();
 	DEBUG_ECHOLNPAIR("queue-length", queue.length);
+}
+
+void LGT_SCR_DW::goFinishPage()
+{
+	status_type = PRINTER_PRINTING_F;
+	LGT_Change_Page(ID_DIALOG_PRINT_FINISH);
+}
+
+void LGT_SCR_DW::saveFinishTime()
+{
+	Duration_Time = (print_job_timer.duration()) + recovery_time;
+	total_print_time = Duration_Time.minute()+ total_print_time;
+	// eeprom_write_dword((uint32_t*)EEPROM_INDEX, total_print_time);	
 }
 
 LGT_SCR_DW::LGT_SCR_DW()
@@ -141,8 +165,7 @@ void LGT_SCR_DW::LGT_LCD_startup_settings()
             {
                 return_home = true;
                 check_recovery = false;
-                // enable_Z();
-
+				ENABLE_AXIS_Z();
                 lgtLcdDw.LGT_Change_Page(ID_DIALOG_PRINT_RECOVERY);
             }
             lgtLcdDw.LGT_Printer_Data_Updata();
@@ -177,10 +200,10 @@ void LGT_SCR_DW::LGT_Main_Function()
 		LGT_Printer_Data_Updata();
 		LGT_Get_MYSERIAL1_Cmd();
 	}
-	#ifdef U20_Pro
+	#ifdef U20_PRO
 		if (led_on == true)
 			LGT_Printer_Light_Update();
-	#endif // U20_Pro
+	#endif // U20_PRO
 	//LGT_SDCard_Status_Update();
 }
 
@@ -427,8 +450,8 @@ void LGT_SCR_DW::LGT_Analysis_DWIN_Screen_Cmd()
 			break;	
 		case ADDR_TXT_ABOUT_MAC_TIME:
 			// total_print_time = eeprom_read_dword((const uint32_t*)EEPROM_INDEX);
-			// LGT_Total_Time_To_String(printer_work_time, total_print_time);
-			// LGT_Send_Data_To_Screen1(ADDR_TXT_ABOUT_WORK_TIME_MAC, printer_work_time);
+			LGT_Total_Time_To_String(printer_work_time, total_print_time);
+			LGT_Send_Data_To_Screen1(ADDR_TXT_ABOUT_WORK_TIME_MAC, printer_work_time);
 			break;
 		case ADDR_VAL_BUTTON_KEY:
 			processButton();
@@ -487,7 +510,7 @@ void LGT_SCR_DW::processButton()
 			break;
 		case eBT_MOVE_X_MINUS_0:
 				current_position[X_AXIS] = current_position[X_AXIS] - 10;
-	#ifdef U20_Pro
+	#ifdef U20_PRO
 				if (xy_home == true)
 	#else  //U30_Pro
 				if (xyz_home == true || xy_home == true)
@@ -508,7 +531,7 @@ void LGT_SCR_DW::processButton()
 			break;
 		case eBT_MOVE_X_MINUS_1:
 				current_position[X_AXIS] = current_position[X_AXIS] - 1;
-	#ifdef U20_Pro
+	#ifdef U20_PRO
 				if (xy_home == true)
 	#else  //U30_Pro
 				if (xyz_home == true || xy_home == true)
@@ -529,7 +552,7 @@ void LGT_SCR_DW::processButton()
 			break;
 		case eBT_MOVE_X_MINUS_2:
 				current_position[X_AXIS] = current_position[X_AXIS] - 0.1;
-	#ifdef U20_Pro
+	#ifdef U20_PRO
 				if (xy_home == true)
 	#else  //U30_Pro
 				if (xyz_home == true || xy_home == true)
@@ -551,7 +574,7 @@ void LGT_SCR_DW::processButton()
 			break;
 		case eBT_MOVE_Y_MINUS_0:
 				current_position[Y_AXIS] = current_position[Y_AXIS] - 10;
-	#ifdef U20_Pro
+	#ifdef U20_PRO
 				if (xy_home == true)
 	#else  //U30_Pro
 				if (xyz_home == true || xy_home == true)
@@ -572,7 +595,7 @@ void LGT_SCR_DW::processButton()
 			break;
 		case eBT_MOVE_Y_MINUS_1:
 				current_position[Y_AXIS] = current_position[Y_AXIS] - 1;
-		#ifdef U20_Pro
+		#ifdef U20_PRO
 				if (xy_home == true)
 		#else  //U30_Pro
 				if (xyz_home == true || xy_home == true)
@@ -593,7 +616,7 @@ void LGT_SCR_DW::processButton()
 			break;
 		case eBT_MOVE_Y_MINUS_2:
 				current_position[Y_AXIS] = current_position[Y_AXIS] - 0.1;
-	#ifdef U20_Pro
+	#ifdef U20_PRO
 				if (xy_home == true)
 	#else  //U30_Pro
 				if (xyz_home == true || xy_home == true)
@@ -611,13 +634,13 @@ void LGT_SCR_DW::processButton()
 				if (current_position[Z_AXIS] > Z_MAX_POS)
 					current_position[Z_AXIS] = Z_MAX_POS;
 				LGT_Line_To_Current(Z_AXIS);
-	#ifdef U20_Pro
+	#ifdef U20_PRO
 				if (menu_type != eMENU_MOVE)
 				{
 					level_z_height = 10 + level_z_height;
 					LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN, (uint16_t)(10 * level_z_height));
 				}
-	#endif // U20_Pro
+	#endif // U20_PRO
 			}
 			break;
 		case eBT_MOVE_Z_MINUS_0:
@@ -631,13 +654,13 @@ void LGT_SCR_DW::processButton()
 	#endif // U30_Pro
 				LGT_Line_To_Current(Z_AXIS);
 
-	#ifdef U20_Pro
+	#ifdef U20_PRO
 				if (menu_type != eMENU_MOVE)
 				{
 					level_z_height = level_z_height - 10;
 					LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN, (uint16_t)(10 * level_z_height));
 				}
-	#endif // U20_Pro
+	#endif // U20_PRO
 			break;
 		case eBT_MOVE_Z_PLUS_1:
 			if (current_position[Z_AXIS] < Z_MAX_POS) {
@@ -645,13 +668,13 @@ void LGT_SCR_DW::processButton()
 				if (current_position[Z_AXIS] > Z_MAX_POS)
 					current_position[Z_AXIS] = Z_MAX_POS;
 				LGT_Line_To_Current(Z_AXIS);
-	#ifdef U20_Pro
+	#ifdef U20_PRO
 				if (menu_type != eMENU_MOVE)
 				{
 					level_z_height = level_z_height + 1;
 					LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN, (uint16_t)(10 * level_z_height));
 				}
-	#endif // U20_Pro
+	#endif // U20_PRO
 			}
 			break;
 		case eBT_MOVE_Z_MINUS_1:
@@ -664,13 +687,13 @@ void LGT_SCR_DW::processButton()
 				}
 	#endif // U30_Pro
 				LGT_Line_To_Current(Z_AXIS);
-	#ifdef U20_Pro
+	#ifdef U20_PRO
 				if (menu_type != eMENU_MOVE)
 				{
 					level_z_height = level_z_height - 1;
 					LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN, (uint16_t)(10 * level_z_height));
 			}
-	#endif // U20_Pro
+	#endif // U20_PRO
 			break;
 		case eBT_MOVE_Z_PLUS_2:
 			if (current_position[Z_AXIS] < Z_MAX_POS) {
@@ -679,13 +702,13 @@ void LGT_SCR_DW::processButton()
 					current_position[Z_AXIS] = Z_MAX_POS;
 				LGT_Line_To_Current(Z_AXIS);
 
-	#ifdef U20_Pro
+	#ifdef U20_PRO
 				if (menu_type != eMENU_MOVE)
 				{
 					level_z_height = level_z_height + 0.1;
 					LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN, (uint16_t)(10 * level_z_height));
 				}
-	#endif // U20_Pro
+	#endif // U20_PRO
 			}
 			break;
 		case eBT_MOVE_Z_MINUS_2:
@@ -699,13 +722,13 @@ void LGT_SCR_DW::processButton()
 	#endif // U30_Pro
 				LGT_Line_To_Current(Z_AXIS);
 
-	#ifdef U20_Pro
+	#ifdef U20_PRO
 				if (menu_type != eMENU_MOVE)
 				{
 					level_z_height = level_z_height - 0.1;
 					LGT_Send_Data_To_Screen(ADDR_VAL_LEVEL_Z_UP_DOWN, (uint16_t)(10 * level_z_height));
 				}
-	#endif // U20_Pro
+	#endif // U20_PRO
 			break;
 			//E Axis
 		case eBT_MOVE_E_PLUS_0:
@@ -794,7 +817,7 @@ void LGT_SCR_DW::processButton()
 			break;
 		case eBT_MOVE_Z_HOME:
 			delay(5);
-			#ifdef U20_Pro
+			#ifdef U20_PRO
 				queue.enqueue_now_P(PSTR("G28"));
 				xy_home = true;
 			#else
@@ -904,7 +927,7 @@ void LGT_SCR_DW::processButton()
 				LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
 				wait_for_heatup = false;
 				LGT_stop_printing = true;
-				// // LGT_Printer_Total_Work_Time();
+				saveFinishTime();
 				LGT_Exit_Print_Page();
 			break;
 		case eBT_PRINT_HOME_FINISH:
@@ -1047,9 +1070,9 @@ void LGT_SCR_DW::processButton()
 	// 	case eBT_HOME_RECOVERY_YES:
 	// 		LGT_Send_Data_To_Screen(ADDR_VAL_ICON_HIDE, 0);
 	// 		return_home = false;
-	// 		#ifdef U20_Pro
+	// 		#ifdef U20_PRO
 	// 			status_type = PRINTER_PRINTING;
-	// 		#endif // U20_Pro
+	// 		#endif // U20_PRO
 	// 		delay(5);
 	// 	#if ENABLED(POWER_LOSS_RECOVERY)
 	// 		LGT_is_printing = true;
@@ -1079,7 +1102,7 @@ void LGT_SCR_DW::processButton()
 
 	// ----- mannual leveling menu -----
 		case eBT_UTILI_LEVEL_CORNER_POS_1:
-			#ifdef U20_Pro
+			#ifdef U20_PRO
 				if (xy_home == false)
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
@@ -1103,7 +1126,7 @@ void LGT_SCR_DW::processButton()
 			#endif
 			break;
 		case eBT_UTILI_LEVEL_CORNER_POS_2: //45 002D
-			#ifdef U20_Pro
+			#ifdef U20_PRO
 				if (xy_home == false)
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
@@ -1126,7 +1149,7 @@ void LGT_SCR_DW::processButton()
 			#endif
 			break;
 		case eBT_UTILI_LEVEL_CORNER_POS_3:
-			#ifdef U20_Pro
+			#ifdef U20_PRO
 				if (xy_home == false)
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
@@ -1149,7 +1172,7 @@ void LGT_SCR_DW::processButton()
 			#endif
 			break;
 		case eBT_UTILI_LEVEL_CORNER_POS_4:
-			#ifdef U20_Pro
+			#ifdef U20_PRO
 				if (xy_home == false)
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
@@ -1172,7 +1195,7 @@ void LGT_SCR_DW::processButton()
 			#endif
 			break;
 		case eBT_UTILI_LEVEL_CORNER_POS_5:
-			#ifdef U20_Pro
+			#ifdef U20_PRO
 				if (xy_home == false)
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
@@ -1195,7 +1218,7 @@ void LGT_SCR_DW::processButton()
 			#endif
 			break;
 		case eBT_UTILI_LEVEL_CORNER_BACK:
-			#ifdef U20_Pro
+			#ifdef U20_PRO
 				if (xy_home) {
 					xy_home = false;
 					queue.enqueue_now_P(PSTR("G1 Z10 F420"));	//up 10mm to prevent from damaging bed
@@ -1209,7 +1232,7 @@ void LGT_SCR_DW::processButton()
 			break;
 
 	// ----- u20 auto leveling with probe -----
-	#ifdef U20_Pro
+	#ifdef U20_PRO
 		case eBT_UTILI_LEVEL_MEASU_START:  // == PREVIOUS
 			LGT_Change_Page(ID_DIALOG_LEVEL_WAIT);
 			level_z_height = 0;
@@ -1277,7 +1300,7 @@ void LGT_SCR_DW::processButton()
 				delay(5);
 			}
 			break;
-	#endif //U20_Pro
+	#endif //U20_PRO
 		default: break;
 	}
 #endif // 0		
@@ -1601,7 +1624,7 @@ void LGT_SCR_DW::hideButtonsBeforeHeating()
 		LGT_Disable_Enable_Screen_Button(ID_MENU_PRINT_HOME, 5, 0);
 		LGT_Get_MYSERIAL1_Cmd();
 		delay(50);
-#ifdef U20_Pro
+#ifdef U20_PRO
 		LGT_Disable_Enable_Screen_Button(ID_MENU_PRINT_TUNE, 1797, 0);
 #else
 		LGT_Disable_Enable_Screen_Button(ID_MENU_PRINT_TUNE, 1541, 0);
@@ -1620,7 +1643,7 @@ void LGT_SCR_DW::showButtonsAfterHeating()
 		LGT_Disable_Enable_Screen_Button(ID_MENU_PRINT_HOME, 5, 1);
 		LGT_Get_MYSERIAL1_Cmd();
 		delay(50);
-#ifdef U20_Pro
+#ifdef U20_PRO
 		LGT_Disable_Enable_Screen_Button(ID_MENU_PRINT_TUNE, 1797, 1);
 #else
 		LGT_Disable_Enable_Screen_Button(ID_MENU_PRINT_TUNE, 1541, 1);

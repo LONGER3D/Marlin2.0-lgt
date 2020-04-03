@@ -606,7 +606,7 @@ void GCodeQueue::advance() {
   // Return if the G-code buffer is empty
   if (!length) return;
 
-  #if ENABLED(LGT)
+  #if ENABLED(LGT_LCD_DW)
     if (IS_SD_PAUSED())   // prevent from process buffered commands
       return;
   #endif
