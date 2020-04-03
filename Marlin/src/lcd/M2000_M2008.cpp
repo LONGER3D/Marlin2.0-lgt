@@ -7,7 +7,7 @@
   #include "../module/motion.h"
   #include "../feature/runout.h"
   extern E_MENU_TYPE menu_type;
-
+  extern PRINTER_STATUS status_type;
   // #include "../../module/stepper.h"
   // #include "../../module/endstops.h"
 
@@ -42,13 +42,17 @@
     void GcodeSuite::M2002()
     {
 		  planner.synchronize();
-		  LGT_LCD.LGT_Change_Page(ID_MENU_MEASU_S1 + 1);
+		  lgtLcdDw.LGT_Change_Page(ID_MENU_MEASU_S1 + 1);
     }
   #endif
 
   // save position and filament runout  move
   void GcodeSuite::M2003()
   {
+      SERIAL_ECHOLNPGM("run M2003");
+      lgtLcdDw.LGT_Change_Page(ID_DIALOG_NO_FILA);
+      status_type = PRINTER_PAUSE;
+      lgtLcdDw.LGT_Pause_Move();
 
   }
 

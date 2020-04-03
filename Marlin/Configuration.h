@@ -90,6 +90,13 @@
 
 #define LCD_READ_ID   0xD3 // Read display identification information in reg ID4 0xD3, for ILI9341 screens
 //#define LCD_READ_ID 0x04 // Read display identification information in reg ID1 0x04 - ST7789V / ILI9328 or others
+// LGT definition
+
+#define LGT // comment to remove all code snippets from LGT(Longer 3D technology)
+#if ENABLED(LGT)
+  // #define LGT_LCD_28    // MCU LCD 2.8 inch
+  #define LGT_LCD_DW    // DWIN LCD 4.3 inch serial screen
+#endif
 
 //===========================================================================
 
@@ -1226,8 +1233,11 @@
 
   // Set one or more commands to execute on filament runout.
   // (After 'M412 H' Marlin will ask the host to handle the process.)
- #define FILAMENT_RUNOUT_SCRIPT "M25"
-
+ #if ENABLED(LGT)
+  #define FILAMENT_RUNOUT_SCRIPT "M25\nM2003"
+ #else
+  #define FILAMENT_RUNOUT_SCRIPT "M25"
+ #endif
   // After a runout is detected, continue printing this length of filament
   // before executing the runout script. Useful for a sensor at the end of
   // a feed tube. Requires 4 bytes SRAM per sensor, plus 4 bytes overhead.
@@ -2357,9 +2367,3 @@
 //#define EDITABLE_SERVO_ANGLES
 
 
-// LGT definition
-#define LGT // comment to remove all code snippets from LGT(Longer 3D technology)
-#if ENABLED(LGT)
-  // #define LGT_LCD_28    // MCU LCD 2.8 inch
-  #define LGT_LCD_DW    // DWIN LCD 4.3 inch serial screen
-#endif

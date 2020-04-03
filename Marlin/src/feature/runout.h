@@ -41,6 +41,9 @@
   #include "pause.h"
 #endif
 
+#if ENABLED(LGT)
+  #include "../lcd/lgtdwlcd.h"
+#endif
 //#define FILAMENT_RUNOUT_SENSOR_DEBUG
 #ifndef FILAMENT_RUNOUT_THRESHOLD
   #define FILAMENT_RUNOUT_THRESHOLD 5
@@ -103,6 +106,9 @@ class TFilamentMonitor : public FilamentMonitorBase {
       if (enabled && !filament_ran_out && (printingIsActive()
         #if ENABLED(ADVANCED_PAUSE_FEATURE)
           || did_pause_print
+        #endif
+        #if ENABLED(LGT)
+        	&& (LGT_is_printing == true)
         #endif
       )) {
         #ifdef FILAMENT_RUNOUT_DISTANCE_MM
