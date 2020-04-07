@@ -10,6 +10,7 @@
 #include "../module/planner.h"
 #include "../module/printcounter.h"
 #include "../feature/runout.h"
+#include "../feature/powerloss.h"
 
 // debug define
 #define DEBUG_LGTDWLCD
@@ -137,7 +138,7 @@ void LGT_SCR_DW::begin()
     delay(600); 
     status_type = PRINTER_SETUP;
     #if ENABLED(POWER_LOSS_RECOVERY)
-        // check_print_job_recovery();
+        recovery.check();
     #endif
     DEBUG_PRINT_P("dw: begin\n");
 
@@ -161,8 +162,9 @@ void LGT_SCR_DW::LGT_LCD_startup_settings()
                 menu_type = eMENU_HOME;
                 lgtLcdDw.LGT_Change_Page(ID_MENU_HOME);
             }
-            else
+            else	// goto recovery page
             {
+				DEBUG_PRINT_P("dw: go recovery");
                 return_home = true;
                 check_recovery = false;
 				ENABLE_AXIS_Z();
@@ -1067,38 +1069,37 @@ void LGT_SCR_DW::processButton()
 			break;
 
 	// ---- power loss recovery ----
-	// 	case eBT_HOME_RECOVERY_YES:
-	// 		LGT_Send_Data_To_Screen(ADDR_VAL_ICON_HIDE, 0);
-	// 		return_home = false;
-	// 		#ifdef U20_PRO
-	// 			status_type = PRINTER_PRINTING;
-	// 		#endif // U20_PRO
-	// 		delay(5);
-	// 	#if ENABLED(POWER_LOSS_RECOVERY)
-	// 		LGT_is_printing = true;
-	// 		LGT_Save_Recovery_Filename(DW_CMD_VAR_W, DW_FH_0, ADDR_TXT_HOME_FILE_NAME, 32);
-	// 		LGT_Power_Loss_Recovery_Resume();
-	// 		menu_type = eMENU_PRINT_HOME;
-	// 		LGT_Printer_Data_Updata();
-	// 		LGT_Change_Page(ID_MENU_PRINT_HOME);
-	// 	#endif
-	// 		break;
-	// 	case eBT_HOME_RECOVERY_NO:
-	// 		total_print_time = total_print_time+job_recovery_info.print_job_elapsed/60;
-	// 		eeprom_write_dword((uint32_t*)EEPROM_INDEX, total_print_time);
-
-	// 		#if ENABLED(POWER_LOSS_RECOVERY)
-	// 			card.removeJobRecoveryFile();
-	// 		#endif
-	// 			disable_Z();
-	// 			return_home = false;
-	// 			recovery_time = 0;
-	// 			recovery_percent = 0;
-	// 			recovery_z_height = 0.0;
-	// 			recovery_E_len = 0.0;
-	// 			LGT_Change_Page(ID_MENU_HOME);
-	// 			menu_type = eMENU_HOME;
-	// 		break;
+		case eBT_HOME_RECOVERY_YES:
+			LGT_Send_Data_To_Screen(ADDR_VAL_ICON_HIDE, int16_t(0));
+			return_home = false;
+			#ifdef U20_PRO
+				status_type = PRINTER_PRINTING;
+			#endif // U20_PRO
+			delay(5);
+		#if ENABLED(POWER_LOSS_RECOVERY)
+			LGT_is_printing = true;
+			LGT_Save_Recovery_Filename(DW_CMD_VAR_W, DW_FH_0, ADDR_TXT_HOME_FILE_NAME, 32);
+			queue.inject_P(PSTR("M1000"));	// == recovery.resume()
+			menu_type = eMENU_PRINT_HOME;
+			LGT_Printer_Data_Updata();
+			LGT_Change_Page(ID_MENU_PRINT_HOME);
+		#endif
+			break;
+		case eBT_HOME_RECOVERY_NO:
+			// total_print_time = total_print_time+job_recovery_info.print_job_elapsed/60;
+			// eeprom_write_dword((uint32_t*)EEPROM_INDEX, total_print_time);
+			#if ENABLED(POWER_LOSS_RECOVERY)
+				recovery.cancel();	// == M1000 C
+			#endif
+				DISABLE_AXIS_Z();
+				return_home = false;
+				recovery_time = 0;
+				recovery_percent = 0;
+				recovery_z_height = 0.0;
+				recovery_E_len = 0.0;
+				LGT_Change_Page(ID_MENU_HOME);
+				menu_type = eMENU_HOME;
+			break;
 
 	// ----- mannual leveling menu -----
 		case eBT_UTILI_LEVEL_CORNER_POS_1:

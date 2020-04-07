@@ -92,9 +92,10 @@
 //#define LCD_READ_ID 0x04 // Read display identification information in reg ID1 0x04 - ST7789V / ILI9328 or others
 // LGT definition
 
-#define LGT // comment to remove all code snippets from LGT(Longer 3D technology)
+#define LGT // comment to remove all code snippets from LGT(Longer3D technology)
+
 #if ENABLED(LGT)
-  // #define LGT_LCD_28    // MCU LCD 2.8 inch
+  // #define LGT_LCD_TFT    // MCU LCD 2.8 inch
   #define LGT_LCD_DW    // DWIN LCD 4.3 inch serial screen
 #endif
 

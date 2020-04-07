@@ -54,6 +54,10 @@ uint32_t PrintJobRecovery::cmd_sdpos, // = 0
   #include "fwretract.h"
 #endif
 
+#if ENABLED(LGT_LCD_DW)
+  #include "../lcd/lgtdwlcd.h"
+#endif
+
 #define DEBUG_OUT ENABLED(DEBUG_POWER_LOSS_RECOVERY)
 #include "../core/debug_out.h"
 
@@ -105,6 +109,7 @@ void PrintJobRecovery::check() {
     load();
     if (!valid()) return purge();
     queue.inject_P(PSTR("M1000 S"));
+    check_recovery = true;
   }
 }
 

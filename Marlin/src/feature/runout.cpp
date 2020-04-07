@@ -126,7 +126,7 @@ void event_filament_runout() {
   #endif // HOST_ACTION_COMMANDS
 
   if (run_runout_script)
-    queue.inject_P((FILAMENT_RUNOUT_SCRIPT));
+    queue.inject_P(PSTR(FILAMENT_RUNOUT_SCRIPT));
 }
 
 #endif // HAS_FILAMENT_SENSOR
