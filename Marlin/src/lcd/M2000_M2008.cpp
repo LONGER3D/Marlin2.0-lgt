@@ -17,7 +17,6 @@
       SERIAL_ECHOLNPGM("run M2000");
       relative_mode = false;
       M18_M84();
-		  LGT_is_printing = false;
 		  if (leveling_sta!=2)
 		  {
 			  lgtLcdDw.LGT_Change_Page(ID_MENU_HOME);

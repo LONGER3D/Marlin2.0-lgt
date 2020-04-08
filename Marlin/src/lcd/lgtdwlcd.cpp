@@ -138,7 +138,7 @@ void LGT_SCR_DW::begin()
     delay(600); 
     status_type = PRINTER_SETUP;
     #if ENABLED(POWER_LOSS_RECOVERY)
-        recovery.check();
+		recovery.check();
     #endif
     DEBUG_PRINT_P("dw: begin\n");
 
@@ -875,9 +875,7 @@ void LGT_SCR_DW::processButton()
 			if (sel_fileid > -1)
 			{
 					card.getfilename_sorted(gcode_id[sel_fileid]);
-					card.openFileRead(card.filename,true);
-					card.startFileprint();
-					print_job_timer.start();		
+					card.openAndPrintFile(card.filename);	
 					LGT_MAC_Send_Filename(ADDR_TXT_HOME_FILE_NAME, gcode_id[sel_fileid]);
 					delay(5);
 					menu_type = eMENU_PRINT_HOME;
@@ -907,6 +905,7 @@ void LGT_SCR_DW::processButton()
 			DEBUG_ECHOLNPAIR_P("pause");
 			LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
 			status_type = PRINTER_PAUSE;
+			LGT_is_printing = false;
 			card.pauseSDPrint();
 			print_job_timer.pause();
 			queue.inject_P(PSTR("M2001"));

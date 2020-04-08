@@ -1158,9 +1158,11 @@ void setup() {
     SETUP_RUN(est_init());
   #endif
 
+  #if DISABLED(LGT_LCD_DW)
     #if ENABLED(POWER_LOSS_RECOVERY)
       SETUP_RUN(recovery.check());
     #endif
+  #endif
 
   #if ENABLED(USE_WATCHDOG)
     SETUP_RUN(watchdog_init());       // Reinit watchdog after HAL_get_reset_source call

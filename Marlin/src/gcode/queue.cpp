@@ -607,7 +607,7 @@ void GCodeQueue::advance() {
   if (!length) return;
 
   #if ENABLED(LGT_LCD_DW)
-    if (IS_SD_PAUSED())   // prevent from process buffered commands
+    if (IS_SD_PAUSED() && !LGT_is_printing)   // prevent from process buffered commands when dw is paused
       return;
   #endif
 
