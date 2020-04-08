@@ -185,6 +185,11 @@
   #include "lcd/lgtdwlcd.h"
 #endif
 
+#if ENABLED(LGT_LCD_TFT)
+  #include "longer3d/lgttftlcd.h"
+#endif
+
+
 const char NUL_STR[] PROGMEM = "",
            M112_KILL_STR[] PROGMEM = "M112 Shutdown",
            G28_STR[] PROGMEM = "G28",
@@ -1199,6 +1204,10 @@ void setup() {
 
   #if ENABLED(LGT_LCD_DW)
    lgtLcdDw.begin();
+  #endif
+
+  #if ENABLED(LGT_LCD_TFT)
+    //lgtlcdtft.begin();
   #endif
 
   marlin_state = MF_RUNNING;
