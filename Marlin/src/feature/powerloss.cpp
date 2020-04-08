@@ -104,14 +104,14 @@ void PrintJobRecovery::changed() {
  * If a saved state exists send 'M1000 S' to initiate job recovery.
  */
 void PrintJobRecovery::check() {
-  if ENABLED(LGT_LCD_DW)
+  #if ENABLED(LGT_LCD_DW)
     if (!card.isMounted()) card.mount();
   #endif
   if (card.isMounted()) {
     load();
     if (!valid()) return purge();
     queue.inject_P(PSTR("M1000 S"));
-    if ENABLED(LGT_LCD_DW)
+    #if ENABLED(LGT_LCD_DW)
       check_recovery = true;
     #endif
   }

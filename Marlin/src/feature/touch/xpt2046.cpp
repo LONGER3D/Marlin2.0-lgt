@@ -58,6 +58,8 @@ void XPT2046::init() {
   getInTouch(XPT2046_X);
 }
 
+#if HAS_DIGITAL_BUTTONS
+
 #include "../../lcd/ultralcd.h" // For EN_C bit mask
 
 uint8_t XPT2046::read_buttons() {
@@ -86,6 +88,7 @@ uint8_t XPT2046::read_buttons() {
        : WITHIN(x, 242, 305) ? EN_C
        : 0;
 }
+#endif
 
 bool XPT2046::isTouched() {
   return (

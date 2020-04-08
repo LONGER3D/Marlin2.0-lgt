@@ -95,8 +95,8 @@
 #define LGT // comment to remove all code snippets from LGT(Longer3D technology)
 
 #if ENABLED(LGT)
-  // #define LGT_LCD_TFT    // MCU LCD 2.8 inch
-  #define LGT_LCD_DW    // DWIN LCD 4.3 inch serial screen
+   #define LGT_LCD_TFT    // LCD 2.8 inch MCU TFT touch screen
+  //#define LGT_LCD_DW    // DWIN 4.3 inch LCD serial touch screen
 #endif
 
 //===========================================================================
@@ -125,7 +125,7 @@
 //#define SHOW_CUSTOM_BOOTSCREEN
 
 // Show the bitmap in Marlin/_Statusscreen.h on the status screen.
-#define CUSTOM_STATUS_SCREEN_IMAGE
+// #define CUSTOM_STATUS_SCREEN_IMAGE
 
 // @section machine
 

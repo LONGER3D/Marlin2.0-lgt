@@ -238,8 +238,8 @@
 
 // FSMC/SPI TFT Panels
 #if ENABLED(FSMC_GRAPHICAL_TFT)
-  #define DOGLCD
-  #define IS_ULTIPANEL
+  // #define DOGLCD
+  // #define IS_ULTIPANEL
   #define DELAYED_BACKLIGHT_INIT
 #endif
 
