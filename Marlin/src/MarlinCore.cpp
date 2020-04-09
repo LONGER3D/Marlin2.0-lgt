@@ -1207,7 +1207,7 @@ void setup() {
   #endif
 
   #if ENABLED(LGT_LCD_TFT)
-    //lgtlcdtft.begin();
+    lgtlcdtft.begin();
   #endif
 
   marlin_state = MF_RUNNING;

@@ -1,16 +1,21 @@
 #include "../inc/MarlinConfig.h"
+
+#if ENABLED(LGT_LCD_TFT)
 #include "lgttftlcd.h"
+#include "lcddrive/lcdapi.h"
 
 extern uint8_t init_Lgt_Tft_Lcd();
 
-#if ENABLED(LGT_LCD_TFT)
-
 LgtLcdTft lgtlcdtft;
+
+LgtLcdTft::LgtLcdTft()
+{
+
+}
 
 void LgtLcdTft::begin()
 {
-    init_Lgt_Tft_Lcd();
-
+    lcd.begin();
 }
 
 #endif

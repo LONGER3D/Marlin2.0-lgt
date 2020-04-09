@@ -4,6 +4,7 @@
 
 #if ENABLED(LGT_LCD_TFT)
 class LgtLcdTft {
+
 public:
     LgtLcdTft();
     void begin();

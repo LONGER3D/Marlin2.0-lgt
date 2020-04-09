@@ -58,43 +58,6 @@ uint32_t LCD_IO_ReadData(uint16_t RegValue, uint8_t ReadSize);
 
 static uint8_t msgInitCount = 2; // Ignore all messages until 2nd U8G_COM_MSG_INIT
 
-uint8_t init_Lgt_Tft_Lcd()
-{
-  // set pinmode output and write
-  OUT_WRITE(LCD_BACKLIGHT_PIN, LOW);
-  OUT_WRITE(LCD_RESET_PIN, LOW); // perform a clean hardware reset
-  _delay_ms(5);
-  OUT_WRITE(LCD_RESET_PIN, HIGH);
-  _delay_ms(5);
-  OUT_WRITE(LCD_BACKLIGHT_PIN, HIGH);
-
-  LCD_IO_Init(FSMC_CS_PIN, FSMC_RS_PIN);
-  
-  uint16_t lcdId= LCD_IO_ReadData(0x0000);  //read  id
-  uint32_t getdata;
-	if (lcdId == 0) 
-	{
-		// read ID1 register to get LCD controller ID, MOST of the time located in register 0x04
-		getdata = LCD_IO_ReadData(0x04, 3);
-		lcdId = (uint16_t)(getdata & 0xFFFF);
-  	} 
-  //If ID1 is 0, it means we need to check alternate registers, like 0xD3 in the case of ILI9341
-  if (lcdId == 0) 
-  {
-    lcdId = LCD_IO_ReadData(0x00);
-    if (lcdId == 0)
-	{
-      // reading ID4 register (0xD3)  to get ILI9341 identifier instead of register ID (0x04)
-      getdata = LCD_IO_ReadData(0xD3, 3);
-      lcdId = (uint16_t)(getdata & 0xFFFF);
-    }
-  }
-
-  SERIAL_ECHOLNPAIR("lcdid:", lcdId);
-
-  return 1;
-}
-
 uint8_t u8g_com_stm32duino_fsmc_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void *arg_ptr) {
   if (msgInitCount) {
     if (msg == U8G_COM_MSG_INIT) msgInitCount--;
