@@ -1,5 +1,6 @@
 #pragma once
 
+#if ENABLED(LGT_LCD_TFT)
 #include "stdint.h"
 
 #define LCD_WIDTH 320u
@@ -36,6 +37,14 @@ public:
     void fill(uint16_t sx,uint16_t sy,uint16_t ex,uint16_t ey,uint16_t color);
     void backLightOff();
     void backLightOn();
+    void setColor(uint16_t c) {
+        m_color = c;
+    }
+    void setBgColor(uint16_t c) {
+        m_bgColor = c;
+    }
+    void print(uint16_t x, uint16_t y, const char *text);
+
 private:
     void prepareWriteRAM();
     void setCursor(uint16_t Xpos, uint16_t Ypos);
@@ -43,6 +52,11 @@ private:
 
 private:
     uint16_t m_lcdID;
+    uint16_t m_color;
+    uint16_t m_bgColor;
+
 };
 
 extern LgtLcdApi lcd;
+
+#endif

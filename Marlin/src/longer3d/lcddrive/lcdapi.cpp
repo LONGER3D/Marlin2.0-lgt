@@ -1,7 +1,10 @@
-#include "lcdapi.h"
 #include "lcdio.h"
+
+#if ENABLED(LGT_LCD_TFT)
+#include "lcdapi.h"
 #include "ili9341.h"
 #include "st7789v.h"
+#include "lcdfont16.h"
 
 LgtLcdApi lcd;
 
@@ -9,7 +12,9 @@ LgtLcdApi lcd;
  * consturctor
  */
 LgtLcdApi::LgtLcdApi() :
-    m_lcdID(0)
+    m_lcdID(0),
+    m_color(BLACK),
+    m_bgColor(WHITE)
 {
 
 }
@@ -58,7 +63,8 @@ uint8_t LgtLcdApi::begin()
     default: break; // Unknown LCD Controller
     }
 
-    clear(RED);
+    // clear(WHITE);
+
   return 1;
 }
 
@@ -71,6 +77,10 @@ void LgtLcdApi::setCursor(uint16_t Xpos, uint16_t Ypos)
         ST7789V_SetCursor(Xpos, Ypos);
 }
 
+/**
+ * set show rectangle
+ * and prepare write gram
+ */
 void LgtLcdApi::setWindow(uint16_t Xmin, uint16_t Ymin, uint16_t XMax /* = 319 */, uint16_t Ymax /* = 239 */)
 {
     if (m_lcdID == ILI9341_ID)
@@ -124,5 +134,21 @@ void LgtLcdApi::fill(uint16_t sx,uint16_t sy,uint16_t ex,uint16_t ey,uint16_t co
     #endif
 }
 
+void LgtLcdApi::print(uint16_t x, uint16_t y, const char *text)
+{
+  for (uint16_t l = 0; (*(uint8_t*)(text + l) != 0) && ((x + l * 8 + 8) < 320); l ++) {
+    uint16_t i, j, k;
+    uint8_t character;
+    character = (*(uint8_t*)(text + l) < 32 || *(uint8_t*)(text + l) > 127) ? 0 : *(text + l) - 32;
+    setWindow(x + l * 8, y, x + l * 8 + 7, y + 15);
 
+    for (i = 0; i < 2; i++)
+      for (j = 0; j < 8; j++)
+        for (k = 0; k < 8; k++)
+          LCD_IO_WriteData(font16[character][i + 2 * k] & (128 >> j) ? m_color  : m_bgColor);
+  }
+
+}
+
+#endif // LGT_LCD_TFT
 
