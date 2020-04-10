@@ -773,6 +773,10 @@ void idle(
   #if ENABLED(LGT_LCD_DW)
     lgtLcdDw.LGT_Main_Function();
   #endif
+
+  #if ENABLED(LGT_LCD_TFT)
+    lgtlcdtft.loop();
+  #endif
 }
 
 /**
@@ -1207,7 +1211,7 @@ void setup() {
   #endif
 
   #if ENABLED(LGT_LCD_TFT)
-    lgtlcdtft.begin();
+    lgtlcdtft.init();
   #endif
 
   marlin_state = MF_RUNNING;

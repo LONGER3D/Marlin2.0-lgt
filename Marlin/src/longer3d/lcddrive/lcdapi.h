@@ -30,7 +30,7 @@
 class LgtLcdApi {
 public:
     LgtLcdApi();
-    uint8_t begin();
+    uint8_t init();
     inline void clear(uint16_t color=WHITE) {
         fill(0, 0, LCD_WIDTH-1, LCD_HIGHT-1, color);
     }
@@ -57,6 +57,6 @@ private:
 
 };
 
-extern LgtLcdApi lcd;
+extern LgtLcdApi lgtlcd;
 
 #endif

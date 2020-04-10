@@ -7,8 +7,8 @@ class LgtLcdTft {
 
 public:
     LgtLcdTft();
-    void begin();
-
+    void init();
+    void loop();
 };
 
 extern LgtLcdTft lgtlcdtft; 

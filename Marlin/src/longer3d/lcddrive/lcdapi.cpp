@@ -6,7 +6,7 @@
 #include "st7789v.h"
 #include "lcdfont16.h"
 
-LgtLcdApi lcd;
+LgtLcdApi lgtlcd;
 
 /**
  * consturctor
@@ -19,7 +19,7 @@ LgtLcdApi::LgtLcdApi() :
 
 }
 
-uint8_t LgtLcdApi::begin()
+uint8_t LgtLcdApi::init()
 {
   // set pinmode output and write
   OUT_WRITE(LCD_BACKLIGHT_PIN, LOW);
@@ -134,6 +134,9 @@ void LgtLcdApi::fill(uint16_t sx,uint16_t sy,uint16_t ex,uint16_t ey,uint16_t co
     #endif
 }
 
+/**
+ * print string in lcd
+ */
 void LgtLcdApi::print(uint16_t x, uint16_t y, const char *text)
 {
   for (uint16_t l = 0; (*(uint8_t*)(text + l) != 0) && ((x + l * 8 + 8) < 320); l ++) {
