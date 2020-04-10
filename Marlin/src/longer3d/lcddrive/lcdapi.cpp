@@ -5,6 +5,7 @@
 #include "ili9341.h"
 #include "st7789v.h"
 #include "lcdfont16.h"
+#include "../w25qxx.h"
 
 LgtLcdApi lgtlcd;
 
@@ -152,6 +153,81 @@ void LgtLcdApi::print(uint16_t x, uint16_t y, const char *text)
   }
 
 }
+
+struct imageHeader {
+   uint8_t scan;
+   uint8_t gray;
+   uint16_t w;
+   uint16_t h;
+   uint8_t is565;
+   uint8_t rgb;
+}; 
+#define IMAGE_BUFF_SIZE  4000
+
+void LgtLcdApi::showImage(uint16_t x_st, uint16_t y_st, uint32_t addr)
+{
+    imageHeader head;
+    spiFlash.W25QXX_Read(reinterpret_cast<uint8_t *>(&head), addr, sizeof(head));
+    // SERIAL_ECHOLNPAIR("image-w: ", head.w);
+    // SERIAL_ECHOLNPAIR("image-h: ", head.h);
+	showRawImage(x_st, y_st, head.w, head.h, addr+8);    
+}
+
+
+//#define SLOW_SHOW_IMAGE
+
+void LgtLcdApi::showRawImage(uint16_t xsta,uint16_t ysta,uint16_t width,uint16_t high, uint32_t addr)
+{ 
+    static uint8_t image_buffer[IMAGE_BUFF_SIZE];
+
+    #if defined(SLOW_SHOW_IMAGE)
+        uint16_t x = xsta, y= ysta;
+    #endif
+
+    // calculate read times
+	uint32_t image_size = width * high * 2;
+	uint16_t get_image_times=image_size/IMAGE_BUFF_SIZE;
+	if((image_size-get_image_times*IMAGE_BUFF_SIZE)>0) {
+		get_image_times = get_image_times + 1;
+	}
+
+    setWindow(xsta, ysta, xsta + width - 1, ysta + high - 1);
+	for(uint16_t k = 0; k < get_image_times; k++) {
+		uint16_t real_size = (get_image_times-k)>1?IMAGE_BUFF_SIZE:(image_size-k*IMAGE_BUFF_SIZE);
+		spiFlash.W25QXX_Read(image_buffer, addr+k*IMAGE_BUFF_SIZE,real_size);
+
+        #if ENABLED(LCD_USE_DMA_FSMC) 
+             #define SWAP(a, b) (((a) ^= (b)), ((b) ^= (a)), ((a) ^= (b)))
+             for (uint16_t i = 0; i < real_size; i = i + 2) {
+                SWAP(image_buffer[i], image_buffer[i + 1]);    // little-endian
+             }
+            LCD_IO_WriteSequence_Async(reinterpret_cast<uint16_t *>(image_buffer), real_size / 2);
+        #elif DISABLED(SLOW_SHOW_IMAGE)
+            for (uint16_t i = 0; i < real_size; i = i + 2) {
+                uint16_t color = image_buffer[i] | (image_buffer[i + 1] << 8); // little-endian
+                LCD_IO_WriteData(color);
+            }
+        #else
+            setCursor(x,y);
+            prepareWriteRAM();		 
+            for(uint16_t i=0; i< real_size; i = i + 2)
+            {
+                uint16_t color=image_buffer[i]|image_buffer[i+1]<<8;
+                LCD_IO_WriteData(color);
+                x++;			 
+                if(x>=(xsta+width))
+                { 
+                x=xsta;
+                y++; 
+                setCursor(x,y);	
+                prepareWriteRAM();	
+                }				
+            }
+        #endif
+	}  
+}
+
+
 
 #endif // LGT_LCD_TFT
 

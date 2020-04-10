@@ -189,6 +189,9 @@
   #include "longer3d/lgttftlcd.h"
 #endif
 
+#if ENABLED(SPI_FLASH)
+  #include "longer3d/w25qxx.h"
+#endif
 
 const char NUL_STR[] PROGMEM = "",
            M112_KILL_STR[] PROGMEM = "M112 Shutdown",
@@ -1206,12 +1209,16 @@ void setup() {
     SETUP_RUN(max7219.init());
   #endif
 
+  #if ENABLED(SPI_FLASH)
+    SETUP_RUN(spiFlash.W25QXX_Init());
+  #endif
+
   #if ENABLED(LGT_LCD_DW)
    lgtLcdDw.begin();
   #endif
 
   #if ENABLED(LGT_LCD_TFT)
-    lgtlcdtft.init();
+    SETUP_RUN(lgtlcdtft.init());
   #endif
 
   marlin_state = MF_RUNNING;

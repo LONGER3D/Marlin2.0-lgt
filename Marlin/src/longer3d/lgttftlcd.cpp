@@ -10,8 +10,6 @@
 #define DEBUG_OUT ENABLED(DEBUG_LGTLCDTFT)
 #include "../../core/debug_out.h"
 
-extern uint8_t init_Lgt_Tft_Lcd();
-
 LgtLcdTft lgtlcdtft;
 
 LgtLcdTft::LgtLcdTft()
@@ -19,10 +17,22 @@ LgtLcdTft::LgtLcdTft()
 
 }
 
+
+// void LgtLcdTft::displayStartUpLogo(void)
+// {
+//   lcd.clear(White);
+//   #if defined(U30) || defined(U20) || defined(U20_PLUS) 
+//   	displayImage(60, 95, IMG_ADDR_STARTUP_LOGO_0);
+//   #elif defined(LK1_PLUS) ||  defined(LK1) || defined(LK2) || defined(LK4)  
+// 	displayImage(45, 100, 991586);
+//   #endif
+// }
+
 void LgtLcdTft::init()
 {
     lgtlcd.init();
-    spiFlash.W25QXX_Init();
+    lgtlcd.showImage(45, 100, 991586);
+
 }
 
 void LgtLcdTft::loop()

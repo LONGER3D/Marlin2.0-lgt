@@ -14,6 +14,8 @@ uint32_t LCD_IO_ReadData(uint16_t RegValue, uint8_t ReadSize);
 #ifdef LCD_USE_DMA_FSMC
   void LCD_IO_WriteMultiple(uint16_t data, uint32_t count);
   void LCD_IO_WriteSequence(uint16_t *data, uint16_t length);
+  void LCD_IO_WriteSequence_Async(uint16_t *data, uint16_t length);
+  void LCD_IO_WaitSequence_Async();
 #endif
 
 #endif

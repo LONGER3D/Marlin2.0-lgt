@@ -150,7 +150,7 @@
 //#define SPI_EEPROM
 #define FLASH_EEPROM_EMULATION
 
-// SPI flash
+// SPI flash - w25qxx
 #define SPI_FLASH
 // SPI1 pins are already defined in the core
 // SPI1 cs pin definition for spi flash
