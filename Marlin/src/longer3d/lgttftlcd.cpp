@@ -4,6 +4,7 @@
 #include "lgttftlcd.h"
 #include "lcddrive/lcdapi.h"
 #include "../feature/touch/xpt2046.h"
+#include "w25qxx.h"
 
 #define DEBUG_LGTLCDTFT
 #define DEBUG_OUT ENABLED(DEBUG_LGTLCDTFT)
@@ -21,7 +22,7 @@ LgtLcdTft::LgtLcdTft()
 void LgtLcdTft::init()
 {
     lgtlcd.init();
-
+    spiFlash.W25QXX_Init();
 }
 
 void LgtLcdTft::loop()

@@ -150,6 +150,12 @@
 //#define SPI_EEPROM
 #define FLASH_EEPROM_EMULATION
 
+// SPI flash
+#define SPI_FLASH
+// SPI1 pins are already defined in the core
+// SPI1 cs pin definition for spi flash
+#define SPI_CS_PIN                    PC5
+
 #undef E2END
 #if ENABLED(SPI_EEPROM)
   // SPI1 EEPROM Winbond W25Q64 (8MB/64Mbits)
