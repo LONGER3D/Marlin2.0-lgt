@@ -42,6 +42,7 @@ class XPT2046 {
 public:
   static void init();
   static uint8_t read_buttons();
+  uint8_t readTouchPoint(uint16_t &x, uint16_t &y);
   bool getTouchPoint(uint16_t &x, uint16_t &y);
   static bool isTouched();
   inline void waitForRelease() { while (isTouched()) { /* nada */ } }

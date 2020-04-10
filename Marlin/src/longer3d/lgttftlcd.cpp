@@ -37,7 +37,7 @@ void LgtLcdTft::loop()
             if (touch.isTouched()) {    // truely touched
                 touched = true;
                 // DEBUG_ECHOLNPGM("lcd: touched");
-                touch.getTouchPoint(touchX, touchY);
+                touch.readTouchPoint(touchX, touchY);
                 // DEBUG_ECHOLNPAIR("lcd-x: ", x);
                 // DEBUG_ECHOLNPAIR("lcd-y: ", y);                
 
@@ -45,9 +45,9 @@ void LgtLcdTft::loop()
         }
     } else if (touched) {  // released
         touched = false;
-        DEBUG_ECHOLNPGM("lcd: released");
-        DEBUG_ECHOLNPAIR("lcd-x: ", touchX);
-        DEBUG_ECHOLNPAIR("lcd-y: ", touchY);     
+        DEBUG_ECHOLNPGM("touch: released");
+        DEBUG_ECHOLNPAIR("touch-x: ", touchX);
+        DEBUG_ECHOLNPAIR("touch-y: ", touchY);     
     } else {    // idle
     
     }

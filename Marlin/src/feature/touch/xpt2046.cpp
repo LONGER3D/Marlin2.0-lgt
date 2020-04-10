@@ -90,6 +90,35 @@ uint8_t XPT2046::read_buttons() {
 }
 #endif
 
+#if  ENABLED(LGT_LCD_TFT)
+
+uint8_t XPT2046::readTouchPoint(uint16_t &x, uint16_t &y)
+{
+  int16_t tsoffsets[4] = { 0 };
+
+  if (tsoffsets[0] + tsoffsets[1] == 0) {
+    // Not yet set, so use defines as fallback...
+    tsoffsets[0] = XPT2046_X_CALIBRATION;
+    tsoffsets[1] = XPT2046_X_OFFSET;
+    tsoffsets[2] = XPT2046_Y_CALIBRATION;
+    tsoffsets[3] = XPT2046_Y_OFFSET;
+  }
+
+  // We rely on XPT2046 compatible mode to ADS7843, hence no Z1 and Z2 measurements possible.
+
+  if (!isTouched()) return 0;
+  x = uint16_t(((uint32_t(getInTouch(XPT2046_X))) * tsoffsets[0]) >> 16) + tsoffsets[1];
+  y = uint16_t(((uint32_t(getInTouch(XPT2046_Y))) * tsoffsets[2]) >> 16) + tsoffsets[3];
+  if (!isTouched()) return 0; // Fingers must still be on the TS for a valid read.
+
+  if (x > 319 || y > 239) return 0;
+
+  return 1;
+}
+
+
+#endif
+
 bool XPT2046::isTouched() {
   return (
     #if PIN_EXISTS(TOUCH_INT)
