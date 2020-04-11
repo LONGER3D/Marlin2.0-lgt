@@ -220,3 +220,277 @@
 
 /* image address definition end */
 //#define  IMG_MAX_ADDR                           (IMG_ADDR_STARTUP_LOGO_2 + IMG_SIZE_LOGO2)   //1009994
+
+// define color of captions background
+#define BG_COLOR_CAPTION_HOME		 0x045D
+#define BG_COLOR_CAPTION_MOVE		 0xDC01
+#define BG_COLOR_CAPTION_FILE		 0x057A
+#define BG_COLOR_CAPTION_PRINT		 0x045D 
+#define BG_COLOR_CAPTION_ADJUST		 0x0DB7
+#define BG_COLOR_CAPTION_PREHEAT     0x018B
+#define BG_COLOR_CAPTION_LEVELING	 0xEAA5
+#define BG_COLOR_CAPTION_EXTRUDE	 0x2CAC
+#define BG_COLOR_CAPTION_SETTINGS	 0x0209
+#define BG_COLOR_CAPTION_ABOUT 	     0xEA0A
+#define BG_COLOR_CAPTION_DIALOG 	 0x0233
+
+#define PT_COLOR_DISABLE 0xBDD7
+
+/* temperature UI definition */
+
+#define MAX_ADJUST_TEMP_EXTRUDE     (HEATER_0_MAXTEMP-10)//(heater_maxtemp[0]-10)
+#define MAX_ADJUST_TEMP_BED         (BED_MAXTEMP-10)//(bed_maxtemp-10)//BED_MAXTEMP
+#define MIN_ADJUST_TEMP_EXTRUDE     (0)
+#define MIN_ADJUST_TEMP_BED         (0)
+#define NORMAL_ADJUST_TEMP_EXTRUDE  (200)
+#define NORMAL_ADJUST_TEMP_BED      (60)
+
+#define PREHEAT_PLA_TEMP_EXTRUDE    (PREHEAT_1_TEMP_HOTEND)
+#define PREHEAT_PLA_TEMP_BED        (PREHEAT_1_TEMP_BED)
+#define PREHEAT_ABS_TEMP_EXTRUDE    (PREHEAT_2_TEMP_HOTEND)
+#define PREHEAT_ABS_TEMP_BED        (PREHEAT_2_TEMP_BED)
+#define PREHEAT_PETG_TEMP_EXTRUDE   (215)
+#define PREHEAT_PETG_TEMP_BED       (70)
+
+
+#define POS_MOVE_COL_TXT            (40)
+#define POS_MOVE_TXT_INTERVAL       (90)
+#define POS_MOVE_COL_0              (5)
+#define POS_MOVE_COL_1              (65)
+#define POS_MOVE_COL_2              (125)
+#define POS_MOVE_COL_3              (193)
+#define POS_MOVE_COL_4              (260)
+#define POS_MOVE_ROW_0              (32)
+#define POS_MOVE_ROW_1              (55)
+#define POS_MOVE_ROW_2              (110)
+#define POS_MOVE_ROW_3              (180)
+#define POS_MOVE_COL_DISTANCE       POS_MOVE_COL_4
+#define POS_MOVE_ROW_DISTANCE       POS_MOVE_ROW_1
+
+/********************************Language*********************************************/
+
+#ifndef Chinese
+//main page
+#define TXT_MENU_HOME_MOVE                  "Move head"
+#define TXT_MENU_HOME_FILE                  "Files"
+#define TXT_MENU_HOME_EXTRUDE               "Extrude"
+#define TXT_MENU_HOME_PREHEAT               "Preheating"
+#define TXT_MENU_HOME_RECOVERY              "Recovery"
+#define TXT_MENU_HOME_MORE                  "More"
+
+//File page
+#define TXT_MENU_FILE_SD_ERROR              "SD card error!"    
+#define TXT_MENU_FILE_EMPTY                 "This folder is empty."  
+
+//Extrude page
+#define TXT_MENU_EXTRUDE_MANUAL             "JOG"            
+#define TXT_MENU_EXTRUDE_AUTOMATIC          "AUTO"	
+
+//More page
+#define TXT_MENU_HOME_MORE_LEVELING         "Leveling"       
+#define TXT_MENU_HOME_MORE_SETTINGS         "Settings"       
+#define TXT_MENU_HOME_MORE_ABOUT            "About"           
+#define TXT_MENU_HOME_MORE_RETURN           "Return"   
+
+#define TXT_MENU_LEVELING_UNLOCK            "Unlock X-Y" 
+//About page
+#define TXT_MENU_ABOUT_MAX_SIZE_LABEL       "Max Buildable Size(LxWxH):"  
+#define TXT_MENU_ABOUT_FW_VER_LABLE         "Firmware Version:"   
+//settings
+#define TXT_MENU_SETTS_ACCL                 "Accel(mm/s^2):"    
+#define TXT_MENU_SETTS_JERK_XY              "Vxy-jerk(mm/s):"    
+#define TXT_MENU_SETTS_JERK_Z               "Vz-jerk(mm/s):"     
+#define TXT_MENU_SETTS_JERK_E               "Ve-jerk(mm/s):"    
+#define TXT_MENU_SETTS_VMAX_X               "Vmax x(mm/s):"     
+#define TXT_MENU_SETTS_VMAX_Y               "Vmax y(mm/s):"		 
+#define TXT_MENU_SETTS_VMAX_Z               "Vmax z(mm/s):"		 
+#define TXT_MENU_SETTS_VMAX_E               "Vmax e(mm/s):"     
+#define TXT_MENU_SETTS_VMIN                 "Vmin(mm/s):"       
+#define TXT_MENU_SETTS_VTRAVEL              "Vtrav min(mm/s):"    
+#define TXT_MENU_SETTS_AMAX_X               "Amax x(mm/s^2):"   
+#define TXT_MENU_SETTS_AMAX_Y               "Amax y(mm/s^2):"	 
+#define TXT_MENU_SETTS_AMAX_Z               "Amax z(mm/s^2):"    
+#define TXT_MENU_SETTS_AMAX_E               "Amax e(mm/s^2):"    
+#define TXT_MENU_SETTS_ARETRACT             "A-retract(mm/s^2):"  
+//#define TXT_MENU_SETTS_ATRAVEL              "A-travel:"     
+#define TXT_MENU_SETTS_STEP_X               "X(steps/mm):"       
+#define TXT_MENU_SETTS_STEP_Y               "Y(steps/mm):"			
+#define TXT_MENU_SETTS_STEP_Z               "Z(steps/mm):"		
+#define TXT_MENU_SETTS_STEP_E               "E(steps/mm):"		
+#define TXT_MENU_SETTS_CHECK_FILA           "Filament check:"      
+#define TXT_MENU_SETTS_LIST_ORDER           "File list order:"    
+#define TXT_MENU_SETTS_VALUE_ON             "ON"                
+#define TXT_MENU_SETTS_VALUE_OFF            "OFF"                 
+#define TXT_MENU_SETTS_VALUE_FORWARD        "FORWARD"             
+#define TXT_MENU_SETTS_VALUE_INVERSE        "INVERSE"	
+
+//Printing page
+#define TXT_MENU_PRINT_STATUS_HEATING       "Heating..."          
+#define TXT_MENU_PRINT_STATUS_PAUSING       "Pause printing..."    
+#define TXT_MENU_PRINT_STATUS_RUNNING       "Printing..."            
+#define TXT_MENU_PRINT_STATUS_RECOVERY      "Recovering..."           
+#define TXT_MENU_PRINT_STATUS_FINISH        "Printing finished!"   
+#define TXT_MENU_PRINT_STATUS_NO_FILAMENT   "No enough materials!"     
+#define TXT_MENU_PRINT_CD_TIMER_NULL        "-- H -- M"
+#define TXT_MENU_PRINT_CD_TIMER             "%d H %d M"
+#define TXT_MENU_PRINT_TEMP_NULL            "B: --/--"
+
+#define TXT_DIALOG_CAPTION_START            "Start"     
+#define TXT_DIALOG_CAPTION_EXIT             "Exit"           
+#define TXT_DIALOG_CAPTION_ABORT            "Stop"          
+#define TXT_DIALOG_CAPTION_ABORT_WAIT       "Wait Stop"      
+#define TXT_DIALOG_CAPTION_RECOVERY         "Recovery"        
+#define TXT_DIALOG_CAPTION_ERROR            "Error"           
+#define TXT_DIALOG_CAPTION_RESTORE          "Restore"           
+#define TXT_DIALOG_CAPTION_SAVE             "Save"           
+#define TXT_DIALOG_CAPTION_NO_FIALMENT      "No Filament"    
+#define TXT_DIALOG_CAPTION_OPEN_FOLER       "Open Folder"  
+
+
+#define TXT_TFT_CONTROLLER_ID            "ControllerID:  %04X" //"ControllerID:"
+#define TXT_TFT_CONTROLLER               "Controller: %s"
+#define TXT_TOUCH_CALIBRATION            "Touch calibration"
+#define TXT_TOP_LEFT                     "Top Left"
+#define TXT_BOTTOM_LEFT                  "Bottom Left"
+#define TXT_TOP_RIGHT                    "Top Right"
+#define TXT_BOTTOM_RIGHT                 "Bottom Right"
+
+#define TXT_CALI_COMPLETED               "Touch calibration completed"
+#define TXT_X_CALIBRATION                "X_CALIBRATION:"
+#define TXT_Y_CALIBRATION                "Y_CALIBRATION:"
+#define TXT_X_OFFSET              		 "X_OFFSET:"
+#define TXT_Y_OFFSET                     "Y_OFFSET:"
+
+#define TXT_PROMPT_INFO1                 "Please click the screen to"
+#define TXT_PROMPT_INFO2                 "return to the main home page!"
+
+//Printer killed
+#define TXT_PRINTER_KILLED_INFO1        "Printer halted. Kill()"
+#define TXT_PRINTER_KILLED_INFO2        "called. Please restart"
+#define TXT_PRINTER_KILLED_INFO3        "the printer!"
+
+#define TXT_PRINTER_TEMPERROR_INFO1      "Abnormal temper-"
+#define TXT_PRINTER_TEMPERROR_INFO2      "ature is detect-"
+#define TXT_PRINTER_TEMPERROR_INFO3      "ed!"
+
+//Dialog
+#define DIALOG_PROMPT_PRINT_START1		"Are you sure to"//"Are you sure to start printing?"
+#define DIALOG_PROMPT_PRINT_START2		"start printing?"
+#define DIALOG_PROMPT_PRINT_START3
+#define DIALOG_PROMPT_PRINT_EXIT1 		"Job's done. Do"//"Job's done. Do you want to exit?"
+#define DIALOG_PROMPT_PRINT_EXIT2		"you want to exit?"
+#define DIALOG_PROMPT_PRINT_EXIT3
+#define DIALOG_PROMPT_PRINT_ABORT1 		"Job isn't done. Do"//"Job's not done. Do you want to stop it?"
+#define DIALOG_PROMPT_PRINT_ABORT2		"you want to stop?"
+#define DIALOG_PROMPT_PRINT_ABORT3
+#define DIALOG_PROMPT_PRINT_RECOVERY1	"Are you sure to"//"Are you sure to recovery printing?"
+#define DIALOG_PROMPT_PRINT_RECOVERY2	"recovery print-"
+#define DIALOG_PROMPT_PRINT_RECOVERY3	"ing?"
+#define DIALOG_PROMPT_ERROR_READ1		"Failed to read file,"   //"Failed to read file, please try again."
+#define DIALOG_PROMPT_ERROR_READ2		"please try again."
+#define DIALOG_PROMPT_ERROR_READ3
+#define DIALOG_PROMPT_SETTS_RESTORE1	"Are you sure to "   //	"Are you sure to reset factory settings?"
+#define DIALOG_PROMPT_SETTS_RESTORE2	"reset factory se-"
+#define DIALOG_PROMPT_SETTS_RESTORE3	"ttings?"
+#define DIALOG_PROMPT_SETTS_SAVE_OK1	"Current settings"      //"Current settings has been saved."
+#define DIALOG_PROMPT_SETTS_SAVE_OK2	"has been saved."
+#define DIALOG_PROMPT_SETTS_SAVE_OK3
+#define DIALOG_PROMPT_SETTS_SAVE1		"Do you want to "      //"Do you want to save current settings?"
+#define DIALOG_PROMPT_SETTS_SAVE2		"save current se-"
+#define DIALOG_PROMPT_SETTS_SAVE3		"ttings?"
+#define DIALOG_PROMPT_NO_FILAMENT1		"Do you want to"      //"Do you want to change filament?"
+#define DIALOG_PROMPT_NO_FILAMENT2		"change filament?"
+#define DIALOG_PROMPT_NO_FILAMENT3
+#define DIALOG_ERROR_FILE_TYPE1	     	"Failed to open file."   //	"Failed to open file. Unsupported file type."
+#define DIALOG_ERROR_FILE_TYPE2			" Unsupported file type."
+#define DIALOG_ERROR_FILE_TYPE3
+#define DIALOG_ERROR_TEMP_BED1	     	 "Abnormal bed tem-"     
+#define DIALOG_ERROR_TEMP_BED2			"perature is dete-"
+#define DIALOG_ERROR_TEMP_BED3			"cted."
+#define DIALOG_ERROR_TEMP_HEAD1    	    "Abnormal head te-" 
+#define DIALOG_ERROR_TEMP_HEAD2 		"mperature is det-"
+#define DIALOG_ERROR_TEMP_HEAD3			"ected."
+#define DIALOG_PROMPT_MAX_FOLDER1		"Sorry, multi-level"
+#define DIALOG_PROMPT_MAX_FOLDER2		"folders are not supported."
+#define DIALOG_PROMPT_MAX_FOLDER3
+#define DIALOG_START_PRINT_NOFILA1      "No filament,please"                 //No filament,please change filament and start printing
+#define DIALOG_START_PRINT_NOFILA2		"change filament!"
+#define DIALOG_START_PRINT_NOFILA3		//"start printing!"
+
+typedef enum{
+
+	eMENU_HOME = 0,
+    eMENU_HOME_MORE,
+	eMENU_MOVE,
+	eMENU_FILE,
+	eMENU_FILE1,   //next_window_id=eMENU_FILE1 when click eBT_DIALOG_PRINT_NO
+	eMENU_PRINT,
+	eMENU_ADJUST,
+	eMENU_ADJUST_MORE,
+	eMENU_PREHEAT,
+	eMENU_LEVELING,
+	eMENU_EXTRUDE,
+	eMENU_SETTINGS,
+	eMENU_SETTINGS2,
+	eMENU_ABOUT,
+	eMENU_DIALOG_START,   //print or not print
+	eMENU_DIALOG_END,     //stop print or not stop print
+	eMENU_DIALOG_NO_FIL,   // no filament page
+	eMENU_DIALOG_RECOVERY,
+	eMENU_DIALOG_REFACTORY,
+	eMENU_DIALOG_SAVE,
+	eMENU_DIALOG_SAVE_OK,
+	eMENU_DIALOG_ERRORTEMPBED,
+	eMENU_DIALOG_ERRORTEMPE,
+// 	eMENU_PCB_TEST,
+// 	eMENU_SCREEN_CALIBRATION,
+// 	eMENU_AGING_TEST,
+// #ifdef LCD_COLOR_TEST
+// 	eMENU_SCREEN_COLOR_TEST,
+// #endif	
+
+ 	eWINDOW_MAX ,
+	eWINDOW_NONE
+}E_WINDOW_ID;
+
+enum E_BUTTON_KEY {
+/*******************Move page****************************/
+	eBT_BUTTON_NONE=0,
+	eBT_MOVE_X_MINUS,eBT_MOVE_X_PLUS,eBT_MOVE_X_HOME,
+	eBT_MOVE_Y_MINUS,eBT_MOVE_Y_PLUS,eBT_MOVE_Y_HOME,
+	eBT_MOVE_Z_MINUS,eBT_MOVE_Z_PLUS,eBT_MOVE_Z_HOME,
+	eBT_MOVE_ALL_HOME,
+
+/*******************Leveling page****************************/
+	eBT_MOVE_L0,eBT_MOVE_L1,eBT_MOVE_L2,eBT_MOVE_L3,eBT_MOVE_L4, eBT_MOVE_RETURN,
+
+/*******************preheating page****************************/
+	eBT_PR_PLA,eBT_PR_ABS,eBT_PR_PETG,eBT_PR_COOL,
+	eBT_PR_E_PLUS,eBT_PR_E_MINUS,eBT_PR_B_PLUS,EBT_PR_B_MINUS,
+
+/*******************Extrude page****************************/	
+	eBT_TEMP_PLUS,eBT_TEMP_MINUS,//eBT_BED_PLUS,eBT_BED_MINUS,
+	eBT_JOG_EPLUS,eBT_JOG_EMINUS,eBT_AUTO_EPLUS,eBT_AUTO_EMINUS,eBT_STOP,eBT_BED_E,
+
+/*******************File page****************************/	
+	eBT_FILE_NEXT,eBT_FILE_LAST,eBT_FILE_OPEN,eBT_FILE_FOLDER,
+	eBT_FILE_LIST1,eBT_FILE_LIST2,eBT_FILE_LIST3,eBT_FILE_LIST4,eBT_FILE_LIST5,
+
+/*******************printing page****************************/	
+	eBT_PRINT_PAUSE,eBT_PRINT_ADJUST,eBT_PRINT_END,
+
+/*******************Adjust page****************************/
+	eBT_ADJUSTE_PLUS,eBT_ADJUSTE_MINUS,eBT_ADJUSTBED_PLUS,eBT_ADJUSTBED_MINUS,
+	eBT_ADJUSTFAN_PLUS,eBT_ADJUSTFAN_MINUS,eBT_ADJUSTSPEED_PLUS,eBT_ADJUSTSPEED_MINUS,
+
+/****************************Dialog page*******************************/
+	eBT_DIALOG_PRINT_START,eBT_DIALOG_PRINT_NO,eBT_DIALOG_REFACTORY_YES,eBT_DIALOG_SAVE_YES,
+	
+/****************************Settings page*******************************/
+	eBT_SETTING_ADJUST,eBT_SETTING_REFACTORY,eBT_SETTING_SAVE,eBT_SETTING_LAST,eBT_SETTING_NEXT,eBT_SETTING_ADD,eBT_SETTING_SUB,
+
+	eBT_DISTANCE_CHANGE
+};
+
+
+#endif

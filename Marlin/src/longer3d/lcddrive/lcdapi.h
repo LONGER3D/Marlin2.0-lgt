@@ -7,6 +7,7 @@
 #define LCD_HIGHT 240u
 #define LCD_PIXELS_COUNT ((LCD_WIDTH - 1) * (LCD_HIGHT - 1))
 
+// color definition for lcd
 #define BLACK       0x0000
 #define NAVY        0x000F
 #define DARKGREEN   0x03E0
@@ -26,6 +27,18 @@
 #define ORANGE      0xFD20
 #define GREENYELLOW 0xAFE5
 #define PINK        0xF81F
+
+#define IMAGE_BUFF_SIZE  4000   // store image data from spiflash
+// #define SLOW_SHOW_IMAGE      // using slowly io write method  
+
+struct imageHeader {
+   uint8_t scan;
+   uint8_t gray;
+   uint16_t w;
+   uint16_t h;
+   uint8_t is565;
+   uint8_t rgb;
+}; 
 
 class LgtLcdApi {
 public:
@@ -53,6 +66,7 @@ private:
 
 private:
     uint16_t m_lcdID;
+public:
     uint16_t m_color;
     uint16_t m_bgColor;
 

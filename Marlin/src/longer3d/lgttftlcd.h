@@ -9,10 +9,8 @@ public:
     void init();
     void loop();
 private:
-    void displayStartUpLogo(void);
-
-    // bool LGT_MainScanWindow(void);
-    // bool LGT_Ui_Update(void);
+    bool LGT_MainScanWindow(void);
+    bool LGT_Ui_Update(void);
     // void LGT_Printer_Data_Update(void);
     // void LGT_Ui_Buttoncmd(void);
 
@@ -20,30 +18,42 @@ private:
     // void LGT_Tempabnormal_Warning(const char* info);    //is_printing=false
     // void LGT_Printerabnormal_Kill(const char* info);
 
+    // /***************************launch page*******************************************/
+    void displayStartUpLogo(void);
+    // /***************************home page*******************************************/
+    void displayWindowHome(void);
+    void scanWindowHome(uint16_t rv_x, uint16_t rv_y);
+
     // /***************************Move page*******************************************/
-    // void scanWindowMove( uint16_t rv_x, uint16_t rv_y );
-    // void changeMoveDistance(uint16_t pos_x, uint16_t pos_y);
-    // void initialMoveDistance(uint16_t pos_x, uint16_t pos_y);
-    // void displayMoveCoordinate(void);
+    void displayWindowMove(void);
+    void scanWindowMove( uint16_t rv_x, uint16_t rv_y );
+    void changeMoveDistance(uint16_t pos_x, uint16_t pos_y);
+    void initialMoveDistance(uint16_t pos_x, uint16_t pos_y);
+    void displayMoveCoordinate(void);
     // /***************************File page*******************************************/
-    // void scanWindowFile( uint16_t rv_x, uint16_t rv_y );
+    // void displayWindowFiles(void);
     // void displayFilePageNumber(void);
     // void displayFileList();
     // void displayChosenFile(void);
     // void displayPromptSDCardError(void);
     // void displayPromptEmptyFolder(void);
+    // void scanWindowFile( uint16_t rv_x, uint16_t rv_y );
+
 
     // /***************************Extrude page*******************************************/
+    // void displayWindowExtrude(void);
     // void scanWindowExtrude( uint16_t rv_x, uint16_t rv_y );
     // void dispalyExtrudeTemp(void);
     // void displayRunningAutoFeed(void);
 
     // /***************************preheating page*******************************************/
+    // void displayWindowPreheat(void);
     // void scanWindowPreheating( uint16_t rv_x, uint16_t rv_y );
     // void updatePreheatingTemp(void);
 
-    // /***************************More page*******************************************/
-    // void scanWindowMoreHome(uint16_t rv_x, uint16_t rv_y);
+    // /***************************home More page*******************************************/
+    void displayWindowHomeMore(void);
+    void scanWindowMoreHome(uint16_t rv_x, uint16_t rv_y);
     // void scanWindowLeveling( uint16_t rv_x, uint16_t rv_y );
     // void scanWindowAbout(uint16_t rv_x, uint16_t rv_y);
     // void displayWindowLeveling(void);
@@ -57,18 +67,6 @@ private:
     // void displayModifyArgument(void);
     // void scanWindowSettings2(uint16_t rv_x, uint16_t rv_y);
 
-
-    // /***************************Start page*******************************************/
-    // void displayStartUpLogo(void);
-    // void displayWindowHome(void);
-
-    // /***************************Home page*******************************************/
-    // void scanWindowHome(uint16_t rv_x, uint16_t rv_y);
-    // void displayWindowMove(void);
-    // void displayWindowFiles(void);
-    // void displayWindowExtrude(void);
-    // void displayWindowPreheat(void);
-    // void displayWindowHomeMore(void);
 
 
     // /***************************Printing page*******************************************/
