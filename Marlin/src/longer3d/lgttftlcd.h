@@ -12,7 +12,7 @@ private:
     bool LGT_MainScanWindow(void);
     bool LGT_Ui_Update(void);
     // void LGT_Printer_Data_Update(void);
-    // void LGT_Ui_Buttoncmd(void);
+    void LGT_Ui_Buttoncmd(void);
 
     // bool setTemperatureInWindow(bool is_bed, bool sign);
     // void LGT_Tempabnormal_Warning(const char* info);    //is_printing=false

@@ -49,6 +49,10 @@ public:
   inline void waitForTouch(uint16_t &x, uint16_t &y) { while (!getTouchPoint(x, y)) { /* nada */ } }
 private:
   static uint16_t getInTouch(const XPTCoordinate coordinate);
+  #if ENABLED(LGT_LCD_TFT)
+    uint8_t readTouchXY(uint16_t &x,uint16_t &y);
+    uint8_t readTouchXY2(uint16_t &x,uint16_t &y);
+  #endif
 };
 
 extern XPT2046 touch;

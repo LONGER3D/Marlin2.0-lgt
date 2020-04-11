@@ -92,6 +92,46 @@ uint8_t XPT2046::read_buttons() {
 
 #if  ENABLED(LGT_LCD_TFT)
 
+#define MAX_READ_XY_REPEAT 10u	// 最大重复读取次数
+#define ERR_RANGE 50u //误差范围 
+
+//读取x,y物理坐标
+//最小值不能少于100.
+//x,y:读取到的坐标值
+//返回值:0,失败;1,成功。
+uint8_t XPT2046::readTouchXY(uint16_t &x,uint16_t &y)
+{
+	uint16_t xtemp,ytemp;
+  if (!isTouched()) return 0;
+	xtemp = getInTouch(XPT2046_X);
+	if (xtemp < 100 || xtemp > 4000)
+		return 0;
+	ytemp = XPT2046::getInTouch(XPT2046_Y);	  												   
+	if(ytemp < 100 || ytemp > 4000)
+		return 0;//读数失败
+	x=xtemp;
+	y=ytemp;
+	return 1;//读数成功
+}
+
+uint8_t XPT2046::readTouchXY2(uint16_t &x, uint16_t &y) 
+{
+	uint16_t x1,y1;
+ 	uint16_t x2,y2;
+	for (uint8_t i = 0; i < MAX_READ_XY_REPEAT; ++i) {
+		if (readTouchXY(x1,y1))
+			if (readTouchXY(x2,y2))
+				if ((x1 > x2 - ERR_RANGE) && (x2 > x1 - ERR_RANGE) && 
+					(y1 > y2 -ERR_RANGE) && (y2 > y1 - ERR_RANGE)) {
+						x = (x1 + x2)/2;
+						y = (y1 + y2)/2;									
+						return 1;
+					}						
+	}	
+	return 0;
+}
+
+
 uint8_t XPT2046::readTouchPoint(uint16_t &x, uint16_t &y)
 {
   int16_t tsoffsets[4] = { 0 };
@@ -104,14 +144,21 @@ uint8_t XPT2046::readTouchPoint(uint16_t &x, uint16_t &y)
     tsoffsets[3] = XPT2046_Y_OFFSET;
   }
 
+  uint16_t xAd, yAd;
+  if (readTouchXY2(xAd, yAd)) {
+    x = uint16_t((uint32_t(xAd) * tsoffsets[0]) >> 16) + tsoffsets[1];
+    y = uint16_t((uint32_t(yAd) * tsoffsets[2]) >> 16) + tsoffsets[3];
+  } else {
+    SERIAL_ECHOLN("read touch failed");
+    x = y = 0;
+  }
+
   // We rely on XPT2046 compatible mode to ADS7843, hence no Z1 and Z2 measurements possible.
 
-  if (!isTouched()) return 0;
-  x = uint16_t(((uint32_t(getInTouch(XPT2046_X))) * tsoffsets[0]) >> 16) + tsoffsets[1];
-  y = uint16_t(((uint32_t(getInTouch(XPT2046_Y))) * tsoffsets[2]) >> 16) + tsoffsets[3];
-  if (!isTouched()) return 0; // Fingers must still be on the TS for a valid read.
-
-  if (x > 319 || y > 239) return 0;
+  // if (!isTouched()) return 0;
+  // x = uint16_t(((uint32_t(getInTouch(XPT2046_X))) * tsoffsets[0]) >> 16) + tsoffsets[1];
+  // y = uint16_t(((uint32_t(getInTouch(XPT2046_Y))) * tsoffsets[2]) >> 16) + tsoffsets[3];
+  // if (!isTouched()) return 0; // Fingers must still be on the TS for a valid read.
 
   return 1;
 }

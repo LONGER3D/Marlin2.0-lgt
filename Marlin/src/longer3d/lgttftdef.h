@@ -1,6 +1,11 @@
 #pragma once
 
 
+#if defined(MANUAL_FEEDRATE)
+	#undef MANUAL_FEEDRATE
+#endif
+#define MANUAL_FEEDRATE { 50*60, 50*60, 4*60, 60 } // Feedrates for manual moves along X, Y, Z, E from panel
+
 /* image size definition */
 #define IMG_SIZE_LOGO0              20008			    /* 200*50 logo alfawise     */
 #define IMG_SIZE_LOGO1              48008				/* 200*120 logo iformer     */
