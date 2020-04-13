@@ -425,10 +425,10 @@ uint8_t XPT2046::calibrate()
   MYSERIAL0.print("X: "); MYSERIAL0.print(x[3]); MYSERIAL0.print("   Y: "); MYSERIAL0.println(y[3]);
   MYSERIAL0.flush();
 
-  // while (!isTouched()) {};
-
-  // backlightTimeout = millis() + 60000;
-
+  // wait for touch
+  while (!isTouched()){
+    ;
+  }
   lgtlcd.setColor(BLACK);
   lgtlcd.setBgColor(WHITE);
 

@@ -2220,13 +2220,13 @@
     #define XPT2046_Y_CALIBRATION   9000
     #define XPT2046_X_OFFSET        320
     #define XPT2046_Y_OFFSET        0
-  #endif
+  #endif   
 
   #if ENABLED(TS_V20)
     // 2020 feixinda clone std SID240x320-8PCB-D
-    #define XPT2046_X_CALIBRATION  -12000
-    #define XPT2046_Y_CALIBRATION   9000
-    #define XPT2046_X_OFFSET        332
+    #define XPT2046_X_CALIBRATION  -11760
+    #define XPT2046_Y_CALIBRATION   8680
+    #define XPT2046_X_OFFSET        334
     #define XPT2046_Y_OFFSET        -14  
   #endif 
 #endif

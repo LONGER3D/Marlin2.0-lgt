@@ -544,7 +544,7 @@ bool display_image::LGT_Ui_Update(void)
 			// 	next_window_ID=eWINDOW_NONE;
 			// 	dispalyDialogYesNo(eDIALOG_PRINT_RECOVERY);
 			// break;
-			default:
+			default:    // no page change just button press
 				button_type=true;
 				break;
 		}
@@ -1442,8 +1442,7 @@ void LgtLcdTft::init()
     // init tft-lcd
     lcd.init();
     lcd.clear();
-    touch.calibrate();
-    return;
+    // touch.calibrate();
     displayStartUpLogo();
     delay(1000);
     displayWindowHome();
@@ -1458,14 +1457,14 @@ void LgtLcdTft::loop()
     static uint8_t touchCheck = 0;
  
     if (touch.isTouched()) { 
-        const millis_t time = millis();
-        if (ELAPSED(time, nextTouchReadTime)) {
-            nextTouchReadTime = time + TOUCH_DELAY;
-            if (touch.isTouched()) {
+        if (!TRUELY_TOUCHED()) {
+            const millis_t time = millis();
+            if (ELAPSED(time, nextTouchReadTime)) {
+                nextTouchReadTime = time + TOUCH_DELAY;
                 touchCheck++;
                 if (TRUELY_TOUCHED()) {  // truely touched
                     touch.readTouchPoint(cur_x, cur_y);
-                    DEBUG_ECHOPAIR("touched: x: ", cur_x);
+                    DEBUG_ECHOPAIR("touch: x: ", cur_x);
                     DEBUG_ECHOLNPAIR(", y: ", cur_y);
                     LGT_MainScanWindow();   // touch pos will be clear after scanning
                 }
@@ -1473,7 +1472,7 @@ void LgtLcdTft::loop()
         }
     } else if (TRUELY_TOUCHED()) {  // touch released
         touchCheck = 0;
-        DEBUG_ECHOPGM("touch: released ");
+        DEBUG_ECHOLN("touch: released ");
         if(LGT_Ui_Update())
             LGT_Ui_Buttoncmd();
 
