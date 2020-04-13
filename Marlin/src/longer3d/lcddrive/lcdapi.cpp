@@ -6,6 +6,7 @@
 #include "st7789v.h"
 #include "lcdfont16.h"
 #include "../w25qxx.h"
+#include <libmaple/dma.h>
 
 LgtLcdApi lgtlcd;
 
@@ -22,13 +23,20 @@ LgtLcdApi::LgtLcdApi() :
 
 uint8_t LgtLcdApi::init()
 {
-  // set pinmode output and write
+  // reset lcd
   OUT_WRITE(LCD_BACKLIGHT_PIN, LOW);
   OUT_WRITE(LCD_RESET_PIN, LOW); // perform a clean hardware reset
   _delay_ms(5);
   OUT_WRITE(LCD_RESET_PIN, HIGH);
   _delay_ms(5);
   OUT_WRITE(LCD_BACKLIGHT_PIN, HIGH);
+
+  #ifdef LCD_USE_DMA_FSMC
+  dma_init(FSMC_DMA_DEV);
+  dma_disable(FSMC_DMA_DEV, FSMC_DMA_CHANNEL);
+  dma_set_priority(FSMC_DMA_DEV, FSMC_DMA_CHANNEL, DMA_PRIORITY_MEDIUM);
+  #endif
+
   // FSMC init
   LCD_IO_Init(FSMC_CS_PIN, FSMC_RS_PIN);
   
@@ -108,6 +116,7 @@ void LgtLcdApi::backLightOff()
   OUT_WRITE(LCD_BACKLIGHT_PIN, LOW);
 }
 
+
 /** 
 * Fill in a specified area with a single color
 * (sx,sy),(ex,ey): Filled rectangular diagonal coordinates    Area size：(ex-sx+1)*(ey-sy+1) 
@@ -117,7 +126,7 @@ void LgtLcdApi::fill(uint16_t sx,uint16_t sy,uint16_t ex,uint16_t ey,uint16_t co
 {
     #if ENABLED(LCD_USE_DMA_FSMC)
         setWindow(sx, sy, ex, ey);
-        uint32_t count = (ex - ey + 1) * (ey - ex + 1);
+        uint32_t count = (ex - sx + 1) * (ey - sy + 1);
         NOMORE(count, LCD_PIXELS_COUNT);
         LCD_IO_WriteMultiple(color, count);
     #else
@@ -214,7 +223,13 @@ void LgtLcdApi::showRawImage(uint16_t xsta,uint16_t ysta,uint16_t width,uint16_t
 	}  
 }
 
-
+void LgtLcdApi::drawCross(uint16_t x, uint16_t y, uint16_t color) 
+{
+  setWindow(x - 15, y, x + 15, y); 
+  LCD_IO_WriteMultiple(color, 31);
+  setWindow(x, y - 15, x, y + 15); 
+  LCD_IO_WriteMultiple(color, 31);
+}
 
 #endif // LGT_LCD_TFT
 

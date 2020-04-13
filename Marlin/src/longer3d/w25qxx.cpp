@@ -127,7 +127,7 @@ void W25QXX::W25QXX_Write(uint8_t* pBuffer,uint32_t WriteAddr,uint16_t NumByteTo
 }
 void W25QXX::W25QXX_Read(uint8_t* pBuffer,uint32_t ReadAddr,uint16_t NumByteToRead)
 {
-   uint16_t i;
+   // uint16_t i;
    W25QXX_CS(0);
    spiSend(W25X_ReadData);             
    spiSend((uint8_t)(ReadAddr>>16));   

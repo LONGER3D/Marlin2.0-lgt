@@ -1442,6 +1442,8 @@ void LgtLcdTft::init()
     // init tft-lcd
     lcd.init();
     lcd.clear();
+    touch.calibrate();
+    return;
     displayStartUpLogo();
     delay(1000);
     displayWindowHome();
