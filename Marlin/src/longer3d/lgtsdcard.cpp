@@ -35,6 +35,8 @@ bool LgtSdCard::isDir()
 
 const char *LgtSdCard::filename(uint16_t i)
 {
+    if (m_fileCount == 0)
+        return nullptr;
      card.getfilename_sorted(i);
      return card.longFilename[0] ? card.longFilename : card.filename;
     //  uint16_t len = card.filename();
@@ -55,5 +57,48 @@ const char *LgtSdCard::filename(uint16_t i)
     // }
 }
 
+const char *LgtSdCard::filename()
+{
+    if (m_isSelectFile) {
+        return filename(m_currentFile);
+    } else {
+        return nullptr;
+    }
+}
+
+bool LgtSdCard::setItem(uint16_t item)
+{
+    if (item < LIST_ITEM_MAX) {
+        if (m_isReverseList) {
+            uint16_t n = m_currentPage * LIST_ITEM_MAX + item + 1;
+            if ( n <= m_fileCount) {
+                m_currentItem = item;
+                m_currentFile =  m_fileCount - n;
+                m_isSelectFile = true;
+                return true;   // success to set
+            }
+        } else {
+            uint16_t n = m_currentPage * LIST_ITEM_MAX + item;
+            if (n < m_fileCount) {
+                m_currentItem = item;
+                m_currentFile = n;
+                m_isSelectFile = true;
+                return true;   // success to set
+            }
+        }
+    }
+    return false;   // fail to set
+}
+
+uint16_t LgtSdCard::selectedPage()
+{
+    if (!m_isSelectFile)
+        return 0;
+    if (m_isReverseList) {
+        return (m_fileCount - 1 - m_currentFile) / LIST_ITEM_MAX;
+    } else {
+        return m_currentFile / LIST_ITEM_MAX;
+    }   
+}
 
 #endif // LGT_LCD_TFT

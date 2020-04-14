@@ -11,7 +11,8 @@ public:
         m_fileCount(0),
         m_pageCount(0),
         m_currentPage(0),
-        m_currentItem(0)
+        m_currentItem(0),
+        m_currentFile(0)
     {
 
     }
@@ -40,14 +41,41 @@ public:
         return m_currentPage;
     }
 
-    inline void setItem(uint16_t item) // page_index_num
+    inline uint8_t nextPage()
     {
-        if (item < LIST_ITEM_MAX)
-            m_currentItem = item;
+        if (m_currentPage < m_pageCount - 1) {
+            m_currentPage++;
+            return 1;
+        } else {
+            return 0;
+        }
+
     }
+
+    inline uint8_t previousPage()
+    {
+        if (m_currentPage > 0) {
+            m_currentPage--;
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    bool setItem(uint16_t item); // page_index_num
+
+    inline uint16_t item() {return m_currentItem;}
+
+    inline bool isReverseList() {return m_isReverseList;}
 
     bool isDir();
     const char *filename(uint16_t i);
+    const char *filename();
+    inline uint16_t fileIndex() {return m_currentFile;} // get current selected file
+
+    inline bool isFileSelected() {return m_isSelectFile;}
+    uint16_t selectedPage();
+
 
 
 private:
@@ -55,6 +83,11 @@ private:
     uint16_t m_pageCount;
     uint16_t m_currentPage;
     uint16_t m_currentItem;
+    uint16_t  m_currentFile;
+
+    bool m_isReverseList = false;
+    bool m_isSelectFile = false;
+
     // uint16_t page_index_max;
     // uint16_t page_index;
     // uint16_t file_count;

@@ -452,62 +452,11 @@ void display_image::displayFilePageNumber(void)
 	}
 }
 
-void showfilename(uint8_t j,uint8_t i)
-{
-
-    // LCD_ShowString(35, 32 + j * 30, CardFile.getsdfilename(i));
-
-
-	// switch (j) 
-	// {
-	// 	case 1:
-	// 		LCD_ShowString(35,32,CardFile.getsdfilename(i));
-	// 		if(CardFile.filenameIsFolder)
-	// 			Display_Screen.displayImage(0,25,IMG_ADDR_INDICATOR_FOLDER);
-	// 		else
-	// 			Display_Screen.displayImage(0,25,IMG_ADDR_INDICATOR_FILE);
-	// 		break;
-	// 	case 2:
-	// 		LCD_ShowString(35,62,CardFile.getsdfilename(i));
-	// 		if(CardFile.filenameIsFolder)
-	// 			Display_Screen.displayImage(0,55,IMG_ADDR_INDICATOR_FOLDER);
-	// 		else
-	// 			Display_Screen.displayImage(0,55,IMG_ADDR_INDICATOR_FILE);
-	// 	break;
-	// 	case 3:
-	// 		LCD_ShowString(35,92,CardFile.getsdfilename(i));
-	// 		if(CardFile.filenameIsFolder)
-	// 			Display_Screen.displayImage(0,85,IMG_ADDR_INDICATOR_FOLDER);
-	// 		else
-	// 			Display_Screen.displayImage(0,85,IMG_ADDR_INDICATOR_FILE);
-	// 	break;
-	// 	case 4:
-	// 		LCD_ShowString(35,122,CardFile.getsdfilename(i));
-	// 		if(CardFile.filenameIsFolder)
-	// 			Display_Screen.displayImage(0,115,IMG_ADDR_INDICATOR_FOLDER);
-	// 		else
-	// 			Display_Screen.displayImage(0,115,IMG_ADDR_INDICATOR_FILE);
-	// 	break;
-	// 	case 5:
-	// 		LCD_ShowString(35,152,CardFile.getsdfilename(i));
-	// 		if(CardFile.filenameIsFolder)
-	// 			Display_Screen.displayImage(0,145,IMG_ADDR_INDICATOR_FOLDER);
-	// 		else
-	// 			Display_Screen.displayImage(0,145,IMG_ADDR_INDICATOR_FILE);
-	// 	break;
-	// 	case 6:
-	// 	default:
-	// 	break;
-	// }
-	//j++;
-}
-
 void display_image::displayFileList()
 {
     // debug
-    bool list_order = false;
     lcd.setColor(BLACK);
-	if(list_order)    //forward
+	if(!lgtCard.isReverseList())    //forward
 	{
         uint16_t start = lgtCard.page() * LIST_ITEM_MAX;
         uint16_t end = start + LIST_ITEM_MAX;
@@ -539,7 +488,39 @@ void display_image::displayFileList()
 
 }
 
+void LgtLcdTft::highlightChosenItem(uint16_t item)
+{
+    uint16_t lastItem = lgtCard.item();
+    uint16_t lastIndex = lgtCard.fileIndex();   // save last selected file index
+    uint16_t lastPage = lgtCard.selectedPage(); // save last selected page
+    if (lastItem == item && item > 0)   // nothing should change
+        return;
+    if (!lgtCard.setItem(item)) // fail to set item
+        return;
+    // if (lgtCard.isFileSelected() && lastIndex == lgtCard.fileIndex())
+    //     return;
+    DEBUG_ECHOLNPAIR("last item: ", lastItem);
+    DEBUG_ECHOLNPAIR("last index: ", lastIndex);
+    DEBUG_ECHOLNPAIR("select item: ", item);
+    DEBUG_ECHOLNPAIR("select index: ", lgtCard.fileIndex());
 
+    if (lastPage == lgtCard.page()) {  // only restore when selected page is as same as last one
+        // restore last selected item
+        lcd.fill(35, 25 + lastItem * 30, 239, 55 - 1 + lastItem * 30, WHITE);
+        lcd.print(35, 32 + lastItem*30, lgtCard.filename(lastIndex));
+    }
+    // highlight selecetd item
+    // lgtCard.setItem(item);
+    // .. darkblue background
+    lcd.fill(35, 25 + item * 30, 239, 55 - 1 + item * 30, DARKBLUE);
+    // .. reprint filename
+    lcd.setColor(WHITE);
+    lcd.setBgColor(DARKBLUE);
+    lcd.print(35, 32 + item*30, lgtCard.filename());
+
+    lcd.setColor(BLACK);
+    lcd.setBgColor(WHITE);
+}
 
 void display_image::scanWindowFile( uint16_t rv_x, uint16_t rv_y )
 {
@@ -1270,65 +1251,62 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 
-		// 	case eBT_FILE_NEXT:
-		// 		if(page_index<page_index_max-1)
-		// 		{
-		// 			page_index++;
-		// 			LCD_Fill(0, 25, 239, 174,White);	//clean file list display zone 
-		// 			displayFileList();
-		// 			displayFilePageNumber();
-		// 			if(choose_file_page==page_index&&choose_printfile!=-1)
-		// 				CardFile.ChoseFile(choose_printfile);
-		// 		}
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_FILE_LAST:
-		// 		if(page_index>0)
-		// 		{
-		// 			page_index--;
-		// 			LCD_Fill(0, 25, 239, 174,White);
-		// 			displayFileList();
-		// 			displayFilePageNumber();
-		// 			if(choose_file_page==page_index&&choose_printfile!=-1)
-		// 				CardFile.ChoseFile(choose_printfile);
-		// 		}
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_FILE_LIST1:
-		// 		if(current_window_ID==eMENU_FILE)
-		// 			CardFile.ChoseFile(0);
-		// 		else
-		// 			ChoseArgument(0);
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_FILE_LIST2:
-		// 		if(current_window_ID==eMENU_FILE)
-		// 			CardFile.ChoseFile(1);
-		// 		else
-		// 			ChoseArgument(1);	
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_FILE_LIST3:
-		// 		if(current_window_ID==eMENU_FILE)
-		// 			CardFile.ChoseFile(2);
-		// 		else
-		// 			ChoseArgument(2);
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_FILE_LIST4:
-		// 		if(current_window_ID==eMENU_FILE)
-		// 			CardFile.ChoseFile(3);
-		// 		else
-		// 			ChoseArgument(3);
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_FILE_LIST5:
-		// 		if(current_window_ID==eMENU_FILE)
-		// 			CardFile.ChoseFile(4);
-		// 		else
-		// 			ChoseArgument(4);
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
+            // menu file
+			case eBT_FILE_NEXT:
+				if (lgtCard.nextPage()) {
+					LCD_Fill(0, 25, 239, 174,White);	//clean file list display zone 
+					displayFileList();
+					displayFilePageNumber();
+					// if(choose_file_page==page_index&&choose_printfile!=-1)
+						// CardFile.ChoseFile(choose_printfile);
+				}
+				current_button_id=eBT_BUTTON_NONE;
+			    break;
+			case eBT_FILE_LAST:
+				if (lgtCard.previousPage()) {
+					LCD_Fill(0, 25, 239, 174,White);
+					displayFileList();
+					displayFilePageNumber();
+					// if(choose_file_page==page_index&&choose_printfile!=-1)
+						// CardFile.ChoseFile(choose_printfile);
+				}
+				current_button_id=eBT_BUTTON_NONE;
+			    break;
+			case eBT_FILE_LIST1:
+				if(current_window_ID==eMENU_FILE) {
+                    highlightChosenItem(0);
+                } else
+					;//ChoseArgument(0);
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_FILE_LIST2:
+				if(current_window_ID==eMENU_FILE) {
+                    highlightChosenItem(1);
+                } else
+					;//ChoseArgument(1);	
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_FILE_LIST3:
+				if(current_window_ID==eMENU_FILE)
+					highlightChosenItem(2);
+				else
+					;//ChoseArgument(2);
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_FILE_LIST4:
+				if(current_window_ID==eMENU_FILE)
+					highlightChosenItem(3);
+				else
+					;//ChoseArgument(3);
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_FILE_LIST5:
+				if(current_window_ID==eMENU_FILE)
+					highlightChosenItem(4);
+				else
+					;// ChoseArgument(4);
+				current_button_id=eBT_BUTTON_NONE;
+			break;
 		// 	case eBT_FILE_OPEN:
 		// 		current_button_id=eBT_BUTTON_NONE;
 		// 		if(choose_printfile==-1||(choose_printfile!=-1&&(choose_file_page!=(page_index)))
