@@ -6,6 +6,7 @@
 #include "lcddrive/lcdapi.h"
 #include "../feature/touch/xpt2046.h"
 #include "w25qxx.h"
+#include "lgtsdcard.h"
 
 // #include "../module/temperature.h"
 #include "../sd/cardreader.h"
@@ -85,7 +86,7 @@ uint8_t page_index_num=0;
 int8_t choose_printfile=-1;
 	
 static uint16_t cur_x=0,cur_y=0;
-uint16_t page_index_max=0,page_index=0,file_count=0,choose_file_page=0;
+// uint16_t page_index_max=0,page_index=0,file_count=0,choose_file_page=0;
 
 static char s_text[64];
 // char pdata[64];
@@ -117,12 +118,12 @@ static void LGT_Line_To_Current_Position(AxisEnum axis)
 		planner.buffer_line(current_position, MMM_TO_MMS(manual_feedrate_mm_m[(int8_t)axis]), active_extruder);
 }
 
-static void clearfilevar()
-{
-	//clear
-	page_index_max=page_index=file_count=choose_file_page=0;
-	page_index_num=0;choose_printfile=-1;
-}
+// static void clearfilevar()
+// {
+// 	//clear
+// 	page_index_max=page_index=file_count=choose_file_page=0;
+// 	page_index_num=0;choose_printfile=-1;
+// }
 
 
 LgtLcdTft::LgtLcdTft()
@@ -399,20 +400,19 @@ void display_image::displayWindowFiles(void)
 	LCD_DrawLine(240, 175, 240, 25);
 	LCD_DrawLine(241, 176, 241, 25);
 
-	if((SDIO_GetCardState()==SDIO_CARD_ERROR))
+	if((SDIO_GetCardState() == SDIO_CARD_ERROR)) {
 		displayPromptSDCardError();
-	// else
-	// {
-	// 	file_count=card.getnrfilenames();
-	// 	if(file_count==0)
-	// 	{
-	// 		displayPromptEmptyFolder();
-	// 		return;
-	// 	}
-	// 	page_index_max=CardFile.getsdfilepage();
-	// 	displayFileList();
-	// 	displayFilePageNumber();
-	// }
+        lgtCard.clear();
+    } else {
+        int fCount = lgtCard.count();
+        DEBUG_ECHOLNPAIR("sd filecount", fCount);
+		if (fCount == 0) {
+			displayPromptEmptyFolder();
+		} else {
+            displayFileList();
+            displayFilePageNumber();           
+        }
+	}
 
 }
 
@@ -439,6 +439,106 @@ void display_image::displayPromptEmptyFolder(void)
 	LCD_ShowString(35,87,s_text); 
 	color = BLACK;
 }
+
+void display_image::displayFilePageNumber(void)
+{
+	LCD_Fill(100, 195, 145, 215, White);	//celan file page number display zone
+	if(lgtCard.fileCount() > 0)
+	{
+		CLEAN_STRING(s_text);
+		POINT_COLOR=BLACK;
+		sprintf((char *)s_text, "%d/%d", lgtCard.page() + 1, lgtCard.pageCount());
+		LCD_ShowString(105, 200,s_text);
+	}
+}
+
+void showfilename(uint8_t j,uint8_t i)
+{
+
+    // LCD_ShowString(35, 32 + j * 30, CardFile.getsdfilename(i));
+
+
+	// switch (j) 
+	// {
+	// 	case 1:
+	// 		LCD_ShowString(35,32,CardFile.getsdfilename(i));
+	// 		if(CardFile.filenameIsFolder)
+	// 			Display_Screen.displayImage(0,25,IMG_ADDR_INDICATOR_FOLDER);
+	// 		else
+	// 			Display_Screen.displayImage(0,25,IMG_ADDR_INDICATOR_FILE);
+	// 		break;
+	// 	case 2:
+	// 		LCD_ShowString(35,62,CardFile.getsdfilename(i));
+	// 		if(CardFile.filenameIsFolder)
+	// 			Display_Screen.displayImage(0,55,IMG_ADDR_INDICATOR_FOLDER);
+	// 		else
+	// 			Display_Screen.displayImage(0,55,IMG_ADDR_INDICATOR_FILE);
+	// 	break;
+	// 	case 3:
+	// 		LCD_ShowString(35,92,CardFile.getsdfilename(i));
+	// 		if(CardFile.filenameIsFolder)
+	// 			Display_Screen.displayImage(0,85,IMG_ADDR_INDICATOR_FOLDER);
+	// 		else
+	// 			Display_Screen.displayImage(0,85,IMG_ADDR_INDICATOR_FILE);
+	// 	break;
+	// 	case 4:
+	// 		LCD_ShowString(35,122,CardFile.getsdfilename(i));
+	// 		if(CardFile.filenameIsFolder)
+	// 			Display_Screen.displayImage(0,115,IMG_ADDR_INDICATOR_FOLDER);
+	// 		else
+	// 			Display_Screen.displayImage(0,115,IMG_ADDR_INDICATOR_FILE);
+	// 	break;
+	// 	case 5:
+	// 		LCD_ShowString(35,152,CardFile.getsdfilename(i));
+	// 		if(CardFile.filenameIsFolder)
+	// 			Display_Screen.displayImage(0,145,IMG_ADDR_INDICATOR_FOLDER);
+	// 		else
+	// 			Display_Screen.displayImage(0,145,IMG_ADDR_INDICATOR_FILE);
+	// 	break;
+	// 	case 6:
+	// 	default:
+	// 	break;
+	// }
+	//j++;
+}
+
+void display_image::displayFileList()
+{
+    // debug
+    bool list_order = false;
+    lcd.setColor(BLACK);
+	if(list_order)    //forward
+	{
+        uint16_t start = lgtCard.page() * LIST_ITEM_MAX;
+        uint16_t end = start + LIST_ITEM_MAX;
+        NOMORE(end, lgtCard.fileCount());
+        DEBUG_ECHOLNPAIR("list start:", start);
+        DEBUG_ECHOLNPAIR("list end: ", end);
+		for (uint16_t i = start, j = 0; i < end; ++i, ++j) {
+            DEBUG_ECHOLNPAIR("sd filename: ", lgtCard.filename(i));
+            LCD_ShowString(35, 32 + j * 30, lgtCard.filename(i));
+            if(lgtCard.isDir())
+				displayImage(0, 25 + j * 30, IMG_ADDR_INDICATOR_FOLDER);
+			else
+				displayImage(0, 25 + j * 30, IMG_ADDR_INDICATOR_FILE);
+		}
+	} else {        // inverse
+        uint16_t start = lgtCard.fileCount() - 1 - lgtCard.page() * LIST_ITEM_MAX;
+        uint16_t end = start > LIST_ITEM_MAX ? start - LIST_ITEM_MAX : 0;
+        DEBUG_ECHOLNPAIR("list start:", start);
+        DEBUG_ECHOLNPAIR("list end: ", end);
+		for (uint16_t i = start, j = 0; i > end; --i, ++j) {
+            DEBUG_ECHOLNPAIR("sd filename: ", lgtCard.filename(i));
+            LCD_ShowString(35, 32 + j * 30, lgtCard.filename(i));
+            if(lgtCard.isDir())
+				displayImage(0, 25 + j * 30, IMG_ADDR_INDICATOR_FOLDER);
+			else
+				displayImage(0, 25 + j * 30, IMG_ADDR_INDICATOR_FILE);
+		}
+	}
+
+}
+
 
 
 void display_image::scanWindowFile( uint16_t rv_x, uint16_t rv_y )

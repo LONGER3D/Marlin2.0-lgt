@@ -106,8 +106,8 @@ private:
     void displayMoveCoordinate(void);
     // /***************************File page*******************************************/
     void displayWindowFiles(void);
-    // void displayFilePageNumber(void);
-    // void displayFileList();
+    void displayFilePageNumber(void);
+    void displayFileList();
     // void displayChosenFile(void);
     void displayPromptSDCardError(void);
     void displayPromptEmptyFolder(void);
