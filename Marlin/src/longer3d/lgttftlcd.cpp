@@ -8,7 +8,8 @@
 #include "w25qxx.h"
 
 // #include "../module/temperature.h"
-// #include "../sd/cardreader.h"
+#include "../sd/cardreader.h"
+#include "../HAL/STM32F1/sdio.h"
 #include "../module/motion.h"
 #include "../module/planner.h"
 // #include "../module/printcounter.h"
@@ -23,6 +24,7 @@
 #define lcd                             lgtlcd
 #define displayImage(x, y, addr)        lcd.showImage(x, y, addr)
 #define White                           WHITE
+#define Black                           BLACK
 #define lcdClear(color)                 lcd.clear(color)
 #define LCD_Fill(x, y, ex, ey, c)       lcd.fill(x, y, ex, ey, c)
 #define color                           lcd.m_color
@@ -30,6 +32,7 @@
 #define bgColor                         lcd.m_bgColor
 #define display_image                   LgtLcdTft
 #define enqueue_and_echo_commands_P(s)  queue.enqueue_now_P(s)
+#define LCD_DrawLine(x, y, ex, ey)     lcd.drawHVLine(x, y, ex, ey)
 
 #ifndef Chinese
 	#define LCD_ShowString(x,y,txt)          lcd.print(x,y,txt) 
@@ -78,11 +81,11 @@ uint8_t default_move_distance=5;
 // int8_t dir_auto_feed=0;
 // static uint8_t total_out_distance=0;
 // uint8_t printpercent=0;
-// uint8_t page_index_num=0;
-// int8_t choose_printfile=-1;
+uint8_t page_index_num=0;
+int8_t choose_printfile=-1;
 	
 static uint16_t cur_x=0,cur_y=0;
-// uint16_t page_index_max=0,page_index=0,file_count=0,choose_file_page=0;
+uint16_t page_index_max=0,page_index=0,file_count=0,choose_file_page=0;
 
 static char s_text[64];
 // char pdata[64];
@@ -113,6 +116,14 @@ static void LGT_Line_To_Current_Position(AxisEnum axis)
 	if (!planner.is_full())
 		planner.buffer_line(current_position, MMM_TO_MMS(manual_feedrate_mm_m[(int8_t)axis]), active_extruder);
 }
+
+static void clearfilevar()
+{
+	//clear
+	page_index_max=page_index=file_count=choose_file_page=0;
+	page_index_num=0;choose_printfile=-1;
+}
+
 
 LgtLcdTft::LgtLcdTft()
 {
@@ -366,6 +377,113 @@ void display_image::scanWindowMove( uint16_t rv_x, uint16_t rv_y )
 }
 
 // /***************************File page*******************************************/
+void display_image::displayWindowFiles(void)
+{
+	lcdClear(White);
+	LCD_Fill(0, 0, 320, 24, BG_COLOR_CAPTION_FILE); 	//caption background
+	#ifndef Chinese
+    	displayImage(115, 5, IMG_ADDR_CAPTION_FILE);		//caption words  
+		displayImage(255, 30, IMG_ADDR_BUTTON_OPEN);
+	#else
+		displayImage(115, 5,  IMG_ADDR_CAPTION_FILE_CN);		//caption words
+		displayImage(255, 30, IMG_ADDR_BUTTON_OPEN_CN);
+	#endif
+	displayImage(255, 105, IMG_ADDR_BUTTON_RETURN_FOLDER);
+	displayImage(150, 180, IMG_ADDR_BUTTON_PAGE_NEXT);
+	displayImage(35, 180, IMG_ADDR_BUTTON_PAGE_LAST);
+	displayImage(255, 180, IMG_ADDR_BUTTON_RETURN);	
+	// draw frame
+	POINT_COLOR=DARKBLUE;	
+	LCD_DrawLine(0, 175, 240, 175);
+	LCD_DrawLine(0, 176, 240, 176);
+	LCD_DrawLine(240, 175, 240, 25);
+	LCD_DrawLine(241, 176, 241, 25);
+
+	if((SDIO_GetCardState()==SDIO_CARD_ERROR))
+		displayPromptSDCardError();
+	// else
+	// {
+	// 	file_count=card.getnrfilenames();
+	// 	if(file_count==0)
+	// 	{
+	// 		displayPromptEmptyFolder();
+	// 		return;
+	// 	}
+	// 	page_index_max=CardFile.getsdfilepage();
+	// 	displayFileList();
+	// 	displayFilePageNumber();
+	// }
+
+}
+
+void display_image::displayPromptSDCardError(void)
+{
+	LCD_Fill(100, 195, 145, 215, White);    //clean file page number display zone
+	LCD_Fill(0, 25, 239, 174,White);	//clean file list display zone 
+	displayImage(45, 85, IMG_ADDR_PROMPT_ERROR);
+	color=RED;	
+	CLEAN_STRING(s_text);
+	sprintf((char*)s_text,"%s", TXT_MENU_FILE_SD_ERROR);
+	LCD_ShowString(80, 92,s_text);
+	color=Black;
+	// clearfilevar();
+}
+
+void display_image::displayPromptEmptyFolder(void)
+{
+    LCD_Fill(100, 195, 145, 215, White);    //clean file page number display zone
+	LCD_Fill(0, 25, 239, 174,White);	//clean file list display zone 
+	color = GRAY;
+	CLEAN_STRING(s_text);
+	sprintf((char*)s_text,"%s", TXT_MENU_FILE_EMPTY);
+	LCD_ShowString(35,87,s_text); 
+	color = BLACK;
+}
+
+
+void display_image::scanWindowFile( uint16_t rv_x, uint16_t rv_y )
+{
+	if(rv_x>260&&rv_x<315&&rv_y>176&&rv_y<226)  //return home
+	{
+		next_window_ID=eMENU_HOME;
+	}
+	else if(rv_x>0&&rv_x<240&&rv_y>25&&rv_y<55)	//1st file
+	{		
+		current_button_id=eBT_FILE_LIST1;
+	}
+	else if(rv_x>0&&rv_x<240&&rv_y>55&&rv_y<85)	//2nd file
+	{		
+		current_button_id=eBT_FILE_LIST2;
+	}
+	else if(rv_x>0&&rv_x<240&&rv_y>85&&rv_y<115)	//3rd file
+	{		
+		current_button_id=eBT_FILE_LIST3;
+	}
+	else if(rv_x>0&&rv_x<240&&rv_y>115&&rv_y<145)	//4th file
+	{		
+	current_button_id=eBT_FILE_LIST4;
+	} 
+	else if(rv_x>0&&rv_x<240&&rv_y>145&&rv_y<175)  //5th file
+	{		
+		current_button_id=eBT_FILE_LIST5;
+	}
+	else if(rv_x>35&&rv_x<90&&rv_y>180&&rv_y<235)  //last page
+	{		
+		current_button_id=eBT_FILE_LAST;
+	}
+	else if(rv_x>150&&rv_x<205&&rv_y>180&&rv_y<235)  	//next page
+	{
+		current_button_id=eBT_FILE_NEXT;
+	}
+	else if(rv_x>255&&rv_x<310&&rv_y>30&&rv_y<85)	//open file or folder	
+	{							
+		current_button_id=eBT_FILE_OPEN;
+	}
+	else if(rv_x>255&&rv_x<310&&rv_y>105&&rv_y<160)	//return parent dir
+	{	
+		current_button_id=eBT_FILE_FOLDER;
+	}
+}
 
 // /***************************Extrude page*******************************************/
 
@@ -480,12 +598,12 @@ bool display_image::LGT_Ui_Update(void)
 				next_window_ID=eWINDOW_NONE;
 				displayWindowMove();
 			break;
-			// case eMENU_FILE:
-			// 	current_window_ID=eMENU_FILE;
-			// 	next_window_ID=eWINDOW_NONE;
-			// 	clearfilevar();
-			// 	displayWindowFiles();
-			// break;
+			case eMENU_FILE:
+				current_window_ID=eMENU_FILE;
+				next_window_ID=eWINDOW_NONE;
+				// clearfilevar();
+				displayWindowFiles();
+			break;
 			// case eMENU_FILE1:
 			// 	current_window_ID=eMENU_FILE;
 			// 	next_window_ID=eWINDOW_NONE;
@@ -573,10 +691,10 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 				scanWindowMove(cur_x,cur_y);
 				cur_x=cur_y=0;
 			break;
-			// case eMENU_FILE:
-			// 	scanWindowFile(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
+			case eMENU_FILE:
+				scanWindowFile(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;
 			// case eMENU_PRINT:
 			// 	scanWindowPrint(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
@@ -649,6 +767,7 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
  */
 void display_image::LGT_Ui_Buttoncmd(void)
 {
+        DEBUG_ECHOLNPAIR("button id:", current_button_id);
 		switch (current_button_id)
 		{
             // move buttons
@@ -1030,26 +1149,26 @@ void display_image::LGT_Ui_Buttoncmd(void)
 		// 		current_button_id=eBT_BUTTON_NONE;
 		// 		dispalyExtrudeTemp();			
 		// 	break;
-		// 	case eBT_DISTANCE_CHANGE:
-		// 		switch(current_window_ID)
-		// 		{
-		// 			case eMENU_MOVE:
-		// 				changeMoveDistance(260, 55);
-		// 			break;
-		// 			case eMENU_PREHEAT:
-		// 				changeMoveDistance(260,37);
-		// 			break;
-		// 			case eMENU_EXTRUDE:case eMENU_ADJUST:case eMENU_ADJUST_MORE:
-		// 				changeMoveDistance(260,40);
-		// 			break;
-		// 			case eMENU_SETTINGS2:
-		// 			 	changeMoveDistance(255,43);	
-		// 			break;
-		// 			default:
-		// 			break;
-		// 		}
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
+			case eBT_DISTANCE_CHANGE:
+				switch(current_window_ID)
+				{
+					case eMENU_MOVE:
+						changeMoveDistance(260, 55);
+					break;
+					case eMENU_PREHEAT:
+						changeMoveDistance(260,37);
+					break;
+					case eMENU_EXTRUDE:case eMENU_ADJUST:case eMENU_ADJUST_MORE:
+						changeMoveDistance(260,40);
+					break;
+					case eMENU_SETTINGS2:
+					 	changeMoveDistance(255,43);	
+					break;
+					default:
+					break;
+				}
+				current_button_id=eBT_BUTTON_NONE;
+			break;
 
 		// 	case eBT_FILE_NEXT:
 		// 		if(page_index<page_index_max-1)
@@ -1444,7 +1563,7 @@ void LgtLcdTft::init()
     lcd.clear();
     // touch.calibrate();
     displayStartUpLogo();
-    delay(1000);
+    delay(10);
     displayWindowHome();
 }
 

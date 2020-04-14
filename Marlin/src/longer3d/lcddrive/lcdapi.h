@@ -28,6 +28,12 @@
 #define GREENYELLOW 0xAFE5
 #define PINK        0xF81F
 
+#define DARKBLUE    0X01CF	
+#define LIGHTBLUE   0X7D7C
+#define GRAYBLUE    0X5458 
+#define GRAY        0X8430//0xF7DE
+
+
 #define IMAGE_BUFF_SIZE  4000   // store image data from spiflash
 // #define SLOW_SHOW_IMAGE      // using slowly io write method  
 
@@ -68,6 +74,25 @@ public:
     void showImage(uint16_t x_st, uint16_t y_st, uint32_t addr);
     void showRawImage(uint16_t xsta,uint16_t ysta,uint16_t width,uint16_t high, uint32_t addr);
     void drawCross(uint16_t x, uint16_t y, uint16_t color);
+
+    inline void drawHVLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) 
+    {
+        #define SWAP(a, b) (((a) ^= (b)), ((b) ^= (a)), ((a) ^= (b)))
+        if (x1 > x2)
+            SWAP(x1, x2);
+        if (y1 > y2)
+            SWAP(y1, y2);
+        fill(x1, y1, x2, y2, m_color);
+    }
+
+    inline void drawRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) 
+    {
+        fill(x1, y1, x2, y1, m_color);
+        fill(x2, y1, x2, y2, m_color);
+        fill(x1, y2, x2, y2, m_color);
+        fill(x1, y1, x1, y2, m_color);
+    }
+
 public:
     void prepareWriteRAM();
     void setCursor(uint16_t Xpos, uint16_t Ypos);
