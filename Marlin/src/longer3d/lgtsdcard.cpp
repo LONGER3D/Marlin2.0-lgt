@@ -6,6 +6,11 @@
 
 LgtSdCard lgtCard;
 
+LgtSdCard::LgtSdCard()
+{
+    clear();
+}
+
 uint16_t LgtSdCard::count()
 {
     if (card.isMounted()) {
@@ -24,8 +29,13 @@ void LgtSdCard::clear()
 {
     m_fileCount = 0;
     m_pageCount = 0;
+
     m_currentPage = 0;
     m_currentItem = 0;
+    m_currentFile;
+
+    m_isReverseList = false;
+    m_isSelectFile = false;
 }
 
 bool LgtSdCard::isDir()

@@ -85,10 +85,10 @@ public:
 private:
     bool LGT_MainScanWindow(void);
     bool LGT_Ui_Update(void);
-    // void LGT_Printer_Data_Update(void);
+    void LGT_Printer_Data_Update(void);
     void LGT_Ui_Buttoncmd(void);
 
-    // bool setTemperatureInWindow(bool is_bed, bool sign);
+    bool setTemperatureInWindow(bool is_bed, bool sign);
     // void LGT_Tempabnormal_Warning(const char* info);    //is_printing=false
     // void LGT_Printerabnormal_Kill(const char* info);
 
@@ -115,10 +115,10 @@ private:
 
 
     // /***************************Extrude page*******************************************/
-    // void displayWindowExtrude(void);
-    // void scanWindowExtrude( uint16_t rv_x, uint16_t rv_y );
-    // void dispalyExtrudeTemp(void);
-    // void displayRunningAutoFeed(void);
+    void displayWindowExtrude(void);
+    void scanWindowExtrude( uint16_t rv_x, uint16_t rv_y );
+    void dispalyExtrudeTemp(void);
+    void displayRunningAutoFeed(void);
 
     // /***************************preheating page*******************************************/
     // void displayWindowPreheat(void);
@@ -183,7 +183,7 @@ private:
     // void scanDialogYes(uint16_t rv_x, uint16_t rv_y);
 
 private:
-    bool extrude2file = false;
+    // bool extrude2file = false;
 
 };
 

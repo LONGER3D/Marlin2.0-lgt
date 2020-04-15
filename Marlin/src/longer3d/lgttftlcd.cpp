@@ -8,7 +8,7 @@
 #include "w25qxx.h"
 #include "lgtsdcard.h"
 
-// #include "../module/temperature.h"
+#include "../module/temperature.h"
 #include "../sd/cardreader.h"
 #include "../HAL/STM32F1/sdio.h"
 #include "../module/motion.h"
@@ -33,7 +33,10 @@
 #define bgColor                         lcd.m_bgColor
 #define display_image                   LgtLcdTft
 #define enqueue_and_echo_commands_P(s)  queue.enqueue_now_P(s)
-#define LCD_DrawLine(x, y, ex, ey)     lcd.drawHVLine(x, y, ex, ey)
+#define LCD_DrawLine(x, y, ex, ey)      lcd.drawHVLine(x, y, ex, ey)
+#define LCD_DrawRectangle(x, y, ex, ey) lcd.drawRect(x, y, ex, ey)
+// #define temp_hotend[0].current   temp_hotend[0].celsius
+
 
 #ifndef Chinese
 	#define LCD_ShowString(x,y,txt)          lcd.print(x,y,txt) 
@@ -79,8 +82,8 @@ bool is_setting_change=false;
 
 // int16_t cur_fanspeed=0;
 uint8_t default_move_distance=5;
-// int8_t dir_auto_feed=0;
-// static uint8_t total_out_distance=0;
+static int8_t dir_auto_feed=0;
+static uint8_t total_out_distance=0;
 // uint8_t printpercent=0;
 uint8_t page_index_num=0;
 int8_t choose_printfile=-1;
@@ -94,9 +97,9 @@ static char s_text[64];
 // const float manual_feedrate_mm_m[] = MANUAL_FEEDRATE;
 
 static bool is_aixs_homed[XYZ]={false};
-// static bool is_bed_select = false;
+static bool is_bed_select = false;
 // bool sd_insert=false;
-// bool is_printing=false;
+static bool is_printing=false;	// print status
 // bool is_print_finish=false;
 // bool pause_print=false;
 // bool cur_flag=false;  
@@ -111,6 +114,9 @@ E_BUTTON_KEY current_button_id=eBT_BUTTON_NONE;
 // /**********  window definition  **********/
 E_WINDOW_ID current_window_ID = eMENU_HOME,next_window_ID =eWINDOW_NONE;
 
+
+// /***************************static function definition****************************************/
+
 static void LGT_Line_To_Current_Position(AxisEnum axis) 
 {
 	const float manual_feedrate_mm_m[] = MANUAL_FEEDRATE;
@@ -118,14 +124,80 @@ static void LGT_Line_To_Current_Position(AxisEnum axis)
 		planner.buffer_line(current_position, MMM_TO_MMS(manual_feedrate_mm_m[(int8_t)axis]), active_extruder);
 }
 
-// static void clearfilevar()
-// {
-// 	//clear
-// 	page_index_max=page_index=file_count=choose_file_page=0;
-// 	page_index_num=0;choose_printfile=-1;
-// }
+static void stopAutoFeed(void)
+{
+	if(dir_auto_feed==1||dir_auto_feed==-1)
+	{
+		queue.clear();	
+		planner.quick_stop();
+		enqueue_and_echo_commands_P(PSTR("G90"));
+		dir_auto_feed=0;
+		total_out_distance=0;
+	}
+}
+
+static void actAutoFeed(void)
+{
+	if(dir_auto_feed == 0) return; 
+	if(dir_auto_feed == 1)   //positive direction
+	{		       				
+		enqueue_and_echo_commands_P(PSTR("G0 E15 F120"));
+	}
+	else if(dir_auto_feed == -1)  //negative direction
+	{      
+        if(total_out_distance < 90)
+		{
+            enqueue_and_echo_commands_P(PSTR("G0 E-10 F600"));
+            total_out_distance += 1;
+        }
+		else  // arrive max length 
+		{  
+            stopAutoFeed();
+           thermalManager.temp_hotend[0].target=0;  //prevent from fire harzard   
+        }
+	}
+}
 
 
+
+static void startAutoFeed(int8_t dir)
+{
+	if(dir == dir_auto_feed) return; 
+	if(thermalManager.temp_hotend[0].target<200)
+	{
+		thermalManager.temp_hotend[0].target=200;
+		thermalManager.start_watching_hotend(0);
+		if(thermalManager.temp_hotend[0].celsius>195)
+		{
+			 if(abs(dir) == 1)    //  validity checking
+			{    
+        		dir_auto_feed = dir;  
+				enqueue_and_echo_commands_P(PSTR("G91"));
+        		total_out_distance = 0;
+   			 }
+		}
+		if(is_bed_select)
+		{
+			is_bed_select=false;
+			lcd.showImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
+		}
+	}
+	else if(thermalManager.temp_hotend[0].celsius>195)
+	{
+		if(abs(dir) == 1)    //  validity checking
+		{    
+        	dir_auto_feed = dir;  
+			enqueue_and_echo_commands_P(PSTR("G91"));
+        	total_out_distance = 0;
+   		 }
+		if(is_bed_select)
+		{
+			is_bed_select=false;
+			lcd.showImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
+		}
+	}
+}
+// /***************************class definition start************************************/
 LgtLcdTft::LgtLcdTft()
 {
 
@@ -567,6 +639,146 @@ void display_image::scanWindowFile( uint16_t rv_x, uint16_t rv_y )
 }
 
 // /***************************Extrude page*******************************************/
+void display_image::displayWindowExtrude(void)
+{
+	lcdClear(White);
+	LCD_Fill(0, 0, 320, 24, BG_COLOR_CAPTION_EXTRUDE); 	//caption background
+	#ifndef Chinese
+		displayImage(115, 5, IMG_ADDR_CAPTION_EXTRUDE);		//caption words
+	#else
+		displayImage(115, 5, IMG_ADDR_CAPTION_EXTRUDE_CN);		//caption words
+	#endif
+	displayImage(5, 34, IMG_ADDR_BUTTON_ADD);
+	displayImage(5, 176, IMG_ADDR_BUTTON_SUB);
+	displayImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
+
+	displayImage(86, 34, IMG_ADDR_BUTTON_PLUS_E);
+	displayImage(86, 166, IMG_ADDR_BUTTON_MINUS_E);	
+	displayImage(167, 44, IMG_ADDR_BUTTON_FEED_IN_0);
+	displayImage(167, 166, IMG_ADDR_BUTTON_FEED_OUT_0);
+	default_move_distance = 10;
+	initialMoveDistance(260, 41);
+	#ifndef Chinese
+		displayImage(260, 101, IMG_ADDR_BUTTON_FEED_STOP);
+	#else
+		displayImage(260, 101, IMG_ADDR_BUTTON_FEED_STOP_CN);
+	#endif
+	displayImage(260, 176, IMG_ADDR_BUTTON_RETURN);
+	POINT_COLOR = 0xC229;
+	LCD_DrawRectangle(96, 121, 134, 140);	//jog frame //97  126
+	POINT_COLOR = BLUE;	
+	LCD_DrawRectangle(180, 121, 219, 140);	//auto frame
+	POINT_COLOR=BLACK;
+	CLEAN_STRING(s_text);
+	sprintf((char*)s_text,"%s",TXT_MENU_EXTRUDE_MANUAL);
+	LCD_ShowString(100,123,s_text);	
+	sprintf((char*)s_text,"%s",TXT_MENU_EXTRUDE_AUTOMATIC);
+	LCD_ShowString(184,123,s_text);
+	dispalyExtrudeTemp();
+}
+
+void display_image::dispalyExtrudeTemp(void)
+{
+	LCD_Fill(5,143,65,163,White);		//clean extruder/bed temperature display zone
+	POINT_COLOR=BLACK;
+	CLEAN_STRING(s_text);
+	if(!is_bed_select)
+		sprintf((char *)s_text,"%d/%d",(int16_t)thermalManager.temp_hotend[0].celsius, thermalManager.temp_hotend[0].target);
+
+	else{
+		sprintf((char *)s_text,"%d/%d", (int16_t)thermalManager.temp_bed.celsius,thermalManager.temp_bed.target);
+	}
+	LCD_ShowString(8,143,s_text);
+
+}
+
+void display_image::displayRunningAutoFeed(void)
+{
+	if(dir_auto_feed==0) return;
+	static bool is_display_run_auto_feed = false;
+	if(!is_display_run_auto_feed)
+	{		
+		if(dir_auto_feed == 1)
+		{			
+			LCD_Fill(167,96,234,99,White);	 //clean partial feed in display zone		
+			displayImage(167, 41, IMG_ADDR_BUTTON_FEED_IN_1);
+		}
+		else
+		{		
+			LCD_Fill(167,166,234,169,White); //clean partial feed out display zone			
+			displayImage(167, 169, IMG_ADDR_BUTTON_FEED_OUT_1);	
+		}
+	}
+	else
+	{
+		if(dir_auto_feed == 1)
+		{		
+			LCD_Fill(167,41,234,44,White);	 //clean partial feed in display zone					
+			displayImage(167, 44, IMG_ADDR_BUTTON_FEED_IN_0);
+		}
+		else
+		{
+			LCD_Fill(167,221,234,224,White); //clean partial feed out display zone	
+			displayImage(167, 166, IMG_ADDR_BUTTON_FEED_OUT_0);
+
+		}
+	}
+	is_display_run_auto_feed = !is_display_run_auto_feed;
+}
+
+void display_image::scanWindowExtrude( uint16_t rv_x, uint16_t rv_y )
+{
+	if(rv_x>260&&rv_x<315&&rv_y>176&&rv_y<226)  //return home
+	{
+		// if(extrude2file)
+		// {
+		// 	extrude2file=false;
+		// 	next_window_ID=eMENU_FILE1;
+		// 	return;
+		// }
+		if(is_printing)
+			next_window_ID=eMENU_ADJUST_MORE;
+		else
+			next_window_ID=eMENU_HOME;
+		
+	}
+	else if(rv_x>5&&rv_x<60&&rv_y>34&&rv_y<89) //add extruder/bed temperature
+	{				
+		current_button_id=eBT_TEMP_PLUS;
+	}
+	else if(rv_x>5&&rv_x<60&&rv_y>176&&rv_y<231)   //subtract extruder/bed temperature
+	{				
+		current_button_id=eBT_TEMP_MINUS;
+	}
+	else if(rv_x>15&&rv_x<65&&rv_y>95&&rv_y<136)   //select bed/extruder
+	{				
+			current_button_id=eBT_BED_E;		
+	}
+	else if(rv_x>85&&rv_x<140&&rv_y>35&&rv_y<100)  //+e move
+	{	
+		current_button_id=eBT_JOG_EPLUS;
+	}
+	else if(rv_x>85&&rv_x<140&&rv_y>165&&rv_y<230)  //-e move
+	{		
+		current_button_id=eBT_JOG_EMINUS;
+	}
+	else if(rv_x>167&&rv_x<237&&rv_y>45&&rv_y<100)  //autofeed in positive direction 
+	{			
+		current_button_id=eBT_AUTO_EPLUS;
+	}
+	else if(rv_x>167&&rv_x<237&&rv_y>165&&rv_y<220) //autofeed in negative direction 
+	{	
+		current_button_id=eBT_AUTO_EMINUS;		
+	}
+	else if(rv_x>260&&rv_x<315&&rv_y>40&&rv_y<80)  //change distance
+	{	
+		current_button_id=eBT_DISTANCE_CHANGE;			
+	}
+	else if(rv_x>260&&rv_x<315&&rv_y>100&&rv_y<155) //stop autofeed
+	{	
+		current_button_id=eBT_STOP;		
+	}
+}
 
 // /***************************preheating page*******************************************/
 
@@ -622,6 +834,85 @@ void display_image::scanWindowMoreHome(uint16_t rv_x, uint16_t rv_y)
 
 // /***************************dialog page*******************************************/
 
+
+/********************************************************
+ * is_bed:false->extruder0, true->bed
+ * sign:  false->plus, true->minus 
+ * return:  false->no change
+ *********************************************************/
+bool display_image::setTemperatureInWindow(bool is_bed, bool sign)
+{
+	if((is_bed&&thermalManager.temp_bed.celsius<0)||
+	(thermalManager.temp_hotend[0].celsius<0))
+		return false; 
+	int16_t temp_limit;
+    int16_t *p_temp;
+    if(!sign)
+	{      /* add */
+        if(!is_bed){     /* extruder */
+            temp_limit = MAX_ADJUST_TEMP_EXTRUDE;
+            p_temp = &thermalManager.temp_hotend[0].target;
+        }
+        else{           /* bed */
+            temp_limit = MAX_ADJUST_TEMP_BED;
+            p_temp = &thermalManager.temp_bed.target;   
+        }
+        if(*p_temp < temp_limit){ /* within the limit */
+            if(default_move_distance == 0xff)
+                if(!is_bed){
+                    if(*p_temp < NORMAL_ADJUST_TEMP_EXTRUDE)
+                        *p_temp = NORMAL_ADJUST_TEMP_EXTRUDE;
+                    else                     
+                        *p_temp = MAX_ADJUST_TEMP_EXTRUDE;
+                }
+                else{
+                    if(*p_temp < NORMAL_ADJUST_TEMP_BED)
+                        *p_temp = NORMAL_ADJUST_TEMP_BED;
+                    else                     
+                        *p_temp = MAX_ADJUST_TEMP_BED;
+                }
+            else{   /* if distance is 1, 5, 10 */
+                *p_temp += default_move_distance;
+                if(*p_temp > temp_limit)
+                    *p_temp= temp_limit; 
+            }
+            return true;
+        }   
+    }
+	 else
+	 {       /* minus */
+        if(!is_bed){    /* extruder */
+            temp_limit = MIN_ADJUST_TEMP_EXTRUDE; 
+            p_temp = &thermalManager.temp_hotend[0].target;
+        }
+        else    {       /* bed */
+            temp_limit = MIN_ADJUST_TEMP_BED;
+            p_temp = &thermalManager.temp_bed.target;   
+        }
+        if(*p_temp > temp_limit){ /* within the limit */
+            if(default_move_distance == 0xff)
+                if(!is_bed){
+                    if(*p_temp <= NORMAL_ADJUST_TEMP_EXTRUDE)
+                        *p_temp = MIN_ADJUST_TEMP_EXTRUDE;
+                    else                     
+                        *p_temp = NORMAL_ADJUST_TEMP_EXTRUDE;
+                }
+                else{
+                    if(*p_temp <= NORMAL_ADJUST_TEMP_BED)
+                        *p_temp = MIN_ADJUST_TEMP_BED;
+                    else                     
+                        *p_temp = NORMAL_ADJUST_TEMP_BED;
+                }       
+            else{
+                *p_temp -= default_move_distance;
+                if(*p_temp < temp_limit)
+                    *p_temp = temp_limit;  
+            }
+            return true;
+	    }
+    }
+return false;
+}
 
 /**
  * page switching
@@ -690,6 +981,13 @@ bool display_image::LGT_Ui_Update(void)
 			// 	next_window_ID=eWINDOW_NONE;
 			// 	displayChosenFile();
 			// break;
+			case eMENU_EXTRUDE:
+				current_window_ID=eMENU_EXTRUDE;
+				next_window_ID=eWINDOW_NONE;
+				is_bed_select=false;
+				displayWindowExtrude();
+			break;
+
 			// case eMENU_PRINT:
 			// 	current_window_ID=eMENU_PRINT;
 			// 	next_window_ID=eWINDOW_NONE;
@@ -721,12 +1019,7 @@ bool display_image::LGT_Ui_Update(void)
 			// 	set_all_unhomed();
 			// 	displayWindowLeveling();
 			// break;
-			// case eMENU_EXTRUDE:
-			// 	current_window_ID=eMENU_EXTRUDE;
-			// 	next_window_ID=eWINDOW_NONE;
-			// 	is_bed_select=false;
-			// 	displayWindowExtrude();
-			// break;
+
 			// case eMENU_SETTINGS:
 			// 	current_window_ID=eMENU_SETTINGS;
 			// 	next_window_ID=eWINDOW_NONE;
@@ -776,6 +1069,10 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 				scanWindowFile(cur_x,cur_y);
 				cur_x=cur_y=0;
 			break;
+			case eMENU_EXTRUDE:
+				scanWindowExtrude(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;
 			// case eMENU_PRINT:
 			// 	scanWindowPrint(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
@@ -796,10 +1093,7 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 			// 	scanWindowLeveling(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
 			// break;
-			// case eMENU_EXTRUDE:
-			// 	scanWindowExtrude(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
+
 			// case eMENU_SETTINGS:
 			// 	scanWindowSettings(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
@@ -1031,10 +1325,10 @@ void display_image::LGT_Ui_Buttoncmd(void)
 		// 	// break;
 		// 	case eBT_PR_PLA:
 		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		if(thermalManager.temp_hotend[0].current<0||thermalManager.temp_bed.current<0)
+		// 		if(thermalManager.temp_hotend[0].celsius<0||thermalManager.temp_bed.current<0)
 		// 			break;
 		// 		thermalManager.temp_hotend[0].target=PREHEAT_PLA_TEMP_EXTRUDE;
-		// 		thermalManager.start_watching_heater(0);
+		// 		thermalManager.start_watching_hotend(0);
 		// 		thermalManager.temp_bed.target=PREHEAT_PLA_TEMP_BED;
 		// 		thermalManager.start_watching_bed();
 		// 		updatePreheatingTemp();
@@ -1042,10 +1336,10 @@ void display_image::LGT_Ui_Buttoncmd(void)
 		// 	break;
 		// 	case eBT_PR_ABS:
 		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		if(thermalManager.temp_hotend[0].current<0||thermalManager.temp_bed.current<0)
+		// 		if(thermalManager.temp_hotend[0].celsius<0||thermalManager.temp_bed.current<0)
 		// 			break;
 		// 		thermalManager.temp_hotend[0].target=PREHEAT_ABS_TEMP_EXTRUDE;
-		// 		thermalManager.start_watching_heater(0);
+		// 		thermalManager.start_watching_hotend(0);
 		// 		thermalManager.temp_bed.target=PREHEAT_ABS_TEMP_BED;
 		// 		thermalManager.start_watching_bed();
 		// 		updatePreheatingTemp();
@@ -1053,10 +1347,10 @@ void display_image::LGT_Ui_Buttoncmd(void)
 		// 	break;
 		// 	case eBT_PR_PETG:
 		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		if(thermalManager.temp_hotend[0].current<0||thermalManager.temp_bed.current<0)
+		// 		if(thermalManager.temp_hotend[0].celsius<0||thermalManager.temp_bed.current<0)
 		// 			break;
 		// 		thermalManager.temp_hotend[0].target=PREHEAT_PETG_TEMP_EXTRUDE;
-		// 		thermalManager.start_watching_heater(0);
+		// 		thermalManager.start_watching_hotend(0);
 		// 		thermalManager.temp_bed.target=PREHEAT_PETG_TEMP_BED;
 		// 		thermalManager.start_watching_bed();
 		// 		updatePreheatingTemp();
@@ -1064,9 +1358,9 @@ void display_image::LGT_Ui_Buttoncmd(void)
 		// 	break;
 		// 	case eBT_PR_COOL:
 		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		if(thermalManager.temp_hotend[0].current>0)
+		// 		if(thermalManager.temp_hotend[0].celsius>0)
 		// 			thermalManager.temp_bed.target=MIN_ADJUST_TEMP_BED;
-		// 		if(thermalManager.temp_hotend[0].current>0)
+		// 		if(thermalManager.temp_hotend[0].celsius>0)
 		// 			thermalManager.temp_hotend[0].target=MIN_ADJUST_TEMP_EXTRUDE;
 		// 		updatePreheatingTemp();
 		// 	//	current_button_id=eBT_BUTTON_NONE;
@@ -1074,7 +1368,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 		// 	case eBT_PR_E_PLUS:
 		// 		if(setTemperatureInWindow(false, false))
 		// 		{
-		// 			thermalManager.start_watching_heater(0);
+		// 			thermalManager.start_watching_hotend(0);
 		// 			updatePreheatingTemp();
 		// 		}
 		// 		current_button_id=eBT_BUTTON_NONE;
@@ -1082,7 +1376,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 		// 	case eBT_PR_E_MINUS:
 		// 		if(setTemperatureInWindow(false, true))
 		// 		{
-		// 			thermalManager.start_watching_heater(0);
+		// 			thermalManager.start_watching_hotend(0);
 		// 			updatePreheatingTemp();
 		// 		}
 		// 		current_button_id=eBT_BUTTON_NONE;
@@ -1103,133 +1397,131 @@ void display_image::LGT_Ui_Buttoncmd(void)
 		// 		}
 		// 		current_button_id=eBT_BUTTON_NONE;
 		// 	break;
-		// 	case eBT_TEMP_PLUS:
-		// 		if(is_bed_select)   //add bed temperature
-		// 		{
-		// 			if(setTemperatureInWindow(true,false))
-		// 				thermalManager.start_watching_bed();
-		// 		}
-		// 		else            //add extrude  temprature
-		// 		{
-		// 			if(setTemperatureInWindow(false,false))
-		// 				thermalManager.start_watching_heater(0);
-		// 		}
-		// 		dispalyExtrudeTemp();
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_TEMP_MINUS:
-		// 		if(is_bed_select)   //subtract bed temperature
-		// 		{
-		// 			if(setTemperatureInWindow(true,true))
-		// 				thermalManager.start_watching_bed();
-		// 		}
-		// 		else                //subtract extrude temprature
-		// 		{
-		// 			if(setTemperatureInWindow(false,true))
-		// 				thermalManager.start_watching_heater(0);
-		// 		}
-		// 		dispalyExtrudeTemp();
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	// case eBT_BED_PLUS:
-		// 	// break;
-		// 	// case eBT_BED_MINUS:
-		// 	// break;
-		// 	case eBT_JOG_EPLUS:
-		// 		stopAutoFeed();
-		// 		if(thermalManager.temp_hotend[0].target<200)
-		// 		{
-		// 			thermalManager.temp_hotend[0].target=200;
-		// 			thermalManager.start_watching_heater(0);
-		// 			if(thermalManager.temp_hotend[0].current>195)
-		// 			{
-		// 				CLEAN_STRING(s_text);
-		// 				sprintf((char*)s_text,PSTR("G0 E%d F60"),default_move_distance);
-		// 				enqueue_and_echo_commands_P(PSTR("G91"));
-		// 				enqueue_and_echo_commands_P(s_text);
-		// 				enqueue_and_echo_commands_P(PSTR("G90"));
-		// 			}
-		// 			if(is_bed_select)
-		// 			{
-		// 				is_bed_select=false;
-		// 				displayImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
-		// 			}
-		// 		}
-		// 		else if(thermalManager.temp_hotend[0].current>195)
-		// 		{
-		// 			CLEAN_STRING(s_text);
-		// 			sprintf((char*)s_text,PSTR("G0 E%d F60"),default_move_distance);
-		// 			enqueue_and_echo_commands_P(PSTR("G91"));
-		// 			enqueue_and_echo_commands_P(s_text);
-		// 			enqueue_and_echo_commands_P(PSTR("G90"));
-		// 			if(is_bed_select)
-		// 			{
-		// 				is_bed_select=false;
-		// 				displayImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
-		// 			}
-		// 		}
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_JOG_EMINUS:
-		// 		stopAutoFeed();
-		// 		if(thermalManager.temp_hotend[0].target<200)
-		// 		{
-		// 			thermalManager.temp_hotend[0].target=200;
-		// 			thermalManager.start_watching_heater(0);
-		// 			if(thermalManager.temp_hotend[0].current>195)
-		// 			{
-		// 				CLEAN_STRING(s_text);
-		// 				sprintf((char*)s_text,PSTR("G0 E-%d F60"),default_move_distance);
-		// 				enqueue_and_echo_commands_P(PSTR("G91"));
-		// 				enqueue_and_echo_commands_P(s_text);
-		// 				enqueue_and_echo_commands_P(PSTR("G90"));
-		// 			}
-		// 			if(is_bed_select)
-		// 			{
-		// 				is_bed_select=false;
-		// 				displayImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
-		// 			}
-		// 		}
-		// 		else if(thermalManager.temp_hotend[0].current>195)
-		// 		{
-		// 			CLEAN_STRING(s_text);
-		// 			sprintf((char*)s_text,PSTR("G0 E-%d F120"),default_move_distance);
-		// 			enqueue_and_echo_commands_P(PSTR("G91"));
-		// 			enqueue_and_echo_commands_P(s_text);
-		// 			enqueue_and_echo_commands_P(PSTR("G90"));
-		// 			if(is_bed_select)
-		// 			{
-		// 				is_bed_select=false;
-		// 				displayImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
-		// 			}
-		// 		}
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_AUTO_EPLUS:
-		// 	   if(dir_auto_feed==-1)
-		// 	   		stopAutoFeed();
-		// 		startAutoFeed(1);
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_AUTO_EMINUS:
-		// 		if(dir_auto_feed==1)
-		// 			stopAutoFeed();
-		// 		startAutoFeed(-1);
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_STOP:
-		// 		stopAutoFeed();
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_BED_E:
-		// 		is_bed_select=!is_bed_select;
-		// 		if(is_bed_select)  //bed mode
-		// 			displayImage(15, 95, IMG_ADDR_BUTTON_BED_ON);			
-		// 		else  //extruder mode
-		// 			displayImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);	
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		dispalyExtrudeTemp();			
-		// 	break;
+
+		// extrude buttons
+			case eBT_TEMP_PLUS:
+				if(is_bed_select)   //add bed temperature
+				{
+					if(setTemperatureInWindow(true,false))
+						thermalManager.start_watching_bed();
+				}
+				else            //add extrude  temprature
+				{
+					if(setTemperatureInWindow(false,false))
+						thermalManager.start_watching_hotend(0);
+				}
+				dispalyExtrudeTemp();
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_TEMP_MINUS:
+				if(is_bed_select)   //subtract bed temperature
+				{
+					if(setTemperatureInWindow(true,true))
+						thermalManager.start_watching_bed();
+				}
+				else                //subtract extrude temprature
+				{
+					if(setTemperatureInWindow(false,true))
+						thermalManager.start_watching_hotend(0);
+				}
+				dispalyExtrudeTemp();
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_JOG_EPLUS:
+				stopAutoFeed();
+				if(thermalManager.temp_hotend[0].target<200)
+				{
+					thermalManager.temp_hotend[0].target=200;
+					thermalManager.start_watching_hotend(0);
+					if(thermalManager.temp_hotend[0].celsius>195)
+					{
+						CLEAN_STRING(s_text);
+						sprintf((char*)s_text,PSTR("G0 E%d F60"),default_move_distance);
+						enqueue_and_echo_commands_P(PSTR("G91"));
+						enqueue_and_echo_commands_P(s_text);
+						enqueue_and_echo_commands_P(PSTR("G90"));
+					}
+					if(is_bed_select)
+					{
+						is_bed_select=false;
+						displayImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
+					}
+				}
+				else if(thermalManager.temp_hotend[0].celsius>195)
+				{
+					CLEAN_STRING(s_text);
+					sprintf((char*)s_text,PSTR("G0 E%d F60"),default_move_distance);
+					enqueue_and_echo_commands_P(PSTR("G91"));
+					enqueue_and_echo_commands_P(s_text);
+					enqueue_and_echo_commands_P(PSTR("G90"));
+					if(is_bed_select)
+					{
+						is_bed_select=false;
+						displayImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
+					}
+				}
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_JOG_EMINUS:
+				stopAutoFeed();
+				if(thermalManager.temp_hotend[0].target<200)
+				{
+					thermalManager.temp_hotend[0].target=200;
+					thermalManager.start_watching_hotend(0);
+					if(thermalManager.temp_hotend[0].celsius>195)
+					{
+						CLEAN_STRING(s_text);
+						sprintf((char*)s_text,PSTR("G0 E-%d F60"),default_move_distance);
+						enqueue_and_echo_commands_P(PSTR("G91"));
+						enqueue_and_echo_commands_P(s_text);
+						enqueue_and_echo_commands_P(PSTR("G90"));
+					}
+					if(is_bed_select)
+					{
+						is_bed_select=false;
+						displayImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
+					}
+				}
+				else if(thermalManager.temp_hotend[0].celsius>195)
+				{
+					CLEAN_STRING(s_text);
+					sprintf((char*)s_text,PSTR("G0 E-%d F120"),default_move_distance);
+					enqueue_and_echo_commands_P(PSTR("G91"));
+					enqueue_and_echo_commands_P(s_text);
+					enqueue_and_echo_commands_P(PSTR("G90"));
+					if(is_bed_select)
+					{
+						is_bed_select=false;
+						displayImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
+					}
+				}
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_AUTO_EPLUS:
+			   if(dir_auto_feed==-1)
+			   		stopAutoFeed();
+				startAutoFeed(1);
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_AUTO_EMINUS:
+				if(dir_auto_feed==1)
+					stopAutoFeed();
+				startAutoFeed(-1);
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_STOP:
+				stopAutoFeed();
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_BED_E:
+				is_bed_select=!is_bed_select;
+				if(is_bed_select)  //bed mode
+					displayImage(15, 95, IMG_ADDR_BUTTON_BED_ON);			
+				else  //extruder mode
+					displayImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);	
+				current_button_id=eBT_BUTTON_NONE;
+				dispalyExtrudeTemp();			
+			break;
 			case eBT_DISTANCE_CHANGE:
 				switch(current_window_ID)
 				{
@@ -1634,6 +1926,143 @@ void display_image::LGT_Ui_Buttoncmd(void)
 		}
 }
 
+void display_image::LGT_Printer_Data_Update(void)
+{
+	constexpr millis_t UPDATE_INTERVAL = 1000u;
+	static millis_t next_update_Time = 0;
+	const millis_t now = millis();
+	if(ELAPSED(now, next_update_Time)){
+		next_update_Time = UPDATE_INTERVAL + millis();
+		// checkTemprature();
+		switch (current_window_ID) {
+			// case eMENU_HOME:
+			// 	SDIO_Init();
+			// 	switch(SDIO_GetCardState())	
+			// 	{
+			// 		case SDIO_CARD_ERROR:
+			// 			if(sd_insert)
+			// 			{
+			// 				sd_insert=false;
+			// 			}
+			// 		break;
+			// 		default:
+			// 			if(!sd_insert)
+			// 			{
+			// 				card.initsd();
+			// 				sd_insert=true;
+			// 			}
+			// 		break;
+			// 	}
+			// break;
+			case eMENU_MOVE:
+				displayMoveCoordinate();
+			break;
+			// case eMENU_PRINT:
+			// 	displayPrintInformation();
+			// break;
+			// case eMENU_ADJUST:
+			// 	dispalyAdjustFanSpeed(); 
+			// 	dispalyAdjustTemp(); 	
+			// 	dispalyAdjustMoveSpeed();
+			// 	if(thermalManager.fan_speed[0]>0)
+			// 	{
+			// 		displayRunningFan(144, 105);	
+			// 	}
+			// 	// if(cur_pstatus==3)
+			// 	// 	cur_ppage=10;
+			// 	switch(cur_pstatus)   //save current status page when in adjust page 
+			// 	{
+			// 		case 0:
+			// 			cur_ppage=0;
+			// 		break;
+			// 		case 1:
+			// 			cur_ppage=1;
+			// 		break;
+			// 		case 2:
+			// 			cur_ppage=2;
+			// 		break;
+			// 		case 3:
+			// 			cur_ppage=10;
+			// 		break;
+			// 		default:
+			// 		break;
+			// 	}
+			// break;
+			// case eMENU_ADJUST_MORE:
+			// 	dispalyAdjustFlow();
+			// 	switch(cur_pstatus)   //save current status page when in adjust page 
+			// 	{
+			// 		case 0:
+			// 			cur_ppage=0;
+			// 		break;
+			// 		case 1:
+			// 			cur_ppage=1;
+			// 		break;
+			// 		case 2:
+			// 			cur_ppage=2;
+			// 		break;
+			// 		case 3:
+			// 			cur_ppage=10;
+			// 		break;
+			// 		default:
+			// 		break;
+			// 	}
+			// break;
+			// case eMENU_PREHEAT:
+			// 	updatePreheatingTemp();
+			// break;
+			case eMENU_EXTRUDE:
+				dispalyExtrudeTemp();
+				actAutoFeed();
+				displayRunningAutoFeed();
+			break;
+			// case eMENU_FILE:
+			// 	SDIO_Init();
+			// 	switch(SDIO_GetCardState())	
+			// 	{
+			// 		case SDIO_CARD_ERROR:
+			// 			if(sd_insert)
+			// 			{
+			// 				sd_insert=false;
+			// 				displayPromptSDCardError();
+			// 			}
+			// 		break;
+			// 		default:
+			// 			if(!sd_insert)
+			// 			{
+			// 				card.initsd();
+			// 				file_count=CardFile.getsdfilecount();
+			// 				page_index_max=CardFile.getsdfilepage();
+			// 				LCD_Fill(0, 25, 239, 174,White);	//clean  
+			// 				displayFileList();
+			// 				displayFilePageNumber();
+			// 				sd_insert=true;
+			// 			}
+			// 		break;
+			// 	}
+			// break;
+		// case eMENU_DIALOG_ERRORTEMPBED:
+		// 	if((thermalManager.temp_bed.current>MIN_ADJUST_TEMP_BED)&&(thermalManager.temp_bed.current<MAX_ADJUST_TEMP_BED))
+		// 	{
+		// 		displayWindowHome();
+		// 		current_window_ID=eMENU_HOME;
+		// 		check_temp_Bed=0;     //checkTemprature();
+		// 	}
+		// break;
+		// case eMENU_DIALOG_ERRORTEMPE:
+		// 	if((thermalManager.temp_hotend[0].celsius>MIN_ADJUST_TEMP_EXTRUDE)&&(thermalManager.temp_hotend[0].celsius<MAX_ADJUST_TEMP_EXTRUDE))
+		// 	{
+		// 		displayWindowHome();
+		// 		current_window_ID=eMENU_HOME;
+		// 		check_temp_E=0;    
+		// 	}
+		// break;
+			default:
+				break;
+		}
+	}
+}
+
 void LgtLcdTft::init()
 {
     // init tft-lcd
@@ -1675,6 +2104,7 @@ void LgtLcdTft::loop()
 
     } else {    // idle
         touchCheck = 0;
+		LGT_Printer_Data_Update();
     }
 
 }

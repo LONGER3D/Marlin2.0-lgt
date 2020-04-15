@@ -7,15 +7,7 @@
 class LgtSdCard {
 public:
 
-    LgtSdCard() :
-        m_fileCount(0),
-        m_pageCount(0),
-        m_currentPage(0),
-        m_currentItem(0),
-        m_currentFile(0)
-    {
-
-    }
+    LgtSdCard();
 
     uint16_t count();
     void clear();
@@ -85,13 +77,8 @@ private:
     uint16_t m_currentItem;
     uint16_t  m_currentFile;
 
-    bool m_isReverseList = false;
-    bool m_isSelectFile = false;
-
-    // uint16_t page_index_max;
-    // uint16_t page_index;
-    // uint16_t file_count;
-    // uint16_t choose_file_page;
+    bool m_isReverseList;
+    bool m_isSelectFile;
 
 };
 
