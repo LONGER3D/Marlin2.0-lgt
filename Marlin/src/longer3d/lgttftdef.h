@@ -1,6 +1,5 @@
 #pragma once
 
-
 #if defined(MANUAL_FEEDRATE)
 	#undef MANUAL_FEEDRATE
 #endif
@@ -273,6 +272,16 @@
 #define POS_MOVE_ROW_DISTANCE       POS_MOVE_ROW_1
 
 /********************************Language*********************************************/
+
+#define FW_VERSION "V2.0-Marlin2.0.5.2"
+
+#if defined(LK1) || defined(U20)
+#define MAC_SIZE "300mm x 300mm x 400mm"
+#elif defined(LK2) || defined(LK4) || defined(U30)
+#define MAC_SIZE "220mm x 220mm x 250mm"
+#elif defined(LK1_PLUS) ||  defined(U20_PLUS) 
+#define MAC_SIZE "400mm x 400mm x 500mm"
+#endif
 
 #ifndef Chinese
 //main page

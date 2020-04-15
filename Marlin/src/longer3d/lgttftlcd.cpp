@@ -992,7 +992,50 @@ void display_image::scanWindowLeveling( uint16_t rv_x, uint16_t rv_y )
 // /***************************settings page*******************************************/
 
 // /***************************about page*******************************************/
+void display_image::displayWindowAbout(void)
+{	
+	lcdClear(White);
+	LCD_Fill(0, 0, 320, 24, BG_COLOR_CAPTION_ABOUT); 		//caption background
+	#ifndef Chinese
+		displayImage(115, 5, IMG_ADDR_CAPTION_ABOUT);		//caption words
+	#else
+		displayImage(115, 5, IMG_ADDR_CAPTION_ABOUT_CN);		//caption words
+	#endif
+	displayImage(259, 153, IMG_ADDR_BUTTON_RETURN);
+	// draw seperator
+	POINT_COLOR = PT_COLOR_DISABLE;
+	LCD_DrawLine(0, 83, 240, 83);	
+	LCD_DrawLine(0, 133, 240, 133); 
+	// print text
+	POINT_COLOR = BLACK;
+	CLEAN_STRING(s_text);
+	sprintf((char*)s_text,"%s",TXT_MENU_HOME_MORE_RETURN);
+	LCD_ShowString(263,212,s_text);	
+	// print label
+	POINT_COLOR = BLUE;
+	CLEAN_STRING(s_text);
+	sprintf((char*)s_text,"%s",TXT_MENU_ABOUT_MAX_SIZE_LABEL);
+	LCD_ShowString(10,40,s_text);
+	CLEAN_STRING(s_text);
+	sprintf((char*)s_text,"%s",TXT_MENU_ABOUT_FW_VER_LABLE);
+	LCD_ShowString(10,90,s_text);
+	// print infomation
+	POINT_COLOR = BLACK;		
+	CLEAN_STRING(s_text);
+	sprintf((char*)s_text,"%s",MAC_SIZE);
+	LCD_ShowString(10,60,s_text);
+	CLEAN_STRING(s_text);	
+	sprintf((char *)s_text, "%s", FW_VERSION);
+	LCD_ShowString(10, 110,s_text);
+}
 
+void display_image::scanWindowAbout(uint16_t rv_x, uint16_t rv_y)
+{
+	if(rv_x>260&&rv_x<315&&rv_y>153&&rv_y<208)  	//select return 
+	{	
+		next_window_ID=eMENU_HOME_MORE;
+	}
+}
 
 // /***************************Printing page*******************************************/
 
@@ -1164,8 +1207,17 @@ bool display_image::LGT_Ui_Update(void)
 				set_all_unhomed();
 				displayWindowLeveling();
 			break;
-
-
+			// case eMENU_SETTINGS:
+			// 	current_window_ID=eMENU_SETTINGS;
+			// 	next_window_ID=eWINDOW_NONE;
+			// 	displayWindowSettings();
+			// break;
+			// // eMENU_SETTINGS2,
+			case eMENU_ABOUT:
+				current_window_ID=eMENU_ABOUT;
+				next_window_ID=eWINDOW_NONE;
+				displayWindowAbout();
+			break;
 			// case eMENU_PRINT:
 			// 	current_window_ID=eMENU_PRINT;
 			// 	next_window_ID=eWINDOW_NONE;
@@ -1189,17 +1241,7 @@ bool display_image::LGT_Ui_Update(void)
 
 
 
-			// case eMENU_SETTINGS:
-			// 	current_window_ID=eMENU_SETTINGS;
-			// 	next_window_ID=eWINDOW_NONE;
-			// 	displayWindowSettings();
-			// break;
-			// // eMENU_SETTINGS2,
-			// case eMENU_ABOUT:
-			// 	current_window_ID=eMENU_ABOUT;
-			// 	next_window_ID=eWINDOW_NONE;
-			// 	displayWindowAbout();
-			// break;
+
 			// case eMENU_DIALOG_RECOVERY:
 			// 	current_window_ID=eMENU_DIALOG_RECOVERY;
 			// 	next_window_ID=eWINDOW_NONE;
@@ -1250,6 +1292,18 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 				scanWindowLeveling(cur_x,cur_y);
 				cur_x=cur_y=0;
 			break;
+			// case eMENU_SETTINGS:
+			// 	scanWindowSettings(cur_x,cur_y);
+			// 	cur_x=cur_y=0;
+			// break;
+			// case eMENU_SETTINGS2:
+			// 	scanWindowSettings2(cur_x,cur_y);
+			// 	cur_x=cur_y=0;
+			// break;
+			case eMENU_ABOUT:
+				scanWindowAbout(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;
 
 			// case eMENU_PRINT:
 			// 	scanWindowPrint(cur_x,cur_y);
@@ -1263,18 +1317,7 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 			// 	scanWindowAdjustMore(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
 			// break;
-			// case eMENU_SETTINGS:
-			// 	scanWindowSettings(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
-			// case eMENU_SETTINGS2:
-			// 	scanWindowSettings2(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
-			// case eMENU_ABOUT:
-			// 	scanWindowAbout(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
+
 			// case eMENU_DIALOG_START:case eMENU_DIALOG_NO_FIL:
 			// 	scanDialogStart(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
