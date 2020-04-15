@@ -106,16 +106,16 @@ static bool is_aixs_homed[XYZ]={false};
 static bool is_bed_select = false;
 // bool sd_insert=false;
 static bool is_printing=false;	// print status
-// bool is_print_finish=false;
+bool is_print_finish=false;
 // bool pause_print=false;
-// bool cur_flag=false;  
-// char cur_pstatus=10;   //0 is heating ,1 is printing, 2 is pause
-// char cur_ppage=10;   //  0 is heating page , 1 is printing page, 2 is pause page
+bool cur_flag=false;  
+char cur_pstatus=10;   //0 is heating ,1 is printing, 2 is pause
+char cur_ppage=10;   //  0 is heating page , 1 is printing page, 2 is pause page
 
 // bool setting_return_more=false;
 // float default_parameter[4]=DEFAULT_MAX_FEEDRATE;
 
-// E_PRINT_CMD current_print_cmd=E_PRINT_CMD_NONE;
+E_PRINT_CMD current_print_cmd=E_PRINT_CMD_NONE;
 E_BUTTON_KEY current_button_id=eBT_BUTTON_NONE;
 // /**********  window definition  **********/
 E_WINDOW_ID current_window_ID = eMENU_HOME,next_window_ID =eWINDOW_NONE;
@@ -573,6 +573,22 @@ void display_image::updateFilelist()
 	}	
 }
 
+/// highlight selecetd item when return from open file dialog
+void display_image::displayChosenFile()
+{
+	if (lgtCard.isFileSelected()) {
+		uint16_t item = lgtCard.item();
+		lcd.fill(35, 25 + item * 30, 239, 55 - 1 + item * 30, DARKBLUE);
+		// .. reprint filename
+		lcd.setColor(WHITE);
+		lcd.setBgColor(DARKBLUE);
+		lcd.print(35, 32 + item*30, lgtCard.filename());
+
+		lcd.setColor(BLACK);
+		lcd.setBgColor(WHITE);
+	}
+
+}
 
 void LgtLcdTft::highlightChosenItem(uint16_t item)
 {
@@ -1043,11 +1059,140 @@ void display_image::scanWindowAbout(uint16_t rv_x, uint16_t rv_y)
 }
 
 // /***************************Printing page*******************************************/
-
+void display_image::displayWindowPrint(void)
+{
+	lcdClear(White);
+	LCD_Fill(0, 0, 320, 25, BG_COLOR_CAPTION_PRINT); 	//caption background	
+	//display file name
+	bgColor = BG_COLOR_CAPTION_PRINT;
+	color=WHITE;
+	if(recovery_flag==false)
+		LCD_ShowString(10,5,card.longFilename);
+	else
+		;
+	bgColor = WHITE;
+	color=BLACK;
+	displayImage(10, 30, IMG_ADDR_INDICATOR_HEAD);	
+	displayImage(140, 30, IMG_ADDR_INDICATOR_FAN_0);	
+	displayImage(10, 70, IMG_ADDR_INDICATOR_BED);	
+	displayImage(144, 70, IMG_ADDR_INDICATOR_HEIGHT);	
+	displayImage(10, 150, IMG_ADDR_INDICATOR_TIMER_CD);	
+	displayImage(140, 150, IMG_ADDR_INDICATOR_TIMER_CU);	
+	LCD_Fill(10,110,200,140,LIGHTBLUE); 	//progress bar background
+//	if(!cur_flag)
+	{
+		switch(cur_ppage)
+		{
+			case 0:
+				displayImage(260, 30, IMG_ADDR_BUTTON_PAUSE_DISABLE); 
+				current_print_cmd=E_PRINT_DISPAUSE;	
+				cur_pstatus=0;		
+			break;
+			case 1:   //printing
+				displayImage(260, 30, IMG_ADDR_BUTTON_PAUSE);
+				cur_pstatus=1;
+				//current_print_cmd=E_PRINT_PAUSE;
+			break;
+			case 2:
+				displayImage(260, 30, IMG_ADDR_BUTTON_RESUME);
+				cur_pstatus=2;
+			break;
+			case 3:
+				displayImage(260, 30, IMG_ADDR_BUTTON_PAUSE_DISABLE); 
+				current_print_cmd=E_PRINT_DISPAUSE;	
+				cur_pstatus=3;
+			break;
+			case 10:
+			default:
+				//disable button pause
+				displayImage(260, 30, IMG_ADDR_BUTTON_PAUSE_DISABLE); 
+				current_print_cmd=E_PRINT_DISPAUSE;			
+			break;
+		}
+		cur_flag=true;
+	}
+	displayImage(260, 105, IMG_ADDR_BUTTON_ADJUST);	
+	displayImage(260, 180, IMG_ADDR_BUTTON_END);        
+	// displayPrintInformation();
+	
+}
 // /***************************Adjust page*******************************************/
 
 // /***************************dialog page*******************************************/
 
+const char* c_dialog_text[eDIALOG_MAX][4]={
+	{TXT_DIALOG_CAPTION_START,				DIALOG_PROMPT_PRINT_START1,DIALOG_PROMPT_PRINT_START2,DIALOG_PROMPT_PRINT_START3},
+	{TXT_DIALOG_CAPTION_EXIT, 	   			DIALOG_PROMPT_PRINT_EXIT1,DIALOG_PROMPT_PRINT_EXIT2,DIALOG_PROMPT_PRINT_EXIT3},
+	{TXT_DIALOG_CAPTION_ABORT, 	   			DIALOG_PROMPT_PRINT_ABORT1,DIALOG_PROMPT_PRINT_ABORT2,DIALOG_PROMPT_PRINT_ABORT3},
+	{TXT_DIALOG_CAPTION_RECOVERY, 			DIALOG_PROMPT_PRINT_RECOVERY1,DIALOG_PROMPT_PRINT_RECOVERY2,DIALOG_PROMPT_PRINT_RECOVERY3},
+	{TXT_DIALOG_CAPTION_ERROR, 	     		DIALOG_PROMPT_ERROR_READ1,DIALOG_PROMPT_ERROR_READ2,DIALOG_PROMPT_ERROR_READ3},
+	{TXT_DIALOG_CAPTION_RESTORE,     		DIALOG_PROMPT_SETTS_RESTORE1,DIALOG_PROMPT_SETTS_RESTORE2,DIALOG_PROMPT_SETTS_RESTORE3},
+	{TXT_DIALOG_CAPTION_SAVE, 				DIALOG_PROMPT_SETTS_SAVE_OK1,DIALOG_PROMPT_SETTS_SAVE_OK2,DIALOG_PROMPT_SETTS_SAVE_OK3},
+	{TXT_DIALOG_CAPTION_SAVE,         		DIALOG_PROMPT_SETTS_SAVE1,DIALOG_PROMPT_SETTS_SAVE2,DIALOG_PROMPT_SETTS_SAVE3},
+	{TXT_DIALOG_CAPTION_NO_FIALMENT,  		DIALOG_PROMPT_NO_FILAMENT1,DIALOG_PROMPT_NO_FILAMENT2,DIALOG_PROMPT_NO_FILAMENT3},
+	{TXT_DIALOG_CAPTION_ERROR,        		DIALOG_ERROR_FILE_TYPE1,DIALOG_ERROR_FILE_TYPE2,DIALOG_ERROR_FILE_TYPE3},
+	{TXT_DIALOG_CAPTION_ERROR,       		DIALOG_ERROR_TEMP_BED1,DIALOG_ERROR_TEMP_BED2,DIALOG_ERROR_TEMP_BED3},
+	{TXT_DIALOG_CAPTION_ERROR,       		DIALOG_ERROR_TEMP_HEAD1,DIALOG_ERROR_TEMP_HEAD2,DIALOG_ERROR_TEMP_HEAD3},
+	{TXT_DIALOG_CAPTION_OPEN_FOLER,         DIALOG_PROMPT_MAX_FOLDER1,DIALOG_PROMPT_MAX_FOLDER2,DIALOG_PROMPT_MAX_FOLDER3},
+	{TXT_DIALOG_CAPTION_NO_FIALMENT,         DIALOG_START_PRINT_NOFILA1,DIALOG_START_PRINT_NOFILA2,DIALOG_START_PRINT_NOFILA3}
+};
+
+void display_image::dispalyDialogYesNo(uint8_t dialog_index)
+{
+	displayImage(60, 45, IMG_ADDR_DIALOG_BODY);
+	displayImage(85, 130, IMG_ADDR_BUTTON_YES);	
+	displayImage(180, 130, IMG_ADDR_BUTTON_NO);
+	displayImage(70, 80, IMG_ADDR_PROMPT_QUESTION);
+	displayDialogText(dialog_index);
+}
+
+void display_image::dispalyDialogYes(uint8_t dialog_index)
+{
+	displayImage(60, 45, IMG_ADDR_DIALOG_BODY);
+	displayImage(132, 130, IMG_ADDR_BUTTON_YES);
+	if(dialog_index==eDIALOG_SETTS_SAVE_OK)
+		displayImage(70, 80, IMG_ADDR_PROMPT_COMPLETE);
+	else
+		displayImage(70, 80, IMG_ADDR_PROMPT_ERROR);
+	displayDialogText(dialog_index);
+}
+
+void display_image::displayDialogText(uint8_t dialog_index)
+{
+	/* caption */
+	bgColor=BG_COLOR_CAPTION_DIALOG;
+	color = WHITE;
+	LCD_ShowString(70,50,(char*)c_dialog_text[dialog_index][0]);	
+	/* prompt */
+	bgColor = WHITE;
+	color = BLACK;	
+	LCD_ShowString(110,76,(char*)c_dialog_text[dialog_index][1]);	
+	LCD_ShowString(110,92,(char*)c_dialog_text[dialog_index][2]);	
+	LCD_ShowString(110,108,(char*)c_dialog_text[dialog_index][3]);
+}
+
+void display_image::scanDialogStart(uint16_t rv_x, uint16_t rv_y )
+{
+	if(rv_x>85&&rv_x<140&&rv_y>130&&rv_y<185) //select yes
+	{	
+		current_button_id=eBT_DIALOG_PRINT_START;
+	}
+	else if(rv_x>180&&rv_x<235&&rv_y>130&&rv_y<185)  //select no
+	{	
+		current_button_id=eBT_DIALOG_PRINT_NO;
+	}
+}
+void display_image::scanDialogEnd( uint16_t rv_x, uint16_t rv_y )
+{
+	if(rv_x>85&&rv_x<140&&rv_y>130&&rv_y<185)  //select yes
+	{	
+		next_window_ID=eMENU_HOME;
+	}
+	else if(rv_x>180&&rv_x<235&&rv_y>130&&rv_y<185) //select no
+	{	
+		next_window_ID=eMENU_PRINT;
+	}
+}
 
 /********************************************************
  * is_bed:false->extruder0, true->bed
@@ -1133,6 +1278,8 @@ return false;
  */
 bool display_image::LGT_Ui_Update(void)
 {
+	if (next_window_ID == eWINDOW_NONE)
+		return false;
 	bool button_type=false;   
 	switch (next_window_ID)
 		{
@@ -1187,14 +1334,15 @@ bool display_image::LGT_Ui_Update(void)
 			case eMENU_FILE:
 				current_window_ID=eMENU_FILE;
 				next_window_ID=eWINDOW_NONE;
-				// clearfilevar();
+				lgtCard.clear();
 				displayWindowFiles();
 			break;
-			// case eMENU_FILE1:
-			// 	current_window_ID=eMENU_FILE;
-			// 	next_window_ID=eWINDOW_NONE;
-			// 	displayChosenFile();
-			// break;
+			case eMENU_FILE1:
+				current_window_ID=eMENU_FILE;
+				next_window_ID=eWINDOW_NONE;
+				displayWindowFiles();
+				displayChosenFile();
+			break;
 			case eMENU_EXTRUDE:
 				current_window_ID=eMENU_EXTRUDE;
 				next_window_ID=eWINDOW_NONE;
@@ -1323,10 +1471,11 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 			// 	cur_x=cur_y=0;
 			// break;
 
-			// case eMENU_DIALOG_START:case eMENU_DIALOG_NO_FIL:
-			// 	scanDialogStart(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
+			case eMENU_DIALOG_START:
+			case eMENU_DIALOG_NO_FIL:
+				scanDialogStart(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;
 			// case eMENU_DIALOG_END:
 			// 	scanDialogEnd(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
@@ -1359,6 +1508,8 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
  */
 void display_image::LGT_Ui_Buttoncmd(void)
 {
+		if (current_button_id == eBT_BUTTON_NONE)
+			return;
         DEBUG_ECHOLNPAIR("button id:", current_button_id);
 		switch (current_button_id)
 		{
@@ -1819,10 +1970,12 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				const char *fn = lgtCard.shortFilename();
 				DEBUG_ECHOLNPAIR("open shortname: ", fn);
 				if(lgtCard.isDir()) {
-					lgtCard.changeDir(fn);
 					if (!lgtCard.isMaxDirDepth()) {
+						lgtCard.changeDir(fn);
 						lgtCard.clear();
 						updateFilelist();
+					} else {
+						// show at max directory prompt dialog
 					}
 				} else {	// is gcode
 					// uint8_t check_cn=0;
@@ -1839,20 +1992,20 @@ void display_image::LGT_Ui_Buttoncmd(void)
 					// }
 					// else
 					// {
-					// 	dispalyDialogYesNo(eDIALOG_PRINT_START);
-					// 	current_window_ID=eMENU_DIALOG_START;
+						dispalyDialogYesNo(eDIALOG_PRINT_START);
+						current_window_ID=eMENU_DIALOG_START;
 					// }
 				}
 			break;
 			}
 			case eBT_FILE_FOLDER:
 				current_button_id=eBT_BUTTON_NONE;
-			if (!lgtCard.isRootDir()) {
-				lgtCard.upDir();
-				lgtCard.clear();
-				updateFilelist();
-			}
-			break;
+				if (!lgtCard.isRootDir()) {
+					lgtCard.upDir();
+					lgtCard.clear();
+					updateFilelist();
+				}
+				break;
 
 		// 	case eBT_PRINT_PAUSE:
 		// 		switch(current_print_cmd)
@@ -1975,47 +2128,45 @@ void display_image::LGT_Ui_Buttoncmd(void)
 		// 	break;
 
 
-		// 	case eBT_DIALOG_PRINT_START:
-		// 	 Serial1.println(card.filename);
-		// 	if(current_window_ID==eMENU_DIALOG_NO_FIL)
-		// 	{
-		// 		displayWindowExtrude();
-		// 		current_window_ID=eMENU_EXTRUDE;
-		// 	}
-		// 	else
-		// 	{
-		// 		is_printing=true;
-		// 		is_print_finish=cur_flag=false;
-		// 		cur_ppage=0;cur_pstatus=0;
-		// 		if(current_window_ID==eMENU_DIALOG_START)
-		// 			recovery_flag=false;
-		// 		if(recovery_flag==false)
-		// 		{
-		// 			#if ENABLED(POWER_LOSS_RECOVERY)
-        //   				card.removeJobRecoveryFile();
-        // 			#endif
-		// 		//	card.openAndPrintFile(card.filename);	
-		// 			char cmd[4+ strlen(card.filename) + 1];
-		// 			sprintf_P(cmd, PSTR("M23 %s"),card.filename);
-		// 			enqueue_and_echo_command_now(cmd);
-  		// 			enqueue_and_echo_commands_P(PSTR("M24"));
-		// 			W25QxxFlash.W25QXX_Write((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
-		// 		}
-		// 		else   //recovery
-		// 		{
-		// 			enqueue_and_echo_commands_P(PSTR("M1000"));
-		// 			recovery_flag=false;
-		// 			W25QxxFlash.W25QXX_Read((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
-		// 		}
-		// 		displayWindowPrint();
-		// 		current_window_ID=eMENU_PRINT;
-		// 	}
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_DIALOG_PRINT_NO:
-		// 		next_window_ID=eMENU_FILE1;
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
+			case eBT_DIALOG_PRINT_START:
+				if(current_window_ID==eMENU_DIALOG_NO_FIL)
+				{
+					displayWindowExtrude();
+					current_window_ID=eMENU_EXTRUDE;
+				} else {
+					is_printing=true;
+					is_print_finish=cur_flag=false;
+					cur_ppage=0;cur_pstatus=0;
+					if(current_window_ID==eMENU_DIALOG_START)
+						recovery_flag=false;
+					if(recovery_flag==false)
+					{
+						// #if ENABLED(POWER_LOSS_RECOVERY)
+						// 	card.removeJobRecoveryFile();
+						// #endif
+						const char *fn = lgtCard.shortFilename();
+						DEBUG_ECHOLNPAIR("open filename: ", fn);
+						char cmd[4+ strlen(fn) + 1];
+						sprintf_P(cmd, PSTR("M23 %s"), fn);
+						enqueue_and_echo_commands_P(cmd);
+						enqueue_and_echo_commands_P(PSTR("M24"));
+						// W25QxxFlash.W25QXX_Write((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
+					}
+					else   //recovery
+					{
+						enqueue_and_echo_commands_P(PSTR("M1000"));
+						recovery_flag=false;
+						// W25QxxFlash.W25QXX_Read((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
+					}
+					displayWindowPrint();
+					current_window_ID=eMENU_PRINT;
+				}
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_DIALOG_PRINT_NO:
+				next_window_ID=eMENU_FILE1;
+				current_button_id=eBT_BUTTON_NONE;
+			break;
 		// 	case eBT_DIALOG_REFACTORY_YES:
 		// 		current_button_id=eBT_BUTTON_NONE;
 		// 		current_window_ID=eMENU_SETTINGS;
@@ -2271,9 +2422,8 @@ void LgtLcdTft::loop()
     } else if (TRUELY_TOUCHED()) {  // touch released
         touchCheck = 0;
         DEBUG_ECHOLN("touch: released ");
-        if(LGT_Ui_Update())
-            LGT_Ui_Buttoncmd();
-
+		LGT_Ui_Buttoncmd();
+    	LGT_Ui_Update();
     } else {    // idle
         touchCheck = 0;
 		LGT_Printer_Data_Update();

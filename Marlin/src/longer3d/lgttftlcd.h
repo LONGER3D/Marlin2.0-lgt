@@ -77,6 +77,33 @@ enum E_BUTTON_KEY {
 	eBT_DISTANCE_CHANGE
 };
 
+typedef enum{
+	
+	eDIALOG_PRINT_START = 0,
+	eDIALOG_PRINT_EXIT,
+	eDIALOG_PRINT_ABORT,
+	eDIALOG_PRINT_RECOVERY,
+	eDIALOG_ERROR_READ,
+	eDIALOG_SETTS_RESTORE,
+	eDIALOG_SETTS_SAVE_OK,
+	eDIALOG_SETTS_SAVE,
+	eDIALOG_NO_FILAMENT,
+	eDIALOG_ERROR_FILE_TYPE,
+	eDIALOG_ERROR_TEMP_BED,
+	eDIALOG_ERROR_TEMP_HEAD,
+	eDIALOG_FILE_MAX_FOLDER,
+	eDIALOG_START_JOB_NOFILA,
+	eDIALOG_MAX
+	
+}EDIALOG;
+
+enum E_PRINT_CMD{
+	E_PRINT_CMD_NONE=0,
+	E_PRINT_DISPAUSE,  //disable pause
+	E_PRINT_PAUSE,
+	E_PRINT_RESUME,
+};
+
 class LgtLcdTft {
 public:
     LgtLcdTft();
@@ -110,6 +137,7 @@ private:
     void displayFileList();
     void updateFilelist();
     void highlightChosenItem(uint16_t item);
+    void displayChosenFile();
     void displayPromptSDCardError(void);
     void displayPromptEmptyFolder(void);
     void scanWindowFile( uint16_t rv_x, uint16_t rv_y );
@@ -148,9 +176,9 @@ private:
     // void scanWindowSettings2(uint16_t rv_x, uint16_t rv_y);
 
     // /***************************Printing page*******************************************/
-    // void scanWindowPrint( uint16_t rv_x, uint16_t rv_y );
-    // void displayWindowPrint(void);
-    // void displayPrintInformation(void);
+    void scanWindowPrint( uint16_t rv_x, uint16_t rv_y );
+    void displayWindowPrint(void);
+    void displayPrintInformation(void);
     // void displayRunningFan(uint16_t pos_x, uint16_t pos_y);
     // void displayFanSpeed(void);
     // void displayHeating(void);
@@ -175,11 +203,11 @@ private:
     // void scanWindowAdjustMore(uint16_t rv_x,uint16_t rv_y);
 
     // /***************************dialog page*******************************************/
-    // void dispalyDialogYesNo(uint8_t dialog_index);
-    // void dispalyDialogYes(uint8_t dialog_index);
-    // void displayDialogText(uint8_t dialog_index);
-    // void scanDialogStart(uint16_t rv_x, uint16_t rv_y );
-    // void scanDialogEnd( uint16_t rv_x, uint16_t rv_y ); 
+    void dispalyDialogYesNo(uint8_t dialog_index);
+    void dispalyDialogYes(uint8_t dialog_index);
+    void displayDialogText(uint8_t dialog_index);
+    void scanDialogStart(uint16_t rv_x, uint16_t rv_y );
+    void scanDialogEnd( uint16_t rv_x, uint16_t rv_y ); 
     // void displayNofilament(void);
     // void scanDialogRecovery( uint16_t rv_x, uint16_t rv_y);
     // void scanDialogRefactory(uint16_t rv_x, uint16_t rv_y);
