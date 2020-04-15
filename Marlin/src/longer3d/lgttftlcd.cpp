@@ -81,14 +81,17 @@ bool is_setting_change=false;
 // uint8_t image_buffer[GET_FLASH_SIZE];	//2k
 
 // int16_t cur_fanspeed=0;
+
+// auto feed in/out
 uint8_t default_move_distance=5;
 static int8_t dir_auto_feed=0;
 static uint8_t total_out_distance=0;
+
 // uint8_t printpercent=0;
 uint8_t page_index_num=0;
 int8_t choose_printfile=-1;
 	
-static uint16_t cur_x=0,cur_y=0;
+static uint16_t cur_x=0,cur_y=0;	// save touch point position
 // uint16_t page_index_max=0,page_index=0,file_count=0,choose_file_page=0;
 
 static char s_text[64];
@@ -96,7 +99,9 @@ static char s_text[64];
 // uint32_t print_times=0;
 // const float manual_feedrate_mm_m[] = MANUAL_FEEDRATE;
 
+// move
 static bool is_aixs_homed[XYZ]={false};
+
 static bool is_bed_select = false;
 // bool sd_insert=false;
 static bool is_printing=false;	// print status
@@ -781,6 +786,96 @@ void display_image::scanWindowExtrude( uint16_t rv_x, uint16_t rv_y )
 }
 
 // /***************************preheating page*******************************************/
+void display_image::displayWindowPreheat(void)
+{
+	lcdClear(White);
+	LCD_Fill(0, 0, 320, 24, BG_COLOR_CAPTION_PREHEAT); 	//caption background
+	#ifndef Chinese
+    	displayImage(115, 5, IMG_ADDR_CAPTION_PREHEAT);     //caption words
+	#else
+		displayImage(115, 5, IMG_ADDR_CAPTION_PREHEAT_CN);     //caption words
+	#endif
+	displayImage(10, 30, IMG_ADDR_BUTTON_ADD);
+	displayImage(10, 95, IMG_ADDR_BUTTON_ADD);    
+	displayImage(180, 30, IMG_ADDR_BUTTON_SUB);
+	displayImage(180, 95, IMG_ADDR_BUTTON_SUB);
+    displayImage(75, 42, IMG_ADDR_INDICATOR_HEAD);
+    displayImage(75, 107, IMG_ADDR_INDICATOR_BED);
+	default_move_distance = 10;
+	initialMoveDistance(260, 37);
+    displayImage(260, 95, IMG_ADDR_BUTTON_COOLING);
+    displayImage(10, 160, IMG_ADDR_BUTTON_FILAMENT_2);
+    displayImage(95, 160, IMG_ADDR_BUTTON_FILAMENT_0);   
+    displayImage(180, 160, IMG_ADDR_BUTTON_FILAMENT_1);      
+    displayImage(260, 160, IMG_ADDR_BUTTON_RETURN);    
+	POINT_COLOR=BLACK;
+	CLEAN_STRING(s_text);
+	sprintf((char*)s_text,"%s","PLA");
+    LCD_ShowString(25,217,s_text);
+	sprintf((char*)s_text,"%s","ABS");
+    LCD_ShowString(109,217,s_text);
+	sprintf((char*)s_text,"%s","PETG");
+    LCD_ShowString(191,217,s_text);
+    updatePreheatingTemp();
+}
+
+void display_image::updatePreheatingTemp(void)
+{
+	LCD_Fill(110,49,170,69,White);		//clean extruder temperature display zone
+	LCD_Fill(110,114,170,134,White);		//clean bed temperature display zone
+	POINT_COLOR=BLACK;
+	CLEAN_STRING(s_text);
+	sprintf((char *)s_text,"%d/%d",(int16_t)thermalManager.temp_hotend[0].celsius,thermalManager.temp_hotend[0].target);
+	LCD_ShowString(110,49,s_text);
+	CLEAN_STRING(s_text);
+	sprintf((char *)s_text,"%d/%d",(int16_t)thermalManager.temp_bed.celsius,thermalManager.temp_bed.target);
+	LCD_ShowString(110,114,s_text);
+}
+
+void display_image::scanWindowPreheating( uint16_t rv_x, uint16_t rv_y )
+{
+	if(rv_x>260&&rv_x<315&&rv_y>160&&rv_y<215)  //return home
+	{
+		next_window_ID=eMENU_HOME;
+	}
+	 else if(rv_x>10&&rv_x<65&&rv_y>30&&rv_y<85)  /* add extruder0 temperature  */
+	{			
+
+		current_button_id=eBT_PR_E_PLUS;
+	}
+   else if(rv_x>180&&rv_x<235&&rv_y>30&&rv_y<85)   /* subtract extruder0 temperature */
+   { 		   
+	    current_button_id= eBT_PR_E_MINUS;
+   }
+	else if(rv_x>10&&rv_x<65&&rv_y>95&&rv_y<150)  /* add bed temperature  */
+	{			
+		current_button_id=eBT_PR_B_PLUS;
+	}
+    else if(rv_x>180&&rv_x<235&&rv_y>95&&rv_y<150)  /* subtract bed temperature */
+	{ 		
+		current_button_id=EBT_PR_B_MINUS;
+    }
+    else if(rv_x>260&&rv_x<315&&rv_y>37&&rv_y<77)      /* change distance */	
+	{	      				
+		current_button_id=eBT_DISTANCE_CHANGE;
+	}    
+    else if(rv_x>260&&rv_x<315&&rv_y>95&&rv_y<150)   /* cooling down */
+	{		  
+		current_button_id=eBT_PR_COOL;
+	}
+    else if(rv_x>10&&rv_x<65&&rv_y>160&&rv_y<215)   /* filament 0 PLA */
+	{	      					
+		current_button_id=eBT_PR_PLA;
+	}  
+    else if(rv_x>95&&rv_x<150&&rv_y>160&&rv_y<215)  /* filament 1 ABS */
+	{	       					
+		current_button_id=eBT_PR_ABS;
+	} 				
+    else if(rv_x>180&&rv_x<235&&rv_y>160&&rv_y<215)   /* filament 2 PETG */
+	{	   					
+		current_button_id=eBT_PR_PETG;
+	} 
+}
 
 // /***************************home More page*******************************************/
 void display_image::displayWindowHomeMore(void)
@@ -987,7 +1082,11 @@ bool display_image::LGT_Ui_Update(void)
 				is_bed_select=false;
 				displayWindowExtrude();
 			break;
-
+			case eMENU_PREHEAT:
+				current_window_ID=eMENU_PREHEAT;
+				next_window_ID=eWINDOW_NONE;
+					displayWindowPreheat();
+			break;
 			// case eMENU_PRINT:
 			// 	current_window_ID=eMENU_PRINT;
 			// 	next_window_ID=eWINDOW_NONE;
@@ -1008,11 +1107,7 @@ bool display_image::LGT_Ui_Update(void)
 			// 	next_window_ID=eWINDOW_NONE;
 			// 	displayWindowAdjustMore();
 			// break;
-			// case eMENU_PREHEAT:
-			// 	current_window_ID=eMENU_PREHEAT;
-			// 	next_window_ID=eWINDOW_NONE;
-			// 		displayWindowPreheat();
-			// break;
+
 			// case eMENU_LEVELING:
 			// 	current_window_ID=eMENU_LEVELING;
 			// 	next_window_ID=eWINDOW_NONE;
@@ -1073,6 +1168,10 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 				scanWindowExtrude(cur_x,cur_y);
 				cur_x=cur_y=0;
 			break;
+			case eMENU_PREHEAT:
+				scanWindowPreheating(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;			
 			// case eMENU_PRINT:
 			// 	scanWindowPrint(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
@@ -1085,10 +1184,7 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 			// 	scanWindowAdjustMore(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
 			// break;
-			// case eMENU_PREHEAT:
-			// 	scanWindowPreheating(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
+
 			// case eMENU_LEVELING:
 			// 	scanWindowLeveling(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
@@ -1145,7 +1241,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
         DEBUG_ECHOLNPAIR("button id:", current_button_id);
 		switch (current_button_id)
 		{
-            // move buttons
+            // menu move buttons
 			case eBT_MOVE_X_MINUS:
 				current_position[X_AXIS]-=default_move_distance;
 				if(is_aixs_homed[X_AXIS]||all_axes_homed())
@@ -1323,82 +1419,80 @@ void display_image::LGT_Ui_Buttoncmd(void)
 		// 	// 	enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
 		// 	// 	current_button_id=eBT_BUTTON_NONE;
 		// 	// break;
-		// 	case eBT_PR_PLA:
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		if(thermalManager.temp_hotend[0].celsius<0||thermalManager.temp_bed.current<0)
-		// 			break;
-		// 		thermalManager.temp_hotend[0].target=PREHEAT_PLA_TEMP_EXTRUDE;
-		// 		thermalManager.start_watching_hotend(0);
-		// 		thermalManager.temp_bed.target=PREHEAT_PLA_TEMP_BED;
-		// 		thermalManager.start_watching_bed();
-		// 		updatePreheatingTemp();
-		// 	//	current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_PR_ABS:
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		if(thermalManager.temp_hotend[0].celsius<0||thermalManager.temp_bed.current<0)
-		// 			break;
-		// 		thermalManager.temp_hotend[0].target=PREHEAT_ABS_TEMP_EXTRUDE;
-		// 		thermalManager.start_watching_hotend(0);
-		// 		thermalManager.temp_bed.target=PREHEAT_ABS_TEMP_BED;
-		// 		thermalManager.start_watching_bed();
-		// 		updatePreheatingTemp();
-		// 	//	current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_PR_PETG:
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		if(thermalManager.temp_hotend[0].celsius<0||thermalManager.temp_bed.current<0)
-		// 			break;
-		// 		thermalManager.temp_hotend[0].target=PREHEAT_PETG_TEMP_EXTRUDE;
-		// 		thermalManager.start_watching_hotend(0);
-		// 		thermalManager.temp_bed.target=PREHEAT_PETG_TEMP_BED;
-		// 		thermalManager.start_watching_bed();
-		// 		updatePreheatingTemp();
-		// 	//	current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_PR_COOL:
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		if(thermalManager.temp_hotend[0].celsius>0)
-		// 			thermalManager.temp_bed.target=MIN_ADJUST_TEMP_BED;
-		// 		if(thermalManager.temp_hotend[0].celsius>0)
-		// 			thermalManager.temp_hotend[0].target=MIN_ADJUST_TEMP_EXTRUDE;
-		// 		updatePreheatingTemp();
-		// 	//	current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_PR_E_PLUS:
-		// 		if(setTemperatureInWindow(false, false))
-		// 		{
-		// 			thermalManager.start_watching_hotend(0);
-		// 			updatePreheatingTemp();
-		// 		}
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_PR_E_MINUS:
-		// 		if(setTemperatureInWindow(false, true))
-		// 		{
-		// 			thermalManager.start_watching_hotend(0);
-		// 			updatePreheatingTemp();
-		// 		}
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_PR_B_PLUS:
-		// 		if(setTemperatureInWindow(true, false))
-		// 		{
-		// 			thermalManager.start_watching_bed();
-		// 			updatePreheatingTemp();
-		// 		}
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case EBT_PR_B_MINUS:
-		// 		if(setTemperatureInWindow(true, true))
-		// 		{
-		// 			thermalManager.start_watching_bed();
-		// 			updatePreheatingTemp();
-		// 		}
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
 
-		// extrude buttons
+		// menu preheatting buttons
+			case eBT_PR_PLA:
+				current_button_id=eBT_BUTTON_NONE;
+				if(thermalManager.temp_hotend[0].celsius<0||thermalManager.temp_bed.celsius<0)
+					break;
+				thermalManager.temp_hotend[0].target=PREHEAT_PLA_TEMP_EXTRUDE;
+				thermalManager.start_watching_hotend(0);
+				thermalManager.temp_bed.target=PREHEAT_PLA_TEMP_BED;
+				thermalManager.start_watching_bed();
+				updatePreheatingTemp();
+			break;
+			case eBT_PR_ABS:
+				current_button_id=eBT_BUTTON_NONE;
+				if(thermalManager.temp_hotend[0].celsius<0||thermalManager.temp_bed.celsius<0)
+					break;
+				thermalManager.temp_hotend[0].target=PREHEAT_ABS_TEMP_EXTRUDE;
+				thermalManager.start_watching_hotend(0);
+				thermalManager.temp_bed.target=PREHEAT_ABS_TEMP_BED;
+				thermalManager.start_watching_bed();
+				updatePreheatingTemp();
+			break;
+			case eBT_PR_PETG:
+				current_button_id=eBT_BUTTON_NONE;
+				if(thermalManager.temp_hotend[0].celsius<0||thermalManager.temp_bed.celsius<0)
+					break;
+				thermalManager.temp_hotend[0].target=PREHEAT_PETG_TEMP_EXTRUDE;
+				thermalManager.start_watching_hotend(0);
+				thermalManager.temp_bed.target=PREHEAT_PETG_TEMP_BED;
+				thermalManager.start_watching_bed();
+				updatePreheatingTemp();
+			break;
+			case eBT_PR_COOL:
+				current_button_id=eBT_BUTTON_NONE;
+				if(thermalManager.temp_hotend[0].celsius>0)
+					thermalManager.temp_bed.target=MIN_ADJUST_TEMP_BED;
+				if(thermalManager.temp_hotend[0].celsius>0)
+					thermalManager.temp_hotend[0].target=MIN_ADJUST_TEMP_EXTRUDE;
+				updatePreheatingTemp();
+			break;
+			case eBT_PR_E_PLUS:
+				if(setTemperatureInWindow(false, false))
+				{
+					thermalManager.start_watching_hotend(0);
+					updatePreheatingTemp();
+				}
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_PR_E_MINUS:
+				if(setTemperatureInWindow(false, true))
+				{
+					thermalManager.start_watching_hotend(0);
+					updatePreheatingTemp();
+				}
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_PR_B_PLUS:
+				if(setTemperatureInWindow(true, false))
+				{
+					thermalManager.start_watching_bed();
+					updatePreheatingTemp();
+				}
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case EBT_PR_B_MINUS:
+				if(setTemperatureInWindow(true, true))
+				{
+					thermalManager.start_watching_bed();
+					updatePreheatingTemp();
+				}
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+
+		// menu extrude buttons
 			case eBT_TEMP_PLUS:
 				if(is_bed_select)   //add bed temperature
 				{
@@ -1543,7 +1637,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 
-            // menu file
+            // menu file buttons
 			case eBT_FILE_NEXT:
 				if (lgtCard.nextPage()) {
 					LCD_Fill(0, 25, 239, 174,White);	//clean file list display zone 
@@ -2008,9 +2102,9 @@ void display_image::LGT_Printer_Data_Update(void)
 			// 		break;
 			// 	}
 			// break;
-			// case eMENU_PREHEAT:
-			// 	updatePreheatingTemp();
-			// break;
+			case eMENU_PREHEAT:
+				updatePreheatingTemp();
+			break;
 			case eMENU_EXTRUDE:
 				dispalyExtrudeTemp();
 				actAutoFeed();
@@ -2042,7 +2136,7 @@ void display_image::LGT_Printer_Data_Update(void)
 			// 	}
 			// break;
 		// case eMENU_DIALOG_ERRORTEMPBED:
-		// 	if((thermalManager.temp_bed.current>MIN_ADJUST_TEMP_BED)&&(thermalManager.temp_bed.current<MAX_ADJUST_TEMP_BED))
+		// 	if((thermalManager.temp_bed.celsius>MIN_ADJUST_TEMP_BED)&&(thermalManager.temp_bed.celsius<MAX_ADJUST_TEMP_BED))
 		// 	{
 		// 		displayWindowHome();
 		// 		current_window_ID=eMENU_HOME;

@@ -121,9 +121,9 @@ private:
     void displayRunningAutoFeed(void);
 
     // /***************************preheating page*******************************************/
-    // void displayWindowPreheat(void);
-    // void scanWindowPreheating( uint16_t rv_x, uint16_t rv_y );
-    // void updatePreheatingTemp(void);
+    void displayWindowPreheat(void);
+    void scanWindowPreheating( uint16_t rv_x, uint16_t rv_y );
+    void updatePreheatingTemp(void);
 
     // /***************************home More page*******************************************/
     void displayWindowHomeMore(void);

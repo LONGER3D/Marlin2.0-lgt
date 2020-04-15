@@ -32,7 +32,7 @@ void LgtSdCard::clear()
 
     m_currentPage = 0;
     m_currentItem = 0;
-    m_currentFile;
+    m_currentFile = 0;
 
     m_isReverseList = false;
     m_isSelectFile = false;
@@ -76,7 +76,7 @@ const char *LgtSdCard::filename()
     }
 }
 
-bool LgtSdCard::setItem(uint16_t item)
+uint8_t LgtSdCard::setItem(uint16_t item)
 {
     if (item < LIST_ITEM_MAX) {
         if (m_isReverseList) {
@@ -85,7 +85,7 @@ bool LgtSdCard::setItem(uint16_t item)
                 m_currentItem = item;
                 m_currentFile =  m_fileCount - n;
                 m_isSelectFile = true;
-                return true;   // success to set
+                return 1;   // success to set
             }
         } else {
             uint16_t n = m_currentPage * LIST_ITEM_MAX + item;
@@ -93,13 +93,16 @@ bool LgtSdCard::setItem(uint16_t item)
                 m_currentItem = item;
                 m_currentFile = n;
                 m_isSelectFile = true;
-                return true;   // success to set
+                return 1;   // success to set
             }
         }
     }
-    return false;   // fail to set
+    return 0;   // fail to set
 }
 
+/**
+ * return: the page of selected file
+ */
 uint16_t LgtSdCard::selectedPage()
 {
     if (!m_isSelectFile)

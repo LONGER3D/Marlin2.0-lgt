@@ -54,7 +54,7 @@ public:
         }
     }
 
-    bool setItem(uint16_t item); // page_index_num
+    uint8_t setItem(uint16_t item); // page_index_num
 
     inline uint16_t item() {return m_currentItem;}
 
@@ -73,12 +73,12 @@ public:
 private:
     uint16_t m_fileCount;
     uint16_t m_pageCount;
-    uint16_t m_currentPage;
-    uint16_t m_currentItem;
-    uint16_t  m_currentFile;
+    uint16_t m_currentPage;     // current page
+    uint16_t m_currentItem;     // select item index
+    uint16_t  m_currentFile;    // select file index
 
-    bool m_isReverseList;
-    bool m_isSelectFile;
+    bool m_isReverseList;   // if reverse list
+    bool m_isSelectFile;    // if select file
 
 };
 
