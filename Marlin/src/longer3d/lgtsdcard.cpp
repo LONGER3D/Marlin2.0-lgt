@@ -43,30 +43,33 @@ bool LgtSdCard::isDir()
     return card.flag.filenameIsDir;
 }
 
+const char *LgtSdCard::shortFilename()
+{
+    if (m_fileCount == 0 || !m_isSelectFile)
+        return nullptr;
+    card.getfilename_sorted(m_currentFile);
+    return card.filename;
+}
+
 const char *LgtSdCard::filename(uint16_t i)
 {
     if (m_fileCount == 0)
         return nullptr;
-     card.getfilename_sorted(i);
-     return card.longFilename[0] ? card.longFilename : card.filename;
-    //  uint16_t len = card.filename();
-    // filenameIsFolde=DIR_IS_SUBDIR(card.filename);
-    // if(filenameIsFolder)
-    // {
-    //     return card.filename;
-    // }
-    // else
-    // {
-    //     uint8_t filenamelen=strlen(card.longFilename);
-    //     if(filenamelen>25)
-    //     {
-    //         card.longFilename[25]='\0';
-    //         card.longFilename[26]='\0';
-    //     }
-    //     return card.longFilename;
-    // }
+    card.getfilename_sorted(i);
+    char *fn = card.longFilename[0] ? card.longFilename : card.filename;
+    uint16_t len = strlen(fn);
+    if (len > 25) {
+        const char *s = "...\0\0";
+        strncpy_P(fn + 22, s, sizeof(s));
+        // fn[25] = '\0';
+        // fn[26] = '\0';
+    }
+    return fn;
 }
 
+/**
+ * get selected longfilename if any
+ */
 const char *LgtSdCard::filename()
 {
     if (m_isSelectFile) {
@@ -101,7 +104,7 @@ uint8_t LgtSdCard::setItem(uint16_t item)
 }
 
 /**
- * return: the page of selected file
+ * get the page of selected file
  */
 uint16_t LgtSdCard::selectedPage()
 {
@@ -112,6 +115,31 @@ uint16_t LgtSdCard::selectedPage()
     } else {
         return m_currentFile / LIST_ITEM_MAX;
     }   
+}
+
+uint8_t LgtSdCard::dirDepth()
+{
+    return card.getDirDepth();
+}
+
+bool LgtSdCard::isMaxDirDepth()
+{
+    return (dirDepth() >= MAX_DIR_DEPTH);
+}
+
+bool LgtSdCard::isRootDir()
+{
+    return card.flag.workDirIsRoot;
+}
+
+void LgtSdCard::changeDir(const char *relpath)
+{
+    card.cd(relpath);
+}
+
+int8_t LgtSdCard::upDir()
+{
+    return card.cdup();
 }
 
 #endif // LGT_LCD_TFT

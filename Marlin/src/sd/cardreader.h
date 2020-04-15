@@ -169,6 +169,10 @@ public:
     }
   #endif
 
+  #if ENABLED(LGT_LCD_TFT)
+  static uint8_t getDirDepth() { return workDirDepth; }
+  #endif
+
 private:
   //
   // Working directory and parents

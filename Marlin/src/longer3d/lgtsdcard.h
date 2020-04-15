@@ -61,6 +61,7 @@ public:
     inline bool isReverseList() {return m_isReverseList;}
 
     bool isDir();
+    const char *shortFilename();
     const char *filename(uint16_t i);
     const char *filename();
     inline uint16_t fileIndex() {return m_currentFile;} // get current selected file
@@ -68,7 +69,11 @@ public:
     inline bool isFileSelected() {return m_isSelectFile;}
     uint16_t selectedPage();
 
-
+    uint8_t dirDepth();
+    void changeDir(const char *relpath);
+    int8_t upDir();
+    bool isMaxDirDepth();
+    bool isRootDir();
 
 private:
     uint16_t m_fileCount;

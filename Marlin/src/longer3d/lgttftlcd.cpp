@@ -481,19 +481,7 @@ void display_image::displayWindowFiles(void)
 	LCD_DrawLine(240, 175, 240, 25);
 	LCD_DrawLine(241, 176, 241, 25);
 
-	if((SDIO_GetCardState() == SDIO_CARD_ERROR)) {
-		displayPromptSDCardError();
-        lgtCard.clear();
-    } else {
-        int fCount = lgtCard.count();
-        DEBUG_ECHOLNPAIR("sd filecount", fCount);
-		if (fCount == 0) {
-			displayPromptEmptyFolder();
-		} else {
-            displayFileList();
-            displayFilePageNumber();           
-        }
-	}
+	updateFilelist();
 
 }
 
@@ -507,7 +495,7 @@ void display_image::displayPromptSDCardError(void)
 	sprintf((char*)s_text,"%s", TXT_MENU_FILE_SD_ERROR);
 	LCD_ShowString(80, 92,s_text);
 	color=Black;
-	// clearfilevar();
+	lgtCard.clear();
 }
 
 void display_image::displayPromptEmptyFolder(void)
@@ -535,7 +523,7 @@ void display_image::displayFilePageNumber(void)
 
 void display_image::displayFileList()
 {
-    // debug
+    LCD_Fill(0, 25, 239, 174,White); //clean file list display zone 
     lcd.setColor(BLACK);
 	if(!lgtCard.isReverseList())    //forward
 	{
@@ -568,6 +556,23 @@ void display_image::displayFileList()
 	}
 
 }
+
+void display_image::updateFilelist()
+{
+	if((SDIO_GetCardState() == SDIO_CARD_ERROR)) {
+		displayPromptSDCardError();
+    } else {
+        int fCount = lgtCard.count();
+        DEBUG_ECHOLNPAIR("sd filecount", fCount);
+		if (fCount == 0) {
+			displayPromptEmptyFolder();
+		} else {
+            displayFileList();
+            displayFilePageNumber();           
+        }
+	}	
+}
+
 
 void LgtLcdTft::highlightChosenItem(uint16_t item)
 {
@@ -1761,7 +1766,6 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			    break;
 			case eBT_FILE_LAST:
 				if (lgtCard.previousPage()) {
-					LCD_Fill(0, 25, 239, 174,White);
 					displayFileList();
 					displayFilePageNumber();
 					// if(choose_file_page==page_index&&choose_printfile!=-1)
@@ -1804,88 +1808,51 @@ void display_image::LGT_Ui_Buttoncmd(void)
 					;// ChoseArgument(4);
 				current_button_id=eBT_BUTTON_NONE;
 			break;
-		// 	case eBT_FILE_OPEN:
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		if(choose_printfile==-1||(choose_printfile!=-1&&(choose_file_page!=(page_index)))
-		// 			)
-		// 		{
-		// 			//current_button_id=eBT_BUTTON_NONE;
-		// 			break;
-		// 		}
-		// 		if(list_order)
-		// 			card.getfilename(choose_file_page*5+choose_printfile);
-		// 		else
-		// 			card.getfilename(file_count-(choose_file_page)*5-choose_printfile-1);
-		// 		// Serial1.print(CardFile.getsdfilename(choose_file_page*5+choose_printfile));
-		// 		 Serial1.println(card.longFilename);
-		// 		if(CardFile.filenameIsFolder)
-		// 		{
-		// 			card.chdir(card.filename);
-		// 			if(card.curWorkDirDepth!=MAX_DIR_DEPTH)
-		// 			{
-		// 				clearfilevar();
-		// 				LCD_Fill(0, 25, 239, 174,White);
-		// 				if((SDIO_GetCardState()==SDIO_CARD_ERROR))
-		// 					displayPromptSDCardError();
-		// 				else
-		// 				{
-		// 					file_count=card.getnrfilenames();
-		// 					if(file_count==0)
-		// 					{
-		// 						displayPromptEmptyFolder();
-		// 						return;
-		// 					}
-		// 					page_index_max=CardFile.getsdfilepage();
-		// 					displayFileList();
-		// 					displayFilePageNumber();
-		// 				}
-		// 			}
-		// 		}
-		// 		else
-		// 		{
-		// 			uint8_t check_cn=0;
-		// 			for(int i=CHECK_FILAMENT_TIMES;i>=0;i--)
-		// 			{
-		// 				if(READ(FIL_RUNOUT_PIN))
-		// 					check_cn++;
-		// 			}
-		// 			if(!check_filament_disable&&(check_cn>(CHECK_FILAMENT_TIMES-1)))
-		// 			{
-		// 				dispalyDialogYesNo(eDIALOG_START_JOB_NOFILA);
-		// 				current_window_ID=eMENU_DIALOG_NO_FIL;
-		// 				extrude2file=true;
-		// 			}
-		// 			else
-		// 			{
-		// 				dispalyDialogYesNo(eDIALOG_PRINT_START);
-		// 				current_window_ID=eMENU_DIALOG_START;
-		// 			}
-		// 		}
-		// 		//current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_FILE_FOLDER:
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	card.updir();
-		// 	if(card.curWorkDirDepth!=MAX_DIR_DEPTH)
-		// 	{
-		// 		clearfilevar();
-		// 		LCD_Fill(0, 25, 239, 174,White);
-		// 		if((SDIO_GetCardState()==SDIO_CARD_ERROR))
-		// 			displayPromptSDCardError();
-		// 		else
-		// 		{
-		// 			file_count=card.getnrfilenames();
-		// 			if(file_count==0)
-		// 			{
-		// 				displayPromptEmptyFolder();
-		// 				return;
-		// 			}
-		// 			page_index_max=CardFile.getsdfilepage();
-		// 			displayFileList();
-		// 			displayFilePageNumber();
-		// 		}
-		// 	}
-		// 	break;
+			case eBT_FILE_OPEN:
+			{
+				current_button_id=eBT_BUTTON_NONE;
+				if(!lgtCard.isFileSelected() ||
+					(lgtCard.isFileSelected() && 
+					(lgtCard.selectedPage() != lgtCard.page()))) {
+					break;
+				}
+				const char *fn = lgtCard.shortFilename();
+				DEBUG_ECHOLNPAIR("open shortname: ", fn);
+				if(lgtCard.isDir()) {
+					lgtCard.changeDir(fn);
+					if (!lgtCard.isMaxDirDepth()) {
+						lgtCard.clear();
+						updateFilelist();
+					}
+				} else {	// is gcode
+					// uint8_t check_cn=0;
+					// for(int i=CHECK_FILAMENT_TIMES;i>=0;i--)
+					// {
+					// 	if(READ(FIL_RUNOUT_PIN))
+					// 		check_cn++;
+					// }
+					// if(!check_filament_disable&&(check_cn>(CHECK_FILAMENT_TIMES-1)))
+					// {
+					// 	dispalyDialogYesNo(eDIALOG_START_JOB_NOFILA);
+					// 	current_window_ID=eMENU_DIALOG_NO_FIL;
+					// 	extrude2file=true;
+					// }
+					// else
+					// {
+					// 	dispalyDialogYesNo(eDIALOG_PRINT_START);
+					// 	current_window_ID=eMENU_DIALOG_START;
+					// }
+				}
+			break;
+			}
+			case eBT_FILE_FOLDER:
+				current_button_id=eBT_BUTTON_NONE;
+			if (!lgtCard.isRootDir()) {
+				lgtCard.upDir();
+				lgtCard.clear();
+				updateFilelist();
+			}
+			break;
 
 		// 	case eBT_PRINT_PAUSE:
 		// 		switch(current_print_cmd)

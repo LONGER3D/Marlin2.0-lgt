@@ -108,6 +108,7 @@ private:
     void displayWindowFiles(void);
     void displayFilePageNumber(void);
     void displayFileList();
+    void updateFilelist();
     void highlightChosenItem(uint16_t item);
     void displayPromptSDCardError(void);
     void displayPromptEmptyFolder(void);
