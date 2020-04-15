@@ -128,11 +128,16 @@ private:
     // /***************************home More page*******************************************/
     void displayWindowHomeMore(void);
     void scanWindowMoreHome(uint16_t rv_x, uint16_t rv_y);
-    // void scanWindowLeveling( uint16_t rv_x, uint16_t rv_y );
-    // void scanWindowAbout(uint16_t rv_x, uint16_t rv_y);
-    // void displayWindowLeveling(void);
-    // void displayWindowAbout(void);
 
+    // /***************************leveling page*******************************************/   
+    void displayWindowLeveling(void);
+    void scanWindowLeveling( uint16_t rv_x, uint16_t rv_y );
+
+     // /***************************about page*******************************************/      
+    void displayWindowAbout(void);
+    void scanWindowAbout(uint16_t rv_x, uint16_t rv_y);
+
+    // /***************************settings page*******************************************/   
     // void displayArugumentPageNumber(void);
     // void displayArgumentList(void);
     // void displayWindowSettings(void);
@@ -140,8 +145,6 @@ private:
     // void displayWindowSettings2(void);
     // void displayModifyArgument(void);
     // void scanWindowSettings2(uint16_t rv_x, uint16_t rv_y);
-
-
 
     // /***************************Printing page*******************************************/
     // void scanWindowPrint( uint16_t rv_x, uint16_t rv_y );

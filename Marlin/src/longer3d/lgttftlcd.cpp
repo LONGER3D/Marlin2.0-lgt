@@ -52,6 +52,7 @@
 #define CLEAN_SINGLE_TXT(x, y, w)               CLEAN_ZONE(x, y, w, 16)     /* clean single line text */
 
 
+
 LgtLcdTft lgtlcdtft;
 
 // extern bool check_filament_disable,list_order;
@@ -121,6 +122,9 @@ E_WINDOW_ID current_window_ID = eMENU_HOME,next_window_ID =eWINDOW_NONE;
 
 
 // /***************************static function definition****************************************/
+
+// constexpr uint8_t xy_bits = _BV(X_AXIS) | _BV(Y_AXIS) | _BV(Z_AXIS);
+// FORCE_INLINE static bool xy_axes_homed() { return (axis_homed & xy_bits) == xyz_bits; }
 
 static void LGT_Line_To_Current_Position(AxisEnum axis) 
 {
@@ -923,6 +927,73 @@ void display_image::scanWindowMoreHome(uint16_t rv_x, uint16_t rv_y)
 	}
 }
 
+// /***************************leveling page*******************************************/
+
+void display_image::displayWindowLeveling(void)
+{
+	lcdClear(White);
+	LCD_Fill(0, 0, 320, 24, BG_COLOR_CAPTION_LEVELING); 	//caption background
+	#ifndef Chinese
+   		 displayImage(115, 5, IMG_ADDR_CAPTION_LEVELING);     //caption words
+	#else
+		 displayImage(115, 5, IMG_ADDR_CAPTION_LEVELING_CN);     //caption words
+	#endif
+	/* rectangular frame*/
+	lcd.setColor(PT_COLOR_DISABLE);
+   	LCD_DrawRectangle(48, 73, 48+140, 73+121);
+   	lcd.setColor(BLACK);
+   	/* icons showing */
+    displayImage(20, 45, IMG_ADDR_BUTTON_LEVELING0);     //top left
+    displayImage(160, 45, IMG_ADDR_BUTTON_LEVELING1);    //top right 
+    displayImage(160, 165, IMG_ADDR_BUTTON_LEVELING2);   //bottom right
+    displayImage(20, 165, IMG_ADDR_BUTTON_LEVELING3);    //bottom left
+    displayImage(90, 105, IMG_ADDR_BUTTON_LEVELING4);    //center
+    displayImage(245, 45, IMG_ADDR_BUTTON_UNLOCK);  
+    displayImage(245, 165, IMG_ADDR_BUTTON_RETURN); 
+  	CLEAN_STRING(s_text);
+	sprintf((char*)s_text,"%s",TXT_MENU_LEVELING_UNLOCK);
+    LCD_ShowString(235,109,s_text);
+}
+
+void display_image::scanWindowLeveling( uint16_t rv_x, uint16_t rv_y )
+{
+	if(rv_x>245&&rv_x<300&&rv_y>165&&rv_y<220)   /* return */
+	{			
+		next_window_ID=eMENU_HOME_MORE;
+		current_button_id=eBT_MOVE_RETURN;   //Z up 10mm
+	}
+    else if(rv_x>20&&rv_x<75&&rv_y>45&&rv_y<100)  /* 0 top left */
+	{		
+		current_button_id=eBT_MOVE_L0;
+	}
+    else if(rv_x>160&&rv_x<215&&rv_y>45&&rv_y<100)   /* 1 top right */
+	{	  						
+		current_button_id=eBT_MOVE_L1;
+	}
+    else if(rv_x>160&&rv_x<215&&rv_y>165&&rv_y<220) /* 2 bottom right */	
+	{					
+		current_button_id=eBT_MOVE_L2;
+	}    
+    else if(rv_x>20&&rv_x<75&&rv_y>165&&rv_y<220) /* 3 bottom left */	
+	{							
+		current_button_id=eBT_MOVE_L3;
+	}
+    else if(rv_x>90&&rv_x<145&&rv_y>105&&rv_y<160) /* 4 center */		
+	{				
+		current_button_id=eBT_MOVE_L4;
+	}  
+    else if(rv_x>245&&rv_x<300&&rv_y>45&&rv_y<100) /* unlock x and y  */
+	{		
+		enqueue_and_echo_commands_P(PSTR("M84 X0 Y0"));
+		set_all_unhomed();
+	}	
+}
+
+// /***************************settings page*******************************************/
+
+// /***************************about page*******************************************/
+
+
 // /***************************Printing page*******************************************/
 
 // /***************************Adjust page*******************************************/
@@ -1036,8 +1107,8 @@ bool display_image::LGT_Ui_Update(void)
 				displayWindowHome();
 				break;
 			case eMENU_HOME_MORE:
-				// if((current_window_ID==eMENU_LEVELING)&&all_axes_homed())
-				// 	enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
+				if((current_window_ID==eMENU_LEVELING)&&all_axes_homed())
+					enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
 				if(current_window_ID==eMENU_SETTINGS&&is_setting_change)
 				{
 					// page_index=0;
@@ -1087,6 +1158,14 @@ bool display_image::LGT_Ui_Update(void)
 				next_window_ID=eWINDOW_NONE;
 					displayWindowPreheat();
 			break;
+			case eMENU_LEVELING:
+				current_window_ID=eMENU_LEVELING;
+				next_window_ID=eWINDOW_NONE;
+				set_all_unhomed();
+				displayWindowLeveling();
+			break;
+
+
 			// case eMENU_PRINT:
 			// 	current_window_ID=eMENU_PRINT;
 			// 	next_window_ID=eWINDOW_NONE;
@@ -1108,12 +1187,7 @@ bool display_image::LGT_Ui_Update(void)
 			// 	displayWindowAdjustMore();
 			// break;
 
-			// case eMENU_LEVELING:
-			// 	current_window_ID=eMENU_LEVELING;
-			// 	next_window_ID=eWINDOW_NONE;
-			// 	set_all_unhomed();
-			// 	displayWindowLeveling();
-			// break;
+
 
 			// case eMENU_SETTINGS:
 			// 	current_window_ID=eMENU_SETTINGS;
@@ -1171,7 +1245,12 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 			case eMENU_PREHEAT:
 				scanWindowPreheating(cur_x,cur_y);
 				cur_x=cur_y=0;
-			break;			
+			break;	
+			case eMENU_LEVELING:
+				scanWindowLeveling(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;
+
 			// case eMENU_PRINT:
 			// 	scanWindowPrint(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
@@ -1184,12 +1263,6 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 			// 	scanWindowAdjustMore(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
 			// break;
-
-			// case eMENU_LEVELING:
-			// 	scanWindowLeveling(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
-
 			// case eMENU_SETTINGS:
 			// 	scanWindowSettings(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
@@ -1319,106 +1392,101 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 
-	
-		// 	case eBT_MOVE_L0:
-		// 		if(!all_axes_homed())
-		// 		{
-		// 			enqueue_and_echo_commands_P(PSTR("G28"));
-		// 			thermalManager.setTargetHotend(0, 0);
-		// 			thermalManager.setTargetBed(0);
-		// 		}
-		// 		enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
-		// 		#if defined(LK1) || defined(U20)
-		// 			enqueue_and_echo_commands_P(PSTR("G0 X50 Y250 F5000"));
-		// 		#elif defined(LK2) || defined(LK4) || defined(U30)
-		// 			enqueue_and_echo_commands_P(PSTR("G0 X50 Y170 F5000"));
-		// 		#elif  defined(LK1_PLUS) ||  defined(U20_PLUS) 
-		// 			enqueue_and_echo_commands_P(PSTR("G0 X50 Y350 F5000"));
-		// 		#endif
-		// 	//	enqueue_and_echo_commands_P(PSTR("G0 X50 Y170 F5000"));
-		// 		enqueue_and_echo_commands_P(PSTR("G0 Z0 F300"));
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_MOVE_L1:
-		// 		if(!all_axes_homed())
-		// 		{
-		// 			enqueue_and_echo_commands_P(PSTR("G28"));
-		// 			thermalManager.setTargetHotend(0, 0);
-		// 			thermalManager.setTargetBed(0);
-		// 		}
-		// 		enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
-		// 		#if defined(LK1) || defined(U20)
-		// 			enqueue_and_echo_commands_P(PSTR("G0 X250 Y250 F5000"));
-		// 		#elif defined(LK2) || defined(LK4) || defined(U30)
-		// 			enqueue_and_echo_commands_P(PSTR("G0 X170 Y170 F5000"));
-		// 		#elif  defined(LK1_PLUS) ||  defined(U20_PLUS) 
-		// 			enqueue_and_echo_commands_P(PSTR("G0 X350 Y350 F5000"));
-		// 		#endif
-		// 	//	enqueue_and_echo_commands_P(PSTR("G0 X170 Y170 F5000"));
-		// 		enqueue_and_echo_commands_P(PSTR("G0 Z0 F300"));
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_MOVE_L2:
-		// 		if(!all_axes_homed())
-		// 		{
-		// 			enqueue_and_echo_commands_P(PSTR("G28"));
-		// 			thermalManager.setTargetHotend(0, 0);
-		// 			thermalManager.setTargetBed(0);
-		// 		}
-		// 		enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
-		// 		#if defined(LK1) || defined(U20)
-		// 			enqueue_and_echo_commands_P(PSTR("G0 X250 Y50 F5000"));
-		// 	#elif defined(LK2) || defined(LK4) || defined(U30)
-		// 			enqueue_and_echo_commands_P(PSTR("G0 X170 Y50 F5000"));
-		// 		#elif  defined(LK1_PLUS) ||  defined(U20_PLUS) 
-		// 			enqueue_and_echo_commands_P(PSTR("G0 X350 Y50 F5000"));
-		// 		#endif
-		// //		enqueue_and_echo_commands_P(PSTR("G0 X170 Y50 F5000"));
-		// 		enqueue_and_echo_commands_P(PSTR("G0 Z0 F300"));
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_MOVE_L3:
-		// 		if(!all_axes_homed())
-		// 		{
-		// 			enqueue_and_echo_commands_P(PSTR("G28"));
-		// 			thermalManager.setTargetHotend(0, 0);
-		// 			thermalManager.setTargetBed(0);
-		// 		}
-		// 		enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
-		// 		#if defined(LK1) || defined(U20)
-		// 			enqueue_and_echo_commands_P(PSTR("G0 X50 Y50 F5000"));
-		// 		#elif defined(LK2) || defined(LK4) || defined(U30)
-		// 			enqueue_and_echo_commands_P(PSTR("G0 X50 Y50 F5000"));
-		// 		#elif  defined(LK1_PLUS) ||  defined(U20_PLUS) 
-		// 			enqueue_and_echo_commands_P(PSTR("G0 X50 Y50 F5000"));
-		// 		#endif
-		// //		enqueue_and_echo_commands_P(PSTR("G0 X50 Y50 F5000"));
-		// 		enqueue_and_echo_commands_P(PSTR("G0 Z0 F300"));
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_MOVE_L4:
-		// 		if(!all_axes_homed())
-		// 		{
-		// 			enqueue_and_echo_commands_P(PSTR("G28"));
-		// 			thermalManager.setTargetHotend(0, 0);
-		// 			thermalManager.setTargetBed(0);
-		// 		}
-		// 		enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
-		// 		#if defined(LK1) || defined(U20)
-		// 			enqueue_and_echo_commands_P(PSTR("G0 X150 Y150 F5000"));
-		// 		#elif defined(LK2) || defined(LK4) || defined(U30)
-		// 			enqueue_and_echo_commands_P(PSTR("G0 X110 Y110 F5000"));
-		// 		#elif  defined(LK1_PLUS) ||  defined(U20_PLUS) 
-		// 			enqueue_and_echo_commands_P(PSTR("G0 X200 Y200 F5000"));
-		// 		#endif
-		// //		enqueue_and_echo_commands_P(PSTR("G0 X110 Y110 F5000"));
-		// 		enqueue_and_echo_commands_P(PSTR("G0 Z0 F300"));
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	// case eBT_MOVE_RETURN:
-		// 	// 	enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
-		// 	// 	current_button_id=eBT_BUTTON_NONE;
-		// 	// break;
+			// menu leveling buttons
+			case eBT_MOVE_L0:
+				if(!all_axes_homed())
+				{
+					enqueue_and_echo_commands_P(PSTR("G28"));
+					thermalManager.setTargetHotend(0, 0);
+					thermalManager.setTargetBed(0);
+				}
+				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
+				#if defined(LK1) || defined(U20)
+					enqueue_and_echo_commands_P(PSTR("G0 X50 Y250 F5000"));
+				#elif defined(LK2) || defined(LK4) || defined(U30)
+					enqueue_and_echo_commands_P(PSTR("G0 X50 Y170 F5000"));
+				#elif  defined(LK1_PLUS) ||  defined(U20_PLUS) 
+					enqueue_and_echo_commands_P(PSTR("G0 X50 Y350 F5000"));
+				#endif
+				enqueue_and_echo_commands_P(PSTR("G0 Z0 F300"));
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_MOVE_L1:
+				if(!all_axes_homed())
+				{
+					enqueue_and_echo_commands_P(PSTR("G28"));
+					thermalManager.setTargetHotend(0, 0);
+					thermalManager.setTargetBed(0);
+				}
+				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
+				#if defined(LK1) || defined(U20)
+					enqueue_and_echo_commands_P(PSTR("G0 X250 Y250 F5000"));
+				#elif defined(LK2) || defined(LK4) || defined(U30)
+					enqueue_and_echo_commands_P(PSTR("G0 X170 Y170 F5000"));
+				#elif  defined(LK1_PLUS) ||  defined(U20_PLUS) 
+					enqueue_and_echo_commands_P(PSTR("G0 X350 Y350 F5000"));
+				#endif
+				enqueue_and_echo_commands_P(PSTR("G0 Z0 F300"));
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_MOVE_L2:
+				if(!all_axes_homed())
+				{
+					enqueue_and_echo_commands_P(PSTR("G28"));
+					thermalManager.setTargetHotend(0, 0);
+					thermalManager.setTargetBed(0);
+				}
+				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
+				#if defined(LK1) || defined(U20)
+					enqueue_and_echo_commands_P(PSTR("G0 X250 Y50 F5000"));
+			#elif defined(LK2) || defined(LK4) || defined(U30)
+					enqueue_and_echo_commands_P(PSTR("G0 X170 Y50 F5000"));
+				#elif  defined(LK1_PLUS) ||  defined(U20_PLUS) 
+					enqueue_and_echo_commands_P(PSTR("G0 X350 Y50 F5000"));
+				#endif
+				enqueue_and_echo_commands_P(PSTR("G0 Z0 F300"));
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_MOVE_L3:
+				if(!all_axes_homed())
+				{
+					enqueue_and_echo_commands_P(PSTR("G28"));
+					thermalManager.setTargetHotend(0, 0);
+					thermalManager.setTargetBed(0);
+				}
+				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
+				#if defined(LK1) || defined(U20)
+					enqueue_and_echo_commands_P(PSTR("G0 X50 Y50 F5000"));
+				#elif defined(LK2) || defined(LK4) || defined(U30)
+					enqueue_and_echo_commands_P(PSTR("G0 X50 Y50 F5000"));
+				#elif  defined(LK1_PLUS) ||  defined(U20_PLUS) 
+					enqueue_and_echo_commands_P(PSTR("G0 X50 Y50 F5000"));
+				#endif
+				enqueue_and_echo_commands_P(PSTR("G0 Z0 F300"));
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_MOVE_L4:
+				if(!all_axes_homed())
+				{
+					enqueue_and_echo_commands_P(PSTR("G28"));
+					thermalManager.setTargetHotend(0, 0);
+					thermalManager.setTargetBed(0);
+				}
+				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
+				#if defined(LK1) || defined(U20)
+					enqueue_and_echo_commands_P(PSTR("G0 X150 Y150 F5000"));
+				#elif defined(LK2) || defined(LK4) || defined(U30)
+					enqueue_and_echo_commands_P(PSTR("G0 X110 Y110 F5000"));
+				#elif  defined(LK1_PLUS) ||  defined(U20_PLUS) 
+					enqueue_and_echo_commands_P(PSTR("G0 X200 Y200 F5000"));
+				#endif
+				enqueue_and_echo_commands_P(PSTR("G0 Z0 F300"));
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_MOVE_RETURN:
+				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
+				current_button_id=eBT_BUTTON_NONE;
+			break;
 
 		// menu preheatting buttons
 			case eBT_PR_PLA:
