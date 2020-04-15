@@ -75,6 +75,9 @@ public:
     bool isMaxDirDepth();
     bool isRootDir();
 
+    void downTime(char *);
+    void upTime(char *);
+
 private:
     uint16_t m_fileCount;
     uint16_t m_pageCount;

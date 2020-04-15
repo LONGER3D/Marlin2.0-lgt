@@ -45,6 +45,10 @@
 
 #include "../../MarlinCore.h" // for wait_for_heatup, idle, startOrResumeJob
 
+#if ENABLED(LGT_LCD_TFT)
+  #include "../../longer3d/lgttftlcd.h"
+#endif
+
 /**
  * M140: Set bed temperature
  */
@@ -77,6 +81,10 @@ void GcodeSuite::M190() {
 
     #if ENABLED(LGT_LCD_DW)
       lgtLcdDw.hideButtonsBeforeHeating();
+    #endif
+
+    #if ENABLED(LGT_LCD_TFT)
+      lgtlcdtft.setPrintState(0);
     #endif
 
     #if ENABLED(PRINTJOB_TIMER_AUTOSTART)

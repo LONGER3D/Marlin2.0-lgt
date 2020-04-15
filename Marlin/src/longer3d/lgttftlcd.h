@@ -109,11 +109,14 @@ public:
     LgtLcdTft();
     void init();
     void loop();
+    void setPrintState(int8_t state);
+
 private:
     bool LGT_MainScanWindow(void);
     bool LGT_Ui_Update(void);
     void LGT_Printer_Data_Update(void);
     void LGT_Ui_Buttoncmd(void);
+
 
     bool setTemperatureInWindow(bool is_bed, bool sign);
     // void LGT_Tempabnormal_Warning(const char* info);    //is_printing=false
@@ -179,18 +182,18 @@ private:
     void scanWindowPrint( uint16_t rv_x, uint16_t rv_y );
     void displayWindowPrint(void);
     void displayPrintInformation(void);
-    // void displayRunningFan(uint16_t pos_x, uint16_t pos_y);
-    // void displayFanSpeed(void);
-    // void displayHeating(void);
-    // void displayPrinting(void);
-    // void displayPause(void);
-    // void displayPrintTemperature(void);
-    // void displayPrintProgress(void);
-    // void displayHeightValue(void);
-    // void dispalyCurrentStatus(void);
-    // //void calcCountUpTime(void);
-    // void displayCountUpTime(void);
-    // void displayCountDownTime(void);
+    void displayRunningFan(uint16_t pos_x, uint16_t pos_y);
+    void displayFanSpeed(void);
+    void displayPrintTemperature(void);
+    void displayPrintProgress(void);
+    void displayHeightValue(void);
+    void dispalyCurrentStatus(void);
+    void displayCountUpTime(void);
+    void displayCountDownTime(void);
+
+    void displayHeating(void);
+    void displayPrinting(void);
+    void displayPause(void);
 
     // /***************************Adjust page*******************************************/
     // void displayWindowAdjust(void);
@@ -206,9 +209,9 @@ private:
     void dispalyDialogYesNo(uint8_t dialog_index);
     void dispalyDialogYes(uint8_t dialog_index);
     void displayDialogText(uint8_t dialog_index);
+    // void displayNofilament(void);
     void scanDialogStart(uint16_t rv_x, uint16_t rv_y );
     void scanDialogEnd( uint16_t rv_x, uint16_t rv_y ); 
-    // void displayNofilament(void);
     // void scanDialogRecovery( uint16_t rv_x, uint16_t rv_y);
     // void scanDialogRefactory(uint16_t rv_x, uint16_t rv_y);
     // void scanDialogSave(uint16_t rv_x, uint16_t rv_y);
@@ -220,5 +223,8 @@ private:
 };
 
 extern LgtLcdTft lgtlcdtft; 
+
+// extern bool is_printing;
+// extern char cur_pstatus;
 
 #endif

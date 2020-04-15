@@ -475,6 +475,11 @@ void startOrResumeJob() {
         #if ENABLED(LGT_LCD_DW)
           lgtLcdDw.goFinishPage();
         #endif
+
+        #if ENABLED(LGT_LCD_TFT)
+          lgtlcdtft.setPrintState(3);
+        #endif
+
       default:
         did_state = false;
         card.sdprinting_done_state = 0;

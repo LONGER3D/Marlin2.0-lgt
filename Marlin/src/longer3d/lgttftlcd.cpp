@@ -35,8 +35,8 @@
 #define enqueue_and_echo_commands_P(s)  queue.enqueue_now_P(s)
 #define LCD_DrawLine(x, y, ex, ey)      lcd.drawHVLine(x, y, ex, ey)
 #define LCD_DrawRectangle(x, y, ex, ey) lcd.drawRect(x, y, ex, ey)
+#define Green							GREEN
 // #define temp_hotend[0].current   temp_hotend[0].celsius
-
 
 #ifndef Chinese
 	#define LCD_ShowString(x,y,txt)          lcd.print(x,y,txt) 
@@ -50,8 +50,6 @@
 #define FILL_ZONE(x, y, w, h, bg_color)         LCD_Fill((uint16_t)(x), (uint16_t)(y), (uint16_t)((x)+(w)-1), (uint16_t)((y)+(h)-1), (uint16_t)bg_color)
 #define CLEAN_ZONE(x, y, w, h)                  FILL_ZONE(x, y, w, h, WHITE)
 #define CLEAN_SINGLE_TXT(x, y, w)               CLEAN_ZONE(x, y, w, 16)     /* clean single line text */
-
-
 
 LgtLcdTft lgtlcdtft;
 
@@ -88,7 +86,7 @@ uint8_t default_move_distance=5;
 static int8_t dir_auto_feed=0;
 static uint8_t total_out_distance=0;
 
-// uint8_t printpercent=0;
+uint8_t printpercent=0;
 uint8_t page_index_num=0;
 int8_t choose_printfile=-1;
 	
@@ -97,7 +95,7 @@ static uint16_t cur_x=0,cur_y=0;	// save touch point position
 
 static char s_text[64];
 // char pdata[64];
-// uint32_t print_times=0;
+uint32_t print_times=0;
 // const float manual_feedrate_mm_m[] = MANUAL_FEEDRATE;
 
 // move
@@ -108,9 +106,9 @@ static bool is_bed_select = false;
 static bool is_printing=false;	// print status
 bool is_print_finish=false;
 // bool pause_print=false;
-bool cur_flag=false;  
-char cur_pstatus=10;   //0 is heating ,1 is printing, 2 is pause
-char cur_ppage=10;   //  0 is heating page , 1 is printing page, 2 is pause page
+static bool cur_flag=false;  
+static int8_t cur_pstatus=10;   //0 is heating ,1 is printing, 2 is pause
+static int8_t cur_ppage=10;   //  0 is heating page , 1 is printing page, 2 is pause page
 
 // bool setting_return_more=false;
 // float default_parameter[4]=DEFAULT_MAX_FEEDRATE;
@@ -211,6 +209,16 @@ LgtLcdTft::LgtLcdTft()
 {
 
 }
+
+// misc function
+void LgtLcdTft::setPrintState(int8_t state)
+{
+    if(is_printing)
+    {
+      cur_pstatus = state;
+    }
+}
+
 
 // /***************************launch page*******************************************/
 void LgtLcdTft::displayStartUpLogo(void)
@@ -1079,8 +1087,6 @@ void display_image::displayWindowPrint(void)
 	displayImage(10, 150, IMG_ADDR_INDICATOR_TIMER_CD);	
 	displayImage(140, 150, IMG_ADDR_INDICATOR_TIMER_CU);	
 	LCD_Fill(10,110,200,140,LIGHTBLUE); 	//progress bar background
-//	if(!cur_flag)
-	{
 		switch(cur_ppage)
 		{
 			case 0:
@@ -1110,12 +1116,193 @@ void display_image::displayWindowPrint(void)
 			break;
 		}
 		cur_flag=true;
-	}
 	displayImage(260, 105, IMG_ADDR_BUTTON_ADJUST);	
 	displayImage(260, 180, IMG_ADDR_BUTTON_END);        
-	// displayPrintInformation();
+	displayPrintInformation();
 	
 }
+
+void display_image::displayPrintInformation(void)
+{
+	if(thermalManager.fan_speed[0]>0)
+	{
+		displayRunningFan(140, 30);	
+	}
+	displayPrintTemperature();
+	displayHeightValue();
+	displayFanSpeed();
+	dispalyCurrentStatus();
+	if(is_print_finish)
+	{
+		printpercent=100;
+	}
+	else
+	{
+		printpercent=card.percentDone();
+	}
+	displayPrintProgress();
+	displayCountUpTime();
+	displayCountDownTime();
+}
+
+void display_image::displayRunningFan(uint16_t pos_x, uint16_t pos_y)
+{
+	static bool is_fan0_display = false;
+	if(!is_fan0_display)
+	{
+		displayImage(pos_x, pos_y, IMG_ADDR_INDICATOR_FAN_0);				
+	}
+	else
+	{
+		displayImage(pos_x, pos_y, IMG_ADDR_INDICATOR_FAN_1);				 					
+	}
+	is_fan0_display = !is_fan0_display;
+}
+
+void display_image::displayFanSpeed(void)
+{
+	LCD_Fill(170,30,250,60,White);		//clean fan speed display zone
+	color=Black;
+	CLEAN_STRING(s_text);
+	sprintf((char *)s_text,"F: %d", thermalManager.fan_speed[0]);
+	LCD_ShowString(175,37,s_text);	
+}
+
+void display_image::displayPrintTemperature(void)
+{
+	LCD_Fill(45,30,130,60,White);		//clean extruder display zone	
+	LCD_Fill(45,70,130,100,White);		//clean bed display zone
+	color=Black;
+	CLEAN_STRING(s_text);
+	sprintf((char*)s_text,"E: %d/%d",(int16_t)thermalManager.temp_hotend[0].celsius,thermalManager.temp_hotend[0].target);
+	LCD_ShowString(45,37,s_text);
+	CLEAN_STRING(s_text);
+	sprintf((char *)s_text,"B: %d/%d",(int16_t)thermalManager.temp_bed.celsius,thermalManager.temp_bed.target);
+	LCD_ShowString(45,77,s_text);
+}
+
+void display_image::displayPrintProgress(void)
+{
+	LCD_Fill(210,110,250,140,White);							//clean percentage display zone
+	LCD_Fill(10,110,(uint16_t)(10+printpercent*1.9),140,DARKBLUE); 	//display current progress
+	color=Black;
+	CLEAN_STRING(s_text);
+	sprintf((char *)s_text,"%d %%",(printpercent));
+	LCD_ShowString(210,117,s_text);
+}
+
+void display_image::displayHeightValue(void)
+{
+	LCD_Fill(170,70,250,100,White);		//clean height display zone
+	color=Black;	
+	CLEAN_STRING(s_text);
+	sprintf((char*)s_text,"Z: %.1f",current_position[Z_AXIS]);
+	LCD_ShowString(175,77,s_text);	
+}
+
+void display_image::dispalyCurrentStatus(void)
+{
+	switch(cur_pstatus)
+	{
+		case 0:   //heating
+			displayHeating();
+			current_print_cmd=E_PRINT_DISPAUSE;
+			cur_ppage=0;	
+			cur_pstatus=10;	
+		break;
+		case 1:   //printing
+			displayPrinting();
+			current_print_cmd=E_PRINT_PAUSE;
+			cur_pstatus=10;
+			cur_ppage=1;
+		break;
+		case 2:  //pause
+			// if(READ(FIL_RUNOUT_PIN))
+			// 	displayNofilament();
+			// else
+				displayPause();	
+			cur_pstatus=10;
+			cur_ppage=2;
+		break;
+		case 3:	// finish
+			LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
+			LCD_Fill(0,190,200,240,White); 		//clean prompt display zone
+			//disable pause button
+			displayImage(260, 30, IMG_ADDR_BUTTON_PAUSE_DISABLE);
+			displayImage(10, 195, IMG_ADDR_PROMPT_COMPLETE);
+			color =Green;
+			current_print_cmd=E_PRINT_DISPAUSE;
+			CLEAN_STRING(s_text);
+			sprintf((char*)s_text,"%s",TXT_MENU_PRINT_STATUS_FINISH);
+			LCD_ShowString(45,202,s_text);
+			is_printing=false;
+			is_print_finish=true;
+			cur_pstatus=10;
+			cur_ppage=3;
+		 	print_times=0;  //Make sure that the remaining time is 0 after printing 
+		break;
+		case 10:
+		default:
+		break;
+	}
+}
+void display_image::displayCountUpTime(void)
+{
+	LCD_Fill(175,150,250,180,White);	//clean cout-up timer display zone
+	color=Black;
+	CLEAN_STRING(s_text);
+	lgtCard.upTime(s_text);
+	LCD_ShowString(175,157,s_text);
+}
+void display_image::displayCountDownTime(void)
+{
+	if( print_times == 0&&is_print_finish==false){ 		/* if don't get total time */
+		CLEAN_STRING(s_text);
+		sprintf((char *)s_text,"%s",TXT_MENU_PRINT_CD_TIMER_NULL);
+		LCD_ShowString(45,157,s_text);			
+	}else{   /* if get total time */
+		LCD_Fill(45,150,130,180,White); 	/* clean count-down timer display zone */
+		color=Black;
+		CLEAN_STRING(s_text);
+		// sprintf((char *)s_text,TXT_MENU_PRINT_CD_TIMER,Remaining_hours,Remaining_minutes);
+		LCD_ShowString(45,157,s_text);
+	}
+}
+
+void display_image::displayHeating(void)
+{
+	LCD_Fill(0,190,200,240,White); 
+	displayImage(260, 30, IMG_ADDR_BUTTON_PAUSE_DISABLE);
+	displayImage(10, 195, IMG_ADDR_PROMPT_HEATING); 		
+	color=RED;		
+	CLEAN_STRING(s_text);
+	sprintf((char*)s_text,"%s",TXT_MENU_PRINT_STATUS_HEATING);
+	LCD_ShowString(45,202,s_text);	
+	color=BLACK;
+}
+void display_image::displayPrinting(void)
+{
+	LCD_Fill(0,190,200,240,White); 
+	displayImage(260, 30, IMG_ADDR_BUTTON_PAUSE);
+	//prompt printing
+	displayImage(10, 195, IMG_ADDR_PROMPT_PRINTING); 		
+	color=BLACK;
+	CLEAN_STRING(s_text);
+	sprintf((char*)s_text,"%s",TXT_MENU_PRINT_STATUS_RUNNING);
+	LCD_ShowString(45,202,s_text);
+}
+void display_image::displayPause(void)
+{
+	LCD_Fill(0,190,200,240,White); 
+	displayImage(260, 30, IMG_ADDR_BUTTON_RESUME);		
+	//prompt pause	
+	displayImage(10, 195, IMG_ADDR_PROMPT_PAUSE); 		
+	color=BLACK;	
+	CLEAN_STRING(s_text);
+	sprintf((char*)s_text,"%s",TXT_MENU_PRINT_STATUS_PAUSING);	
+	LCD_ShowString(45,202,s_text);	
+}
+
 // /***************************Adjust page*******************************************/
 
 // /***************************dialog page*******************************************/
@@ -2280,9 +2467,9 @@ void display_image::LGT_Printer_Data_Update(void)
 			case eMENU_MOVE:
 				displayMoveCoordinate();
 			break;
-			// case eMENU_PRINT:
-			// 	displayPrintInformation();
-			// break;
+			case eMENU_PRINT:
+				displayPrintInformation();
+			break;
 			// case eMENU_ADJUST:
 			// 	dispalyAdjustFanSpeed(); 
 			// 	dispalyAdjustTemp(); 	

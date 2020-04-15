@@ -49,6 +49,10 @@
   #include "../../module/tool_change.h"
 #endif
 
+#if ENABLED(LGT_LCD_TFT)
+  #include "../../longer3d/lgttftlcd.h"
+#endif
+
 /**
  * M104: Set hot end temperature
  */
@@ -123,6 +127,10 @@ void GcodeSuite::M109() {
       lgtLcdDw.hideButtonsBeforeHeating();
     #endif
 
+    #if ENABLED(LGT_LCD_TFT)
+      lgtlcdtft.setPrintState(0);
+    #endif
+
     #if ENABLED(DUAL_X_CARRIAGE)
       if (dxc_is_duplicating() && target_extruder == 0)
         thermalManager.setTargetHotend(temp ? temp + duplicate_extruder_temp_offset : 0, 1);
@@ -153,6 +161,11 @@ void GcodeSuite::M109() {
   #if ENABLED(LGT_LCD_DW)
     lgtLcdDw.showButtonsAfterHeating();
   #endif
+
+  #if ENABLED(LGT_LCD_TFT)
+    lgtlcdtft.setPrintState(1);
+  #endif
+
 }
 
 #endif // EXTRUDERS

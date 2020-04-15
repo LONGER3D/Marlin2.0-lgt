@@ -3,6 +3,7 @@
 #if ENABLED(LGT_LCD_TFT)
 #include "lgtsdcard.h"
 #include "../sd/cardreader.h"
+#include "../module/printcounter.h"
 
 LgtSdCard lgtCard;
 
@@ -140,6 +141,25 @@ void LgtSdCard::changeDir(const char *relpath)
 int8_t LgtSdCard::upDir()
 {
     return card.cdup();
+}
+
+void LgtSdCard::upTime(char *p)
+{
+    uint16_t h, m, s;
+	h = print_job_timer.duration() / 3600;
+	m = print_job_timer.duration() % 3600 / 60;
+	s = print_job_timer.duration() % 60;
+    sprintf(p,"%02d:%02d:%02d", h, m, s);
+}
+
+void LgtSdCard::downTime(char *p)
+{
+    // uint32_t Elapsed_time;
+    // if(print_times==0)  return;
+    // Elapsed_time= print_times*(1.0 - card.percentfloatDone());
+    // Remaining_hours=Elapsed_time/60;
+    // Remaining_minutes=Elapsed_time %60;
+    
 }
 
 #endif // LGT_LCD_TFT
