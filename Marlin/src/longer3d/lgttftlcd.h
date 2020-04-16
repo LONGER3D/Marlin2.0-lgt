@@ -69,7 +69,7 @@ enum E_BUTTON_KEY {
 	eBT_ADJUSTFAN_PLUS,eBT_ADJUSTFAN_MINUS,eBT_ADJUSTSPEED_PLUS,eBT_ADJUSTSPEED_MINUS,
 
 /****************************Dialog page*******************************/
-	eBT_DIALOG_PRINT_START,eBT_DIALOG_PRINT_NO,eBT_DIALOG_REFACTORY_YES,eBT_DIALOG_SAVE_YES,
+	eBT_DIALOG_PRINT_START,eBT_DIALOG_PRINT_NO,eBT_DIALOG_REFACTORY_YES,eBT_DIALOG_SAVE_YES, eBT_DIALOG_ABORT_YES,
 	
 /****************************Settings page*******************************/
 	eBT_SETTING_ADJUST,eBT_SETTING_REFACTORY,eBT_SETTING_SAVE,eBT_SETTING_LAST,eBT_SETTING_NEXT,eBT_SETTING_ADD,eBT_SETTING_SUB,
@@ -179,7 +179,6 @@ private:
     // void scanWindowSettings2(uint16_t rv_x, uint16_t rv_y);
 
     // /***************************Printing page*******************************************/
-    void scanWindowPrint( uint16_t rv_x, uint16_t rv_y );
     void displayWindowPrint(void);
     void displayPrintInformation(void);
     void displayRunningFan(uint16_t pos_x, uint16_t pos_y);
@@ -194,6 +193,8 @@ private:
     void displayHeating(void);
     void displayPrinting(void);
     void displayPause(void);
+
+    void scanWindowPrint( uint16_t rv_x, uint16_t rv_y );
 
     // /***************************Adjust page*******************************************/
     // void displayWindowAdjust(void);

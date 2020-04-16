@@ -13,7 +13,7 @@
 #include "../HAL/STM32F1/sdio.h"
 #include "../module/motion.h"
 #include "../module/planner.h"
-// #include "../module/printcounter.h"
+#include "../module/printcounter.h"
 // #include "../feature/runout.h"
 // #include "../feature/powerloss.h"
 
@@ -204,6 +204,37 @@ static void startAutoFeed(int8_t dir)
 		}
 	}
 }
+
+
+
+static void clearVarPrintEnd()
+{
+	// print_job_timer.reset();
+	// CardFile.is_gettime=false;
+	lgtCard.setPrintTime(0);
+	lgtCard.clear();
+
+	// checkFilamentReset();
+	recovery_flag=false;
+	// W25QxxFlash.W25QXX_Write((uint8_t*)0xff,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
+
+	// reset flow and feedrate
+	planner.flow_percentage[0]=100;
+	feedrate_percentage=100;
+
+	// card.initsd();   //return root directory when printing is completed
+}
+
+static void abortPrintEnd()
+{
+    #if ENABLED(SDSUPPORT)
+      is_printing = wait_for_heatup = false;
+      card.flag.abort_sd_printing = true;
+    #endif
+    print_job_timer.stop();
+	clearVarPrintEnd();
+}
+
 // /***************************class definition start************************************/
 LgtLcdTft::LgtLcdTft()
 {
@@ -1304,6 +1335,22 @@ void display_image::displayPause(void)
 	LCD_ShowString(45,202,s_text);	
 }
 
+void display_image::scanWindowPrint( uint16_t rv_x, uint16_t rv_y )
+{
+	if(rv_x>260&&rv_x<315&&rv_y>30&&rv_y<85) //pause or resume
+	{		
+		current_button_id=eBT_PRINT_PAUSE;
+	}
+	else if(rv_x>260&&rv_x<315&&rv_y>105&&rv_y<160)  //adjust
+	{	
+		current_button_id=eBT_PRINT_ADJUST;
+	}
+	else if(rv_x>260&&rv_x<315&&rv_y>180&&rv_y<235) //end
+	{	
+		current_button_id=eBT_PRINT_END;
+	}
+}
+
 // /***************************Adjust page*******************************************/
 
 // /***************************dialog page*******************************************/
@@ -1374,7 +1421,7 @@ void display_image::scanDialogEnd( uint16_t rv_x, uint16_t rv_y )
 {
 	if(rv_x>85&&rv_x<140&&rv_y>130&&rv_y<185)  //select yes
 	{	
-		next_window_ID=eMENU_HOME;
+		current_button_id=eBT_DIALOG_ABORT_YES;
 	}
 	else if(rv_x>180&&rv_x<235&&rv_y>130&&rv_y<185) //select no
 	{	
@@ -1472,9 +1519,9 @@ bool display_image::LGT_Ui_Update(void)
 	switch (next_window_ID)
 		{
 			case eMENU_HOME:
-				// if(dir_auto_feed!=0)
-				// 	stopAutoFeed();
-				// else if(current_window_ID==eMENU_DIALOG_END)
+				if(dir_auto_feed!=0)
+					stopAutoFeed();
+				// if(current_window_ID==eMENU_DIALOG_END)
 				// {
 				// 	card.flag.abort_sd_printing=true;
 				// 	is_printing=wait_for_user = wait_for_heatup=false;
@@ -1559,11 +1606,11 @@ bool display_image::LGT_Ui_Update(void)
 				next_window_ID=eWINDOW_NONE;
 				displayWindowAbout();
 			break;
-			// case eMENU_PRINT:
-			// 	current_window_ID=eMENU_PRINT;
-			// 	next_window_ID=eWINDOW_NONE;
-			// 	displayWindowPrint();
-			// break;
+			case eMENU_PRINT:
+				current_window_ID=eMENU_PRINT;
+				next_window_ID=eWINDOW_NONE;
+				displayWindowPrint();
+			break;
 			// case eMENU_ADJUST:
 			// 	current_window_ID=eMENU_ADJUST;
 			// 	next_window_ID=eWINDOW_NONE;
@@ -1645,11 +1692,10 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 				scanWindowAbout(cur_x,cur_y);
 				cur_x=cur_y=0;
 			break;
-
-			// case eMENU_PRINT:
-			// 	scanWindowPrint(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
+			case eMENU_PRINT:
+				scanWindowPrint(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;
 			// case eMENU_ADJUST:
 			//     scanWindowAdjust(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
@@ -1664,10 +1710,10 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 				scanDialogStart(cur_x,cur_y);
 				cur_x=cur_y=0;
 			break;
-			// case eMENU_DIALOG_END:
-			// 	scanDialogEnd(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
+			case eMENU_DIALOG_END:
+				scanDialogEnd(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;
 			// case eMENU_DIALOG_RECOVERY:
 			// 	scanDialogRecovery(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
@@ -2225,21 +2271,26 @@ void display_image::LGT_Ui_Buttoncmd(void)
 		// 		next_window_ID=eMENU_ADJUST;
 		// 		current_button_id=eBT_BUTTON_NONE;
 		// 	break;
-		// 	case eBT_PRINT_END:
-		// 		if(is_print_finish)
-		// 		{
-		// 			clearVarPrintEnd();
-		// 			displayWindowHome();
-		// 			current_window_ID=eMENU_HOME;
-		// 		}
-		// 		else
-		// 		{
-		// 			dispalyDialogYesNo(eDIALOG_PRINT_ABORT);
-		// 			current_window_ID=eMENU_DIALOG_END;
-		// 		}
+			case eBT_PRINT_END:	
+				if(is_print_finish)
+				{
+					clearVarPrintEnd();
+					// displayWindowHome();
+					// current_window_ID=eMENU_HOME;
+					next_window_ID = eMENU_HOME;
+				} else	// abort print
+				{
+					dispalyDialogYesNo(eDIALOG_PRINT_ABORT);
+					current_window_ID=eMENU_DIALOG_END;
+				}
 
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+		case eBT_DIALOG_ABORT_YES:
+			abortPrintEnd();
+			next_window_ID = eMENU_HOME;
+			current_button_id=eBT_BUTTON_NONE;
+			break;
 
 		// 	case eBT_ADJUSTE_PLUS:
 		// 		if(current_window_ID==eMENU_ADJUST)   //add e temp

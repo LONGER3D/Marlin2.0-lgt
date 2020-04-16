@@ -62,6 +62,8 @@ void LgtSdCard::clear()
     m_currentFile = 0;
 
     m_isSelectFile = false;
+
+    indexGc = 0;
 }
 
 bool LgtSdCard::isDir()
