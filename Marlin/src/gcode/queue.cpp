@@ -47,6 +47,10 @@ GCodeQueue queue;
   #include "../feature/powerloss.h"
 #endif
 
+#if ENABLED(LGT_LCD_TFT)
+  #include "../longer3d/lgtsdcard.h"
+#endif
+
 /**
  * GCode line number handling. Hosts may opt to include line numbers when
  * sending commands to Marlin, and lines will be checked for sequentiality.
@@ -341,8 +345,12 @@ FORCE_INLINE bool is_M29(const char * const cmd) {  // matches "M29" & "M29 ", b
 
 inline void process_stream_char(const char c, uint8_t &sis, char (&buff)[MAX_CMD_SIZE], int &ind) {
 
-  if (sis == PS_EOL) return;    // EOL comment or overflow
-
+  if (sis == PS_EOL) {
+    #if ENABLED(LGT_LCD_TFT)
+      lgtCard.writeComment(c);
+    #endif
+    return;    // EOL comment or overflow
+  }
   #if ENABLED(PAREN_COMMENTS)
     else if (sis == PS_PAREN) { // Inline comment
       if (c == ')') sis = PS_NORMAL;
@@ -539,6 +547,7 @@ void GCodeQueue::get_serial_commands() {
 
 #if ENABLED(SDSUPPORT)
 
+
   /**
    * Get lines from the SD Card until the command buffer is full
    * or until the end of the file is reached. Because this method
@@ -560,7 +569,12 @@ void GCodeQueue::get_serial_commands() {
       const char sd_char = (char)n;
       const bool is_eol = ISEOL(sd_char);
       if (is_eol || card_eof) {
-
+        #if ENABLED(LGT_LCD_TFT)
+          if (sd_input_state == PS_EOL) {
+              lgtCard.endComment();
+              lgtCard.parseComment();
+          }
+        #endif
         // Reset stream state, terminate the buffer, and commit a non-empty command
         if (!is_eol && sd_count) ++sd_count;          // End of file with no newline
         if (!process_line_done(sd_input_state, command_buffer[index_w], sd_count)) {
@@ -574,7 +588,6 @@ void GCodeQueue::get_serial_commands() {
       }
       else
         process_stream_char(sd_char, sd_input_state, command_buffer[index_w], sd_count);
-
     }
   }
 

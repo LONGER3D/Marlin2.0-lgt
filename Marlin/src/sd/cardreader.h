@@ -125,6 +125,10 @@ public:
   #endif
   static inline uint8_t percentDone() { return (isFileOpen() && filesize) ? sdpos / ((filesize + 99) / 100) : 0; }
 
+  #if ENABLED(LGT_LCD_TFT)
+  static inline float ratioNotDone() { return (isFileOpen() && filesize) ? (float(filesize) + 99.0 - sdpos) / (filesize + 99.0) : 1.0; }
+  #endif
+
   // Helper for open and remove
   static const char* diveToFile(const bool update_cwd, SdFile*& curDir, const char * const path, const bool echo=false);
 

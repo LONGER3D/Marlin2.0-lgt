@@ -86,7 +86,7 @@ uint8_t default_move_distance=5;
 static int8_t dir_auto_feed=0;
 static uint8_t total_out_distance=0;
 
-uint8_t printpercent=0;
+// uint8_t printpercent=0;
 uint8_t page_index_num=0;
 int8_t choose_printfile=-1;
 	
@@ -95,7 +95,7 @@ static uint16_t cur_x=0,cur_y=0;	// save touch point position
 
 static char s_text[64];
 // char pdata[64];
-uint32_t print_times=0;
+// uint32_t print_times=0;
 // const float manual_feedrate_mm_m[] = MANUAL_FEEDRATE;
 
 // move
@@ -1132,14 +1132,6 @@ void display_image::displayPrintInformation(void)
 	displayHeightValue();
 	displayFanSpeed();
 	dispalyCurrentStatus();
-	if(is_print_finish)
-	{
-		printpercent=100;
-	}
-	else
-	{
-		printpercent=card.percentDone();
-	}
 	displayPrintProgress();
 	displayCountUpTime();
 	displayCountDownTime();
@@ -1184,10 +1176,15 @@ void display_image::displayPrintTemperature(void)
 void display_image::displayPrintProgress(void)
 {
 	LCD_Fill(210,110,250,140,White);							//clean percentage display zone
-	LCD_Fill(10,110,(uint16_t)(10+printpercent*1.9),140,DARKBLUE); 	//display current progress
+	uint8_t percent;
+	if (is_print_finish)
+		percent = 100;
+	else
+		percent = card.percentDone();
+	LCD_Fill(10,110,(uint16_t)(10+percent*1.9),140,DARKBLUE); 	//display current progress
 	color=Black;
 	CLEAN_STRING(s_text);
-	sprintf((char *)s_text,"%d %%",(printpercent));
+	sprintf((char *)s_text,"%d %%",percent);
 	LCD_ShowString(210,117,s_text);
 }
 
@@ -1239,7 +1236,7 @@ void display_image::dispalyCurrentStatus(void)
 			is_print_finish=true;
 			cur_pstatus=10;
 			cur_ppage=3;
-		 	print_times=0;  //Make sure that the remaining time is 0 after printing 
+		 	lgtCard.setPrintTime(0);  //Make sure that the remaining time is 0 after printing 
 		break;
 		case 10:
 		default:
@@ -1248,6 +1245,8 @@ void display_image::dispalyCurrentStatus(void)
 }
 void display_image::displayCountUpTime(void)
 {
+	if (is_print_finish)
+		return;
 	LCD_Fill(175,150,250,180,White);	//clean cout-up timer display zone
 	color=Black;
 	CLEAN_STRING(s_text);
@@ -1256,7 +1255,9 @@ void display_image::displayCountUpTime(void)
 }
 void display_image::displayCountDownTime(void)
 {
-	if( print_times == 0&&is_print_finish==false){ 		/* if don't get total time */
+	if (is_print_finish)
+		return;
+	if( lgtCard.printTime() == 0){ 		/* if don't get total time */
 		CLEAN_STRING(s_text);
 		sprintf((char *)s_text,"%s",TXT_MENU_PRINT_CD_TIMER_NULL);
 		LCD_ShowString(45,157,s_text);			
@@ -1264,7 +1265,7 @@ void display_image::displayCountDownTime(void)
 		LCD_Fill(45,150,130,180,White); 	/* clean count-down timer display zone */
 		color=Black;
 		CLEAN_STRING(s_text);
-		// sprintf((char *)s_text,TXT_MENU_PRINT_CD_TIMER,Remaining_hours,Remaining_minutes);
+		lgtCard.downTime(s_text);
 		LCD_ShowString(45,157,s_text);
 	}
 }

@@ -5,11 +5,37 @@
 #include "../sd/cardreader.h"
 #include "../module/printcounter.h"
 
+
 LgtSdCard lgtCard;
 
+// init class static variable
+char LgtSdCard::gComment[GCOMMENT_SIZE];
+uint8_t LgtSdCard::indexGc = 0;
+
+// define static variable and function
+static char *CodePointer = nullptr;
+
+static inline bool codeSeen(char *p,char code)
+{
+    CodePointer = strchr(p,code);
+    return(CodePointer != nullptr);
+}
+
+static inline uint16_t codeValue()
+{
+    return (strtoul(CodePointer + 1, nullptr, 10));
+}
+static inline uint16_t codeValue2()
+{
+    return (strtoul(CodePointer + 17, nullptr, 10));
+}
+
+// class function definition
 LgtSdCard::LgtSdCard()
 {
     clear();
+    m_isReverseList = false;
+    m_printTime = 0;
 }
 
 uint16_t LgtSdCard::count()
@@ -35,7 +61,6 @@ void LgtSdCard::clear()
     m_currentItem = 0;
     m_currentFile = 0;
 
-    m_isReverseList = false;
     m_isSelectFile = false;
 }
 
@@ -154,12 +179,62 @@ void LgtSdCard::upTime(char *p)
 
 void LgtSdCard::downTime(char *p)
 {
-    // uint32_t Elapsed_time;
-    // if(print_times==0)  return;
-    // Elapsed_time= print_times*(1.0 - card.percentfloatDone());
-    // Remaining_hours=Elapsed_time/60;
-    // Remaining_minutes=Elapsed_time %60;
-    
+    if (m_printTime == 0)
+        return;
+    uint16_t remain, h, m;
+    remain= m_printTime * card.ratioNotDone();
+    h = remain / 60;
+    m = remain % 60;
+    SERIAL_ECHOLNPAIR_F("remain ratio: ", card.ratioNotDone());
+    SERIAL_ECHOLNPAIR("remain: ", remain);
+    sprintf(p, "%d H %d M", h, m);
+}
+
+void LgtSdCard::parseComment()
+{
+    if (strstr(gComment, "TIME:") != nullptr) {
+        SERIAL_ECHOLNPAIR("comment:", gComment);
+        parseCura();
+    }
+    else if(strstr(gComment,"Print time") != nullptr)
+    {
+        SERIAL_ECHOLNPAIR("comment:", gComment);
+        parseLegacyCura();
+    }
+}
+
+void LgtSdCard::parseCura()
+{
+	uint32_t second = 0;
+    char *p = strchr(gComment, ':');
+	if(p != NULL){
+		second = uint32_t(strtol(p + 1, nullptr, 10));
+		m_printTime = second / 60;
+        SERIAL_ECHOLNPAIR("printTime:", m_printTime);
+	}    
+}
+
+
+void LgtSdCard::parseLegacyCura()
+{
+    uint16_t hour = 0;
+	uint16_t minute = 0;	
+	if (strstr(gComment,"hour") != NULL) {   // x hour(s)
+		if (codeSeen(gComment,':'))
+			hour = codeValue();
+		if (hour == 1) {
+			if (codeSeen(gComment,'r'))  // 1 hour
+                minute = codeValue2(); 
+        } else if (codeSeen(gComment,'s')) { // x hours	
+            minute = codeValue() ; 
+        }  
+	} else if(codeSeen(gComment,':')) { // minute(s)
+        minute = codeValue();
+	}
+	m_printTime = hour * 60 + minute;
+    SERIAL_ECHOLNPAIR("hour:", hour);
+    SERIAL_ECHOLNPAIR("minute:", minute);
+    SERIAL_ECHOLNPAIR("printTime:", m_printTime);
 }
 
 #endif // LGT_LCD_TFT
