@@ -922,6 +922,7 @@ void LGT_SCR_DW::processButton()
 				runout.reset();
 				menu_type = eMENU_PRINT_HOME;
 				status_type = PRINTER_PRINTING;
+				LGT_is_printing = true;	// need test
 			break;
 		case eBT_PRINT_HOME_ABORT:
 				DEBUG_ECHOLNPAIR_P("abort");

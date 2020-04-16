@@ -110,6 +110,10 @@ public:
     void init();
     void loop();
     void setPrintState(int8_t state);
+    uint8_t printState();
+    bool isPrintPaused();
+    void setPrintCommand(E_PRINT_CMD cmd);
+    void moveOnPause();
 
 private:
     bool LGT_MainScanWindow(void);

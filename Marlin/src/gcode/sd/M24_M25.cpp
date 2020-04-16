@@ -44,6 +44,10 @@
 
 #include "../../MarlinCore.h" // for startOrResumeJob
 
+#if ENABLED(LGT_LCD_TFT)
+  #include "../../longer3d/lgttftlcd.h"
+#endif
+
 /**
  * M24: Start or Resume SD Print
  */
@@ -79,6 +83,11 @@ void GcodeSuite::M24() {
   #endif
 
   ui.reset_status();
+
+  #if ENABLED(LGT_LCD_TFT)
+    lgtlcdtft.setPrintCommand(E_PRINT_PAUSE);
+  #endif
+
 }
 
 /**
@@ -111,6 +120,11 @@ void GcodeSuite::M25() {
       #ifdef ACTION_ON_PAUSE
         host_action_pause();
       #endif
+    #endif
+
+    #if ENABLED(LGT_LCD_TFT)
+      lgtlcdtft.setPrintCommand(E_PRINT_RESUME);
+      lgtlcdtft.moveOnPause();
     #endif
 
   #endif

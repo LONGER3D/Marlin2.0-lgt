@@ -187,8 +187,8 @@ void LgtSdCard::downTime(char *p)
     remain= m_printTime * card.ratioNotDone();
     h = remain / 60;
     m = remain % 60;
-    SERIAL_ECHOLNPAIR_F("remain ratio: ", card.ratioNotDone());
-    SERIAL_ECHOLNPAIR("remain: ", remain);
+    // SERIAL_ECHOLNPAIR_F("remain ratio: ", card.ratioNotDone());
+    // SERIAL_ECHOLNPAIR("remain: ", remain);
     sprintf(p, "%d H %d M", h, m);
 }
 

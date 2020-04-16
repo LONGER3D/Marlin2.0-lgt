@@ -49,6 +49,7 @@ GCodeQueue queue;
 
 #if ENABLED(LGT_LCD_TFT)
   #include "../longer3d/lgtsdcard.h"
+  #include "../longer3d/lgttftlcd.h"
 #endif
 
 /**
@@ -620,8 +621,13 @@ void GCodeQueue::advance() {
   if (!length) return;
 
   #if ENABLED(LGT_LCD_DW)
-    if (IS_SD_PAUSED() && !LGT_is_printing)   // prevent from process buffered commands when dw is paused
+    if (IS_SD_PAUSED() && !LGT_is_printing)   // prevent from process buffered commands when dw screen is paused
       return;
+  #endif
+
+  #if ENABLED(LGT_LCD_TFT)
+    if (IS_SD_PAUSED() && lgtlcdtft.isPrintPaused())   // prevent from process buffered commands when tft screen is paused
+      return;  
   #endif
 
   #if ENABLED(SDSUPPORT)

@@ -113,11 +113,14 @@ static int8_t cur_ppage=10;   //  0 is heating page , 1 is printing page, 2 is p
 // bool setting_return_more=false;
 // float default_parameter[4]=DEFAULT_MAX_FEEDRATE;
 
-E_PRINT_CMD current_print_cmd=E_PRINT_CMD_NONE;
-E_BUTTON_KEY current_button_id=eBT_BUTTON_NONE;
+static E_PRINT_CMD current_print_cmd=E_PRINT_CMD_NONE;
+static E_BUTTON_KEY current_button_id=eBT_BUTTON_NONE;
 // /**********  window definition  **********/
-E_WINDOW_ID current_window_ID = eMENU_HOME,next_window_ID =eWINDOW_NONE;
+static E_WINDOW_ID current_window_ID = eMENU_HOME,next_window_ID =eWINDOW_NONE;
 
+
+static float resume_xyze_position[XYZE]={0.0};
+static float resume_feedrate = 0.0;
 
 // /***************************static function definition****************************************/
 
@@ -222,6 +225,10 @@ static void clearVarPrintEnd()
 	planner.flow_percentage[0]=100;
 	feedrate_percentage=100;
 
+	// freejoe
+	// cur_pstatus=10;
+	// cur_ppage=10
+
 	// card.initsd();   //return root directory when printing is completed
 }
 
@@ -250,6 +257,44 @@ void LgtLcdTft::setPrintState(int8_t state)
     }
 }
 
+uint8_t LgtLcdTft::printState()
+{
+	return cur_pstatus;
+}
+
+bool LgtLcdTft::isPrintPaused()
+{
+	return !is_printing;
+}
+
+
+void LgtLcdTft::setPrintCommand(E_PRINT_CMD cmd)
+{
+	current_print_cmd = cmd;
+}
+
+#define FILAMENT_RUNOUT_MOVE_X 10
+#define FILAMENT_RUNOUT_MOVE_Y 200
+#define FILAMENT_RUNOUT_MOVE_F 50
+
+void LgtLcdTft::moveOnPause()
+{
+	resume_feedrate = feedrate_mm_s;
+    resume_xyze_position[X_AXIS]=current_position[X_AXIS];
+    resume_xyze_position[Y_AXIS]=current_position[Y_AXIS];
+    resume_xyze_position[E_AXIS]=current_position[E_AXIS];
+	DEBUG_ECHOLNPAIR_F("save X:", resume_xyze_position[X_AXIS]);
+	DEBUG_ECHOLNPAIR_F("save Y:", resume_xyze_position[Y_AXIS]);
+	DEBUG_ECHOLNPAIR_F("save E:", resume_xyze_position[E_AXIS]);
+	DEBUG_ECHOLNPAIR_F("save feedrate", resume_feedrate);
+	current_position[E_AXIS] = current_position[E_AXIS] - 3;
+
+	planner.synchronize();
+	LGT_Line_To_Current_Position(E_AXIS);
+	do_blocking_move_to_xy(FILAMENT_RUNOUT_MOVE_X, FILAMENT_RUNOUT_MOVE_Y, FILAMENT_RUNOUT_MOVE_F);
+	planner.synchronize();
+	DEBUG_ECHOLNPAIR("queue-length", queue.length);
+}
 
 // /***************************launch page*******************************************/
 void LgtLcdTft::displayStartUpLogo(void)
@@ -1050,6 +1095,8 @@ void display_image::scanWindowLeveling( uint16_t rv_x, uint16_t rv_y )
 }
 
 // /***************************settings page*******************************************/
+
+
 
 // /***************************about page*******************************************/
 void display_image::displayWindowAbout(void)
@@ -2241,32 +2288,44 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				}
 				break;
 
-		// 	case eBT_PRINT_PAUSE:
-		// 		switch(current_print_cmd)
-		// 		{
-		// 			case E_PRINT_DISPAUSE:
-		// 			break;
-		// 			case E_PRINT_PAUSE:
-		// 				enqueue_and_echo_commands_P((PSTR("M25")));
-		// 				LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
-		// 				displayImage(260, 30, IMG_ADDR_BUTTON_RESUME);	
-		// 				cur_pstatus=2;	
-		// 				current_print_cmd=E_PRINT_CMD_NONE;
-		// 				displayPause();
-		// 			break;
-		// 			case E_PRINT_RESUME:
-		// 				enqueue_and_echo_commands_P((PSTR("M24")));
-		// 				LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
-		// 				displayImage(260, 30, IMG_ADDR_BUTTON_PAUSE);	
-		// 				cur_pstatus=1;	
-		// 				current_print_cmd=E_PRINT_CMD_NONE;
-		// 				displayPrinting();
-		// 			break;
-		// 			default:
-		// 			break;
-		// 		}
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
+			// menu print buttons
+			case eBT_PRINT_PAUSE:
+				switch(current_print_cmd)
+				{
+					case E_PRINT_DISPAUSE:
+					break;
+					case E_PRINT_PAUSE:
+						DEBUG_ECHOLN("touch pause");
+						// enqueue_and_echo_commands_P((PSTR("M25")));
+						queue.inject_P(PSTR("M25"));
+						is_printing = false;	// genuine pause state
+						cur_pstatus=2;	
+						current_print_cmd=E_PRINT_CMD_NONE;
+						// show resume button and status				
+						LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
+						displayImage(260, 30, IMG_ADDR_BUTTON_RESUME);	
+						displayPause();
+					break;
+					case E_PRINT_RESUME:
+						DEBUG_ECHOLN("touch resume");					
+						// back to break posion
+						do_blocking_move_to_xy(resume_xyze_position[X_AXIS], resume_xyze_position[Y_AXIS], FILAMENT_RUNOUT_MOVE_F);
+						// resume feedrate
+						feedrate_mm_s = resume_feedrate;
+						queue.inject_P(PSTR("M24"));						
+						is_printing = true;	// genuine pause state
+						cur_pstatus=1;	
+						current_print_cmd=E_PRINT_CMD_NONE;
+						// show pause button and status
+						LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
+						displayImage(260, 30, IMG_ADDR_BUTTON_PAUSE);
+						displayPrinting();
+					break;
+					default:
+					break;
+				}
+				current_button_id=eBT_BUTTON_NONE;
+			break;
 		// 	case eBT_PRINT_ADJUST:
 		// 		next_window_ID=eMENU_ADJUST;
 		// 		current_button_id=eBT_BUTTON_NONE;
