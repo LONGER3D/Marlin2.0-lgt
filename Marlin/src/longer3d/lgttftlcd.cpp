@@ -105,7 +105,10 @@ static bool is_bed_select = false;
 // bool sd_insert=false;
 static bool is_printing=false;	// print status
 bool is_print_finish=false;
-// bool pause_print=false;
+
+static uint8_t ret_menu_extrude = 0;	// used for extrude page return  0 to home page , 2 to adjust more page, 4 to file page
+
+// bool pause_print=false;	
 static bool cur_flag=false;  
 static int8_t cur_pstatus=10;   //0 is heating ,1 is printing, 2 is pause
 static int8_t cur_ppage=10;   //  0 is heating page , 1 is printing page, 2 is pause page
@@ -834,19 +837,18 @@ void display_image::displayRunningAutoFeed(void)
 
 void display_image::scanWindowExtrude( uint16_t rv_x, uint16_t rv_y )
 {
-	if(rv_x>260&&rv_x<315&&rv_y>176&&rv_y<226)  //return home
+	if(rv_x>260&&rv_x<315&&rv_y>176&&rv_y<226)  //return home/adjust more/file page
 	{
-		// if(extrude2file)
-		// {
-		// 	extrude2file=false;
-		// 	next_window_ID=eMENU_FILE1;
-		// 	return;
-		// }
-		if(is_printing)
-			next_window_ID=eMENU_ADJUST_MORE;
-		else
+
+		if (ret_menu_extrude == 0)
 			next_window_ID=eMENU_HOME;
-		
+		else if (ret_menu_extrude == 2)
+			next_window_ID=eMENU_ADJUST_MORE;
+		else if (ret_menu_extrude == 4)
+			next_window_ID=eMENU_FILE1;
+		ret_menu_extrude = 0;
+		if(dir_auto_feed!=0)
+			stopExtrude();
 	}
 	else if(rv_x>5&&rv_x<60&&rv_y>34&&rv_y<89) //add extruder/bed temperature
 	{				
@@ -1562,8 +1564,10 @@ void display_image::scanWindowAdjustMore(uint16_t rv_x,uint16_t rv_y)
 	}
 	else if(rv_x>196&&rv_x<251&&rv_y>35&&rv_y<90)   //go to extrude
 	{
-		if(cur_ppage==2)
+		if(cur_ppage==2) {	// print pause status
+			ret_menu_extrude = 2;
 			next_window_ID=eMENU_EXTRUDE;
+		}
 	}
 	else if(rv_x>260&&rv_x<315&&rv_y>40&&rv_y<80) //change distance
 	{			
@@ -1742,8 +1746,6 @@ bool display_image::LGT_Ui_Update(void)
 	switch (next_window_ID)
 		{
 			case eMENU_HOME:
-				if(dir_auto_feed!=0)
-					stopExtrude();
 				// if(current_window_ID==eMENU_DIALOG_END)
 				// {
 				// 	card.flag.abort_sd_printing=true;
@@ -1795,7 +1797,7 @@ bool display_image::LGT_Ui_Update(void)
 				lgtCard.clear();
 				displayWindowFiles();
 			break;
-			case eMENU_FILE1:
+			case eMENU_FILE1:	// just return to file page
 				current_window_ID=eMENU_FILE;
 				next_window_ID=eWINDOW_NONE;
 				displayWindowFiles();
@@ -1834,11 +1836,6 @@ bool display_image::LGT_Ui_Update(void)
 				displayWindowAdjust();
 			break;
 			case eMENU_ADJUST_MORE:
-				if(current_window_ID==eMENU_EXTRUDE)	// resume e postion
-				{
-					planner.set_e_position_mm((destination[E_AXIS] = current_position[E_AXIS] = (resume_xyze_position[E_AXIS] - 2)));
-					feedrate_mm_s = resume_feedrate;
-				}
 				current_window_ID=eMENU_ADJUST_MORE;
 				next_window_ID=eWINDOW_NONE;
 				displayWindowAdjustMore();
@@ -2487,19 +2484,21 @@ void display_image::LGT_Ui_Buttoncmd(void)
 						displayPause();
 					break;
 					case E_PRINT_RESUME:
-						DEBUG_ECHOLN("touch resume");					
-						// back to break posion
+						DEBUG_ECHOLN("touch resume");
+						// show pause button and status
+						LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
+						displayImage(260, 30, IMG_ADDR_BUTTON_PAUSE);
+						displayPrinting();					
+						// back to break posion, need few time
 						do_blocking_move_to_xy(resume_xyze_position[X_AXIS], resume_xyze_position[Y_AXIS], FILAMENT_RUNOUT_MOVE_F);
-						// resume feedrate
+						// resume value
+						planner.set_e_position_mm((destination[E_AXIS] = current_position[E_AXIS] = (resume_xyze_position[E_AXIS] - 2)));
 						feedrate_mm_s = resume_feedrate;
 						queue.inject_P(PSTR("M24"));						
 						is_printing = true;	// genuine pause state
 						cur_pstatus=1;	
 						current_print_cmd=E_PRINT_CMD_NONE;
-						// show pause button and status
-						LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
-						displayImage(260, 30, IMG_ADDR_BUTTON_PAUSE);
-						displayPrinting();
+
 					break;
 					default:
 					break;
