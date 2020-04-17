@@ -121,7 +121,6 @@ private:
     void LGT_Printer_Data_Update(void);
     void LGT_Ui_Buttoncmd(void);
 
-
     bool setTemperatureInWindow(bool is_bed, bool sign);
     // void LGT_Tempabnormal_Warning(const char* info);    //is_printing=false
     // void LGT_Printerabnormal_Kill(const char* info);
@@ -143,6 +142,7 @@ private:
     void displayFilePageNumber(void);
     void displayFileList();
     void updateFilelist();
+    bool updateCard();
     void highlightChosenItem(uint16_t item);
     void displayChosenFile();
     void displayPromptSDCardError(void);

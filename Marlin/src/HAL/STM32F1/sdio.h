@@ -93,7 +93,7 @@
 #define SDIO_GET_FLAG(__FLAG__)              !!((SDIO->STA) & (__FLAG__))
 #define SDIO_CLEAR_FLAG(__FLAG__)            (SDIO->ICR = (__FLAG__))
 
-#define SDMMC_MAX_VOLT_TRIAL                 0x00000FFFU
+#define SDMMC_MAX_VOLT_TRIAL                 0x000000FFU    /* shorten attempt time; original value: 0x00000FFFU */
 #define SDIO_CARD_TRANSFER                   0x00000004U    /* Card is in transfer state */
 #define SDIO_CARD_ERROR                      0x000000FFU    /* Card response Error */
 #define SDIO_CMDTIMEOUT                      200U           /* Command send and response timeout */

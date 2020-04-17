@@ -10,7 +10,7 @@
 
 #include "../module/temperature.h"
 #include "../sd/cardreader.h"
-#include "../HAL/STM32F1/sdio.h"
+// #include "../HAL/STM32F1/sdio.h"
 #include "../module/motion.h"
 #include "../module/planner.h"
 #include "../module/printcounter.h"
@@ -286,6 +286,8 @@ void LgtLcdTft::moveOnPause()
 	DEBUG_ECHOLNPAIR("queue-length", queue.length);
 }
 
+
+
 // /***************************launch page*******************************************/
 void LgtLcdTft::displayStartUpLogo(void)
 {
@@ -555,8 +557,28 @@ void display_image::displayWindowFiles(void)
 	LCD_DrawLine(240, 175, 240, 25);
 	LCD_DrawLine(241, 176, 241, 25);
 
-	updateFilelist();
+	if(!updateCard())
+		updateFilelist();
 
+}
+
+bool LgtLcdTft::updateCard()
+{
+	bool changed = true;
+	uint8_t res = lgtCard.update();
+	switch (res) {
+	case CardUpdate::MOUNTED :
+		updateFilelist();
+		break;
+	case CardUpdate::ERROR :
+	case CardUpdate::REMOVED :
+		displayPromptSDCardError();
+		break;
+	default:
+		changed = false;
+		break;
+	}
+	return changed;
 }
 
 void display_image::displayPromptSDCardError(void)
@@ -604,10 +626,10 @@ void display_image::displayFileList()
         uint16_t start = lgtCard.page() * LIST_ITEM_MAX;
         uint16_t end = start + LIST_ITEM_MAX;
         NOMORE(end, lgtCard.fileCount());
-        DEBUG_ECHOLNPAIR("list start:", start);
-        DEBUG_ECHOLNPAIR("list end: ", end);
+        // DEBUG_ECHOLNPAIR("list start:", start);
+        // DEBUG_ECHOLNPAIR("list end: ", end);
 		for (uint16_t i = start, j = 0; i < end; ++i, ++j) {
-            DEBUG_ECHOLNPAIR("sd filename: ", lgtCard.filename(i));
+            // DEBUG_ECHOLNPAIR("sd filename: ", lgtCard.filename(i));
             LCD_ShowString(35, 32 + j * 30, lgtCard.filename(i));
             if(lgtCard.isDir())
 				displayImage(0, 25 + j * 30, IMG_ADDR_INDICATOR_FOLDER);
@@ -633,7 +655,7 @@ void display_image::displayFileList()
 
 void display_image::updateFilelist()
 {
-	if((SDIO_GetCardState() == SDIO_CARD_ERROR)) {
+	if(!lgtCard.isCardInserted()) {
 		displayPromptSDCardError();
     } else {
         int fCount = lgtCard.count();
@@ -1196,10 +1218,8 @@ void display_image::displayWindowPrint(void)
 
 void display_image::displayPrintInformation(void)
 {
-	if(thermalManager.fan_speed[0]>0)
-	{
-		displayRunningFan(140, 30);	
-	}
+	
+	displayRunningFan(140, 30);	
 	displayPrintTemperature();
 	displayHeightValue();
 	displayFanSpeed();
@@ -1211,6 +1231,8 @@ void display_image::displayPrintInformation(void)
 
 void display_image::displayRunningFan(uint16_t pos_x, uint16_t pos_y)
 {
+	if(thermalManager.fan_speed[0] == 0) return;
+
 	static bool is_fan0_display = false;
 	if(!is_fan0_display)
 	{
@@ -2252,11 +2274,6 @@ void display_image::LGT_Ui_Buttoncmd(void)
 					{
 						current_position[E_AXIS] = current_position[E_AXIS]+default_move_distance;
 						LGT_Line_To_Current_Position(E_AXIS);
-						// CLEAN_STRING(s_text);
-						// sprintf((char*)s_text,PSTR("G0 E%d F60"),default_move_distance);
-						// enqueue_and_echo_commands_P(PSTR("G91"));
-						// enqueue_and_echo_commands_P(s_text);
-						// enqueue_and_echo_commands_P(PSTR("G90"));
 					}
 					if(is_bed_select)
 					{
@@ -2268,11 +2285,6 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				{
 					current_position[E_AXIS] = current_position[E_AXIS]+default_move_distance;
 					LGT_Line_To_Current_Position(E_AXIS);
-					// CLEAN_STRING(s_text);
-					// sprintf((char*)s_text,PSTR("G0 E%d F60"),default_move_distance);
-					// enqueue_and_echo_commands_P(PSTR("G91"));
-					// enqueue_and_echo_commands_P(s_text);
-					// enqueue_and_echo_commands_P(PSTR("G90"));
 					if(is_bed_select)
 					{
 						is_bed_select=false;
@@ -2291,11 +2303,6 @@ void display_image::LGT_Ui_Buttoncmd(void)
 					{
 						current_position[E_AXIS] = current_position[E_AXIS]-default_move_distance;
 						LGT_Line_To_Current_Position(E_AXIS);
-						// CLEAN_STRING(s_text);
-						// sprintf((char*)s_text,PSTR("G0 E-%d F60"),default_move_distance);
-						// enqueue_and_echo_commands_P(PSTR("G91"));
-						// enqueue_and_echo_commands_P(s_text);
-						// enqueue_and_echo_commands_P(PSTR("G90"));
 					}
 					if(is_bed_select)
 					{
@@ -2307,11 +2314,6 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				{
 					current_position[E_AXIS] = current_position[E_AXIS]-default_move_distance;
 					LGT_Line_To_Current_Position(E_AXIS);
-					// CLEAN_STRING(s_text);
-					// sprintf((char*)s_text,PSTR("G0 E-%d F120"),default_move_distance);
-					// enqueue_and_echo_commands_P(PSTR("G91"));
-					// enqueue_and_echo_commands_P(s_text);
-					// enqueue_and_echo_commands_P(PSTR("G90"));
 					if(is_bed_select)
 					{
 						is_bed_select=false;
@@ -2766,12 +2768,7 @@ void display_image::LGT_Printer_Data_Update(void)
 				dispalyAdjustFanSpeed(); 
 				dispalyAdjustTemp(); 	
 				dispalyAdjustMoveSpeed();
-				if(thermalManager.fan_speed[0]>0)
-				{
-					displayRunningFan(144, 105);	
-				}
-				// if(cur_pstatus==3)
-				// 	cur_ppage=10;
+				displayRunningFan(144, 105);	
 				switch(cur_pstatus)   //save current status page when in adjust page 
 				{
 					case 0:
@@ -2790,26 +2787,26 @@ void display_image::LGT_Printer_Data_Update(void)
 					break;
 				}
 			break;
-			// case eMENU_ADJUST_MORE:
-			// 	dispalyAdjustFlow();
-			// 	switch(cur_pstatus)   //save current status page when in adjust page 
-			// 	{
-			// 		case 0:
-			// 			cur_ppage=0;
-			// 		break;
-			// 		case 1:
-			// 			cur_ppage=1;
-			// 		break;
-			// 		case 2:
-			// 			cur_ppage=2;
-			// 		break;
-			// 		case 3:
-			// 			cur_ppage=10;
-			// 		break;
-			// 		default:
-			// 		break;
-			// 	}
-			// break;
+			case eMENU_ADJUST_MORE:
+				dispalyAdjustFlow();
+				switch(cur_pstatus)   //save current status page when in adjust page 
+				{
+					case 0:
+						cur_ppage=0;
+					break;
+					case 1:
+						cur_ppage=1;
+					break;
+					case 2:
+						cur_ppage=2;
+					break;
+					case 3:
+						cur_ppage=10;
+					break;
+					default:
+					break;
+				}
+			break;
 			case eMENU_PREHEAT:
 				updatePreheatingTemp();
 			break;
@@ -2818,31 +2815,33 @@ void display_image::LGT_Printer_Data_Update(void)
 				// actAutoFeed();
 				displayRunningAutoFeed();
 			break;
-			// case eMENU_FILE:
-			// 	SDIO_Init();
-			// 	switch(SDIO_GetCardState())	
-			// 	{
-			// 		case SDIO_CARD_ERROR:
-			// 			if(sd_insert)
-			// 			{
-			// 				sd_insert=false;
-			// 				displayPromptSDCardError();
-			// 			}
-			// 		break;
-			// 		default:
-			// 			if(!sd_insert)
-			// 			{
-			// 				card.initsd();
-			// 				file_count=CardFile.getsdfilecount();
-			// 				page_index_max=CardFile.getsdfilepage();
-			// 				LCD_Fill(0, 25, 239, 174,White);	//clean  
-			// 				displayFileList();
-			// 				displayFilePageNumber();
-			// 				sd_insert=true;
-			// 			}
-			// 		break;
-			// 	}
-			// break;
+			case eMENU_FILE:
+				// update card state
+				updateCard();
+			
+				// switch(SDIO_GetCardState())	
+				// {
+				// 	case SDIO_CARD_ERROR:
+				// 		if(sd_insert)
+				// 		{
+				// 			sd_insert=false;
+				// 			displayPromptSDCardError();
+				// 		}
+				// 	break;
+				// 	default:
+				// 		if(!sd_insert)
+				// 		{
+				// 			card.initsd();
+				// 			file_count=CardFile.getsdfilecount();
+				// 			page_index_max=CardFile.getsdfilepage();
+				// 			LCD_Fill(0, 25, 239, 174,White);	//clean  
+				// 			displayFileList();
+				// 			displayFilePageNumber();
+				// 			sd_insert=true;
+				// 		}
+				// 	break;
+				// }
+			break;
 		// case eMENU_DIALOG_ERRORTEMPBED:
 		// 	if((thermalManager.temp_bed.celsius>MIN_ADJUST_TEMP_BED)&&(thermalManager.temp_bed.celsius<MAX_ADJUST_TEMP_BED))
 		// 	{

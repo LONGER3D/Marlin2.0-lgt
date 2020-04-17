@@ -4,7 +4,7 @@
 #include "lgtsdcard.h"
 #include "../sd/cardreader.h"
 #include "../module/printcounter.h"
-
+#include "../HAL/STM32F1/sdio.h"
 
 LgtSdCard lgtCard;
 
@@ -238,5 +238,33 @@ void LgtSdCard::parseLegacyCura()
     SERIAL_ECHOLNPAIR("minute:", minute);
     SERIAL_ECHOLNPAIR("printTime:", m_printTime);
 }
+
+CardUpdate LgtSdCard::update()
+{
+	SDIO_Init();
+	const bool state = (SDIO_GetCardState() != SDIO_CARD_ERROR);    // true: sd ok
+	if (state != m_cardState) {
+		m_cardState = state;
+		if (state) {
+			card.mount();
+			if (card.isMounted()) {
+				SERIAL_ECHOLNPAIR("card mount ok");// ExtUI::onMediaInserted();
+				return CardUpdate::MOUNTED;
+			} else {
+				SERIAL_ECHOLNPAIR("card mount error");// ExtUI::onMediaError();
+				return CardUpdate::ERROR;
+			}
+		} else {
+			const bool ok = card.isMounted();
+			card.release();
+			if (ok) {
+				SERIAL_ECHOLNPAIR("card removed");// ExtUI::onMediaRemoved();
+                return CardUpdate::REMOVED;
+			}
+		}
+	} 
+	return CardUpdate::NOCHANGED;
+}
+
 
 #endif // LGT_LCD_TFT

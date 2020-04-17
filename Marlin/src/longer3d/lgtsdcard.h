@@ -4,6 +4,13 @@
 #define LIST_ITEM_MAX 5u
 #define GCOMMENT_SIZE 64
 
+enum CardUpdate : uint8_t {
+    NOCHANGED,
+    MOUNTED,
+    ERROR,
+    REMOVED
+};
+
 class LgtSdCard {
 public:
 
@@ -86,6 +93,10 @@ public:
     void setPrintTime(uint16_t t) { m_printTime = t; }
     uint16_t printTime() { return m_printTime; }
 
+    CardUpdate update();
+    bool isCardInserted() { return m_cardState; }
+
+
 private:
     void parseCura();
     void parseLegacyCura();
@@ -105,6 +116,7 @@ private:
 
     uint16_t m_printTime;   // minute unit
 
+    bool m_cardState;
 };
 
 extern LgtSdCard lgtCard;
