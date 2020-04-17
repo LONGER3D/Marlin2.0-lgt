@@ -209,7 +209,7 @@ void LgtSdCard::parseCura()
 {
 	uint32_t second = 0;
     char *p = strchr(gComment, ':');
-	if(p != NULL){
+	if(p != nullptr){
 		second = uint32_t(strtol(p + 1, nullptr, 10));
 		m_printTime = second / 60;
         SERIAL_ECHOLNPAIR("printTime:", m_printTime);
@@ -221,7 +221,7 @@ void LgtSdCard::parseLegacyCura()
 {
     uint16_t hour = 0;
 	uint16_t minute = 0;	
-	if (strstr(gComment,"hour") != NULL) {   // x hour(s)
+	if (strstr(gComment,"hour") != nullptr) {   // x hour(s)
 		if (codeSeen(gComment,':'))
 			hour = codeValue();
 		if (hour == 1) {

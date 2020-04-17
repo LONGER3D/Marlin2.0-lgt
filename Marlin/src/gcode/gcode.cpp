@@ -877,6 +877,11 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 2007: M2007(); break;
       #endif
 
+      #if ENABLED(LGT_LCD_DW)
+        case 2100: M2100(); break;
+        case 995:  M995();  break;
+      #endif
+
       default: parser.unknown_command_warning(); break;
     }
     break;

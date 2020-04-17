@@ -989,7 +989,10 @@ private:
     static void M2007();
   #endif
 
-
+  #if ENABLED(LGT_LCD_TFT)
+    static void M2100();
+    static void M995();
+  #endif
 
   static void T(const uint8_t tool_index);
 

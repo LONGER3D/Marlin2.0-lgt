@@ -44,6 +44,11 @@
 #if ENABLED(LGT_LCD_DW)
   #include "../lcd/lgtdwlcd.h"
 #endif
+
+#if ENABLED(LGT_LCD_TFT)
+  #include "../longer3d/lgttftlcd.h"
+#endif
+
 //#define FILAMENT_RUNOUT_SENSOR_DEBUG
 #ifndef FILAMENT_RUNOUT_THRESHOLD
   #define FILAMENT_RUNOUT_THRESHOLD 5
@@ -108,7 +113,10 @@ class TFilamentMonitor : public FilamentMonitorBase {
           || did_pause_print
         #endif
         #if ENABLED(LGT_LCD_DW)
-        	&& (LGT_is_printing == true)
+        	&& LGT_is_printing
+        #endif
+         #if ENABLED(LGT_LCD_TFT)
+        	// && lgtlcdtft.isPrinting()
         #endif
       )) {
         #ifdef FILAMENT_RUNOUT_DISTANCE_MM

@@ -626,7 +626,7 @@ void GCodeQueue::advance() {
   #endif
 
   #if ENABLED(LGT_LCD_TFT)
-    if (IS_SD_PAUSED() && lgtlcdtft.isPrintPaused())   // prevent from process buffered commands when tft screen is paused
+    if (IS_SD_PAUSED() && !lgtlcdtft.isPrinting())   // prevent from process buffered commands when tft screen is paused
       return;  
   #endif
 
