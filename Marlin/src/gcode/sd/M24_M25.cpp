@@ -123,8 +123,8 @@ void GcodeSuite::M25() {
     #endif
 
     #if ENABLED(LGT_LCD_TFT)
-      lgtlcdtft.setPrintCommand(E_PRINT_RESUME);
       lgtlcdtft.moveOnPause();
+      lgtlcdtft.setPrintCommand(E_PRINT_RESUME);
     #endif
 
   #endif

@@ -201,14 +201,15 @@ private:
     void scanWindowPrint( uint16_t rv_x, uint16_t rv_y );
 
     // /***************************Adjust page*******************************************/
-    // void displayWindowAdjust(void);
-    // void dispalyAdjustTemp(void);
-    // void dispalyAdjustFanSpeed(void);
-    // void dispalyAdjustMoveSpeed(void);
-    // void scanWindowAdjust(uint16_t rv_x,uint16_t rv_y);
-    // void dispalyAdjustFlow(void);
-    // void displayWindowAdjustMore(void);
-    // void scanWindowAdjustMore(uint16_t rv_x,uint16_t rv_y);
+    void displayWindowAdjust(void);
+    void dispalyAdjustTemp(void);
+    void dispalyAdjustFanSpeed(void);
+    void dispalyAdjustMoveSpeed(void);
+    void scanWindowAdjust(uint16_t rv_x,uint16_t rv_y);
+
+    void displayWindowAdjustMore(void);
+    void dispalyAdjustFlow(void);
+    void scanWindowAdjustMore(uint16_t rv_x,uint16_t rv_y);
 
     // /***************************dialog page*******************************************/
     void dispalyDialogYesNo(uint8_t dialog_index);

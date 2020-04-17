@@ -82,13 +82,13 @@ bool is_setting_change=false;
 // int16_t cur_fanspeed=0;
 
 // auto feed in/out
-uint8_t default_move_distance=5;
-static int8_t dir_auto_feed=0;
-static uint8_t total_out_distance=0;
+static uint8_t default_move_distance=5;
+static int8_t dir_auto_feed=0;	// filament change status
+// static uint8_t total_out_distance=0;
 
 // uint8_t printpercent=0;
-uint8_t page_index_num=0;
-int8_t choose_printfile=-1;
+// uint8_t page_index_num=0;
+// int8_t choose_printfile=-1;
 	
 static uint16_t cur_x=0,cur_y=0;	// save touch point position
 // uint16_t page_index_max=0,page_index=0,file_count=0,choose_file_page=0;
@@ -134,57 +134,48 @@ static void LGT_Line_To_Current_Position(AxisEnum axis)
 		planner.buffer_line(current_position, MMM_TO_MMS(manual_feedrate_mm_m[(int8_t)axis]), active_extruder);
 }
 
-static void stopAutoFeed(void)
+static void stopExtrude()
 {
-	if(dir_auto_feed==1||dir_auto_feed==-1)
+	DEBUG_ECHOLN("stop extrude");
+	planner.quick_stop();
+	planner.synchronize();	// wait clean done
+	if (dir_auto_feed != 0)
+		dir_auto_feed=0;	
+}
+
+static void changeFilament(int16_t length)
+{
+	if (length == 0) return;
+	int8_t dir = length > 0 ? 1 : -1;
+
+	current_position[E_AXIS] = current_position[E_AXIS] + length;
+	if (dir > 0)      // slowly load filament
 	{
-		queue.clear();	
-		planner.quick_stop();
-		enqueue_and_echo_commands_P(PSTR("G90"));
-		dir_auto_feed=0;
-		total_out_distance=0;
+		DEBUG_ECHOLN("load start");
+		LGT_Line_To_Current_Position(E_AXIS);
+
+		dir_auto_feed = 1;
+	} else {                // fast unload filament
+		DEBUG_ECHOLN("unload start");
+		if (!planner.is_full())
+			planner.buffer_line(current_position, UNLOAD_FILA_FEEDRATE, 0, current_position[E_AXIS]);
+		dir_auto_feed = -1;
 	}
 }
-
-static void actAutoFeed(void)
-{
-	if(dir_auto_feed == 0) return; 
-	if(dir_auto_feed == 1)   //positive direction
-	{		       				
-		enqueue_and_echo_commands_P(PSTR("G0 E15 F120"));
-	}
-	else if(dir_auto_feed == -1)  //negative direction
-	{      
-        if(total_out_distance < 90)
-		{
-            enqueue_and_echo_commands_P(PSTR("G0 E-10 F600"));
-            total_out_distance += 1;
-        }
-		else  // arrive max length 
-		{  
-            stopAutoFeed();
-           thermalManager.temp_hotend[0].target=0;  //prevent from fire harzard   
-        }
-	}
-}
-
-
 
 static void startAutoFeed(int8_t dir)
 {
-	if(dir == dir_auto_feed) return; 
+	if(dir == dir_auto_feed || abs(dir) != 1) return; 
 	if(thermalManager.temp_hotend[0].target<200)
 	{
 		thermalManager.temp_hotend[0].target=200;
 		thermalManager.start_watching_hotend(0);
 		if(thermalManager.temp_hotend[0].celsius>195)
-		{
-			 if(abs(dir) == 1)    //  validity checking
-			{    
-        		dir_auto_feed = dir;  
-				enqueue_and_echo_commands_P(PSTR("G91"));
-        		total_out_distance = 0;
-   			 }
+		{  
+				DEBUG_ECHOLN("change filament");
+				if (dir == -dir_auto_feed) // reverse move need stop firstly
+					stopExtrude();
+				changeFilament(CHANGE_FILA_LENGTH * dir);
 		}
 		if(is_bed_select)
 		{
@@ -193,13 +184,11 @@ static void startAutoFeed(int8_t dir)
 		}
 	}
 	else if(thermalManager.temp_hotend[0].celsius>195)
-	{
-		if(abs(dir) == 1)    //  validity checking
-		{    
-        	dir_auto_feed = dir;  
-			enqueue_and_echo_commands_P(PSTR("G91"));
-        	total_out_distance = 0;
-   		 }
+	{ 
+			DEBUG_ECHOLN("change filament");
+			if (dir == -dir_auto_feed) // reverse move need stop firstly
+				stopExtrude();
+			changeFilament(CHANGE_FILA_LENGTH * dir);
 		if(is_bed_select)
 		{
 			is_bed_select=false;
@@ -207,8 +196,6 @@ static void startAutoFeed(int8_t dir)
 		}
 	}
 }
-
-
 
 static void clearVarPrintEnd()
 {
@@ -808,7 +795,12 @@ void display_image::dispalyExtrudeTemp(void)
 
 void display_image::displayRunningAutoFeed(void)
 {
-	if(dir_auto_feed==0) return;
+	if (dir_auto_feed==0) { 
+		return;
+	} else if (!planner.has_blocks_queued()) {	// clean feed status when filament change blocks done
+		dir_auto_feed = 0;
+		return;
+	}
 	static bool is_display_run_auto_feed = false;
 	if(!is_display_run_auto_feed)
 	{		
@@ -1399,6 +1391,190 @@ void display_image::scanWindowPrint( uint16_t rv_x, uint16_t rv_y )
 }
 
 // /***************************Adjust page*******************************************/
+void display_image::displayWindowAdjust(void)
+{
+	lcdClear(White);
+	LCD_Fill(0, 0, 320, 25, BG_COLOR_CAPTION_ADJUST); 	//caption background
+	#ifndef Chinese
+		displayImage(115, 5, IMG_ADDR_CAPTION_ADJUST);		//caption words
+	#else
+		displayImage(115, 5, IMG_ADDR_CAPTION_ADJUST_CN);		//caption words
+	#endif
+	displayImage(5, 35, IMG_ADDR_BUTTON_ADD);
+	displayImage(69, 35, IMG_ADDR_BUTTON_ADD);
+	displayImage(133, 35, IMG_ADDR_BUTTON_ADD);
+	displayImage(196, 35, IMG_ADDR_BUTTON_ADD);
+	displayImage(5, 175, IMG_ADDR_BUTTON_SUB);
+	displayImage(69, 175, IMG_ADDR_BUTTON_SUB);
+	displayImage(133, 175, IMG_ADDR_BUTTON_SUB);
+	displayImage(196, 175, IMG_ADDR_BUTTON_SUB);	
+	//default_move_distance=5;
+	initialMoveDistance(260, 40);	
+	displayImage(260, 101, IMG_ADDR_BUTTON_MORE);	
+	displayImage(260, 175, IMG_ADDR_BUTTON_RETURN);
+	displayImage(20, 105, IMG_ADDR_INDICATOR_HEAD);
+	displayImage(85, 105, IMG_ADDR_INDICATOR_BED);
+	displayImage(144, 105, IMG_ADDR_INDICATOR_FAN_0);
+	#ifndef Chinese
+		displayImage(209, 105, IMG_ADDR_INDICATOR_SPEED);
+	#else
+		displayImage(209, 105, IMG_ADDR_INDICATOR_SPEED_CN);
+	#endif
+	dispalyAdjustTemp(); 
+	dispalyAdjustFanSpeed(); 	
+	dispalyAdjustMoveSpeed();
+
+}
+
+void display_image::dispalyAdjustTemp(void)
+{
+	LCD_Fill(5,143,65,163,White);		//clean extruder temperature display zone
+	LCD_Fill(74,143,134,163,White);		//clean bed temperature display zone
+	color=BLACK;
+	CLEAN_STRING(s_text);
+	sprintf((char *)s_text,"%d/%d",(int16_t)(thermalManager.temp_hotend[0].celsius),thermalManager.temp_hotend[0].target);
+	LCD_ShowString(5,143,s_text);
+	CLEAN_STRING(s_text);
+	sprintf((char *)s_text,"%d/%d",(int16_t)(thermalManager.temp_bed.celsius),thermalManager.temp_bed.target);
+	LCD_ShowString(74,143,s_text);
+}
+
+void display_image::dispalyAdjustFanSpeed(void)
+{
+	LCD_Fill(146,143,196,163,White); 	//clean fan speed display zone
+	color=Black;
+	CLEAN_STRING(s_text);
+	sprintf((char *)s_text,"%03d",thermalManager.fan_speed[0]);
+	LCD_ShowString(146,143,s_text); 
+}
+
+void display_image::dispalyAdjustMoveSpeed(void)
+{
+	LCD_Fill(208,143,258,163,White); 	//clean feed rate display zone
+	color=Black;
+	CLEAN_STRING(s_text);
+	sprintf((char *)s_text,"%03d%%",feedrate_percentage);
+	LCD_ShowString(208,143,s_text); 
+}
+
+void display_image::scanWindowAdjust(uint16_t rv_x,uint16_t rv_y)
+{
+	if(rv_x>260&&rv_x<315&&rv_y>175&&rv_y<230)	//return
+	{
+		next_window_ID=eMENU_PRINT;
+	}
+	else if(rv_x>5&&rv_x<60&&rv_y>35&&rv_y<90) //add extruder temperature or flow multiplier
+	{			
+		current_button_id=eBT_ADJUSTE_PLUS;
+	}
+	else if(rv_x>5&&rv_x<60&&rv_y>175&&rv_y<230) //subtract extruder temperature or flow multiplier
+	{
+		current_button_id=eBT_ADJUSTE_MINUS;
+	}
+	else if(rv_x>69&&rv_x<124&&rv_y>35&&rv_y<90)  //add bed temperature 
+	{			
+		current_button_id=eBT_ADJUSTBED_PLUS;
+	}
+	else if(rv_x>69&&rv_x<124&&rv_y>175&&rv_y<230) //subtract bed temperature
+	{ 		
+		current_button_id=eBT_ADJUSTBED_MINUS;
+	}
+	else if(rv_x>133&&rv_x<188&&rv_y>35&&rv_y<90)  //add fan speed
+	{			
+		current_button_id=eBT_ADJUSTFAN_PLUS;
+	}
+	else if(rv_x>133&&rv_x<188&&rv_y>175&&rv_y<230)  //subtract fan speed
+	{		
+		current_button_id=eBT_ADJUSTFAN_MINUS;
+	}
+	else if(rv_x>196&&rv_x<251&&rv_y>35&&rv_y<90)  //add feed rate	
+	{			
+		current_button_id=eBT_ADJUSTSPEED_PLUS;
+	}	
+	else if(rv_x>196&&rv_x<251&&rv_y>175&&rv_y<230)  //subtract feed rate
+	{		
+		current_button_id=eBT_ADJUSTSPEED_MINUS;
+	}
+	else if(rv_x>260&&rv_x<315&&rv_y>40&&rv_y<80)  //change distance
+	{			
+		current_button_id=eBT_DISTANCE_CHANGE;
+	}
+	else if(rv_x>260&&rv_x<315&&rv_y>100&&rv_y<155)  //select more
+	{		
+		next_window_ID=eMENU_ADJUST_MORE;
+	}
+}
+
+// /***************************Adjust more page*******************************************/
+void display_image::displayWindowAdjustMore(void)
+{
+	lcdClear(White);
+	LCD_Fill(0, 0, 320, 25, BG_COLOR_CAPTION_ADJUST);	//caption background
+	#ifndef Chinese
+		displayImage(115, 5, IMG_ADDR_CAPTION_ADJUST);		//caption words
+	#else
+		displayImage(115, 5, IMG_ADDR_CAPTION_ADJUST_CN);		//caption words
+	#endif
+	displayImage(5, 35, IMG_ADDR_BUTTON_ADD);
+	displayImage(5, 175, IMG_ADDR_BUTTON_SUB);
+	#ifndef Chinese
+		displayImage(20, 105, IMG_ADDR_INDICATOR_FLOW);
+	#else
+		displayImage(20, 105, IMG_ADDR_INDICATOR_FLOW_CN);
+	#endif
+	initialMoveDistance(260, 40);	
+	displayImage(260, 101, IMG_ADDR_BUTTON_MORE);	
+	displayImage(260, 175, IMG_ADDR_BUTTON_RETURN);
+	if(cur_ppage==2){	//when printing pause
+		displayImage(196, 35, IMG_ADDR_BUTTON_EXTRUDE);
+	}
+	dispalyAdjustFlow();
+}
+
+void display_image::dispalyAdjustFlow(void)
+{
+	if(cur_pstatus==2)   //show extrude when no filament in adjustmore page
+	{
+		displayImage(196, 35, IMG_ADDR_BUTTON_EXTRUDE); 
+		cur_ppage=2;  
+		cur_pstatus=10;
+	}
+	LCD_Fill(5,143,65,163,White);		//clean flow display zone
+	color=Black;
+	CLEAN_STRING(s_text);
+	sprintf((char *)s_text,"%03d%%",planner.flow_percentage[0]);
+	LCD_ShowString(19,143,s_text);
+}
+
+void display_image::scanWindowAdjustMore(uint16_t rv_x,uint16_t rv_y)
+{
+	if(rv_x>260&&rv_x<315&&rv_y>175&&rv_y<230)  //return
+	{				
+		next_window_ID=eMENU_PRINT;
+	}
+	else if(rv_x>5&&rv_x<60&&rv_y>35&&rv_y<90)  //add flow
+	{
+		current_button_id=eBT_ADJUSTE_PLUS;
+	}
+	else if(rv_x>5&&rv_x<60&&rv_y>175&&rv_y<230) //subtract flow
+	{
+		current_button_id=eBT_ADJUSTE_MINUS;
+	}
+	else if(rv_x>196&&rv_x<251&&rv_y>35&&rv_y<90)   //go to extrude
+	{
+		if(cur_ppage==2)
+			next_window_ID=eMENU_EXTRUDE;
+	}
+	else if(rv_x>260&&rv_x<315&&rv_y>40&&rv_y<80) //change distance
+	{			
+		current_button_id=eBT_DISTANCE_CHANGE;
+	}
+	else if(rv_x>260&&rv_x<315&&rv_y>100&&rv_y<155) //select more
+	{		
+		next_window_ID=eMENU_ADJUST;
+	}
+}
+
 
 // /***************************dialog page*******************************************/
 
@@ -1567,7 +1743,7 @@ bool display_image::LGT_Ui_Update(void)
 		{
 			case eMENU_HOME:
 				if(dir_auto_feed!=0)
-					stopAutoFeed();
+					stopExtrude();
 				// if(current_window_ID==eMENU_DIALOG_END)
 				// {
 				// 	card.flag.abort_sd_printing=true;
@@ -1642,12 +1818,6 @@ bool display_image::LGT_Ui_Update(void)
 				set_all_unhomed();
 				displayWindowLeveling();
 			break;
-			// case eMENU_SETTINGS:
-			// 	current_window_ID=eMENU_SETTINGS;
-			// 	next_window_ID=eWINDOW_NONE;
-			// 	displayWindowSettings();
-			// break;
-			// // eMENU_SETTINGS2,
 			case eMENU_ABOUT:
 				current_window_ID=eMENU_ABOUT;
 				next_window_ID=eWINDOW_NONE;
@@ -1658,21 +1828,27 @@ bool display_image::LGT_Ui_Update(void)
 				next_window_ID=eWINDOW_NONE;
 				displayWindowPrint();
 			break;
-			// case eMENU_ADJUST:
-			// 	current_window_ID=eMENU_ADJUST;
+			case eMENU_ADJUST:
+				current_window_ID=eMENU_ADJUST;
+				next_window_ID=eWINDOW_NONE;
+				displayWindowAdjust();
+			break;
+			case eMENU_ADJUST_MORE:
+				if(current_window_ID==eMENU_EXTRUDE)	// resume e postion
+				{
+					planner.set_e_position_mm((destination[E_AXIS] = current_position[E_AXIS] = (resume_xyze_position[E_AXIS] - 2)));
+					feedrate_mm_s = resume_feedrate;
+				}
+				current_window_ID=eMENU_ADJUST_MORE;
+				next_window_ID=eWINDOW_NONE;
+				displayWindowAdjustMore();
+			break;
+			// case eMENU_SETTINGS:
+			// 	current_window_ID=eMENU_SETTINGS;
 			// 	next_window_ID=eWINDOW_NONE;
-			// 	displayWindowAdjust();
+			// 	displayWindowSettings();
 			// break;
-			// case eMENU_ADJUST_MORE:
-			// 	if(current_window_ID==eMENU_EXTRUDE)
-			// 	{
-			// 		planner.set_e_position_mm((destination[E_AXIS] = current_position[E_AXIS] = (resume_xyze_position[E_AXIS] - 2)));
-			// 		feedrate_mm_s=save_feedtate;
-			// 	}
-			// 	current_window_ID=eMENU_ADJUST_MORE;
-			// 	next_window_ID=eWINDOW_NONE;
-			// 	displayWindowAdjustMore();
-			// break;
+			// // eMENU_SETTINGS2,
 
 
 
@@ -1743,14 +1919,14 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 				scanWindowPrint(cur_x,cur_y);
 				cur_x=cur_y=0;
 			break;
-			// case eMENU_ADJUST:
-			//     scanWindowAdjust(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
-			// case eMENU_ADJUST_MORE:
-			// 	scanWindowAdjustMore(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
+			case eMENU_ADJUST:
+			    scanWindowAdjust(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;
+			case eMENU_ADJUST_MORE:
+				scanWindowAdjustMore(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;
 
 			case eMENU_DIALOG_START:
 			case eMENU_DIALOG_NO_FIL:
@@ -2070,18 +2246,20 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_JOG_EPLUS:
-				stopAutoFeed();
+				stopExtrude();
 				if(thermalManager.temp_hotend[0].target<200)
 				{
 					thermalManager.temp_hotend[0].target=200;
 					thermalManager.start_watching_hotend(0);
 					if(thermalManager.temp_hotend[0].celsius>195)
 					{
-						CLEAN_STRING(s_text);
-						sprintf((char*)s_text,PSTR("G0 E%d F60"),default_move_distance);
-						enqueue_and_echo_commands_P(PSTR("G91"));
-						enqueue_and_echo_commands_P(s_text);
-						enqueue_and_echo_commands_P(PSTR("G90"));
+						current_position[E_AXIS] = current_position[E_AXIS]+default_move_distance;
+						LGT_Line_To_Current_Position(E_AXIS);
+						// CLEAN_STRING(s_text);
+						// sprintf((char*)s_text,PSTR("G0 E%d F60"),default_move_distance);
+						// enqueue_and_echo_commands_P(PSTR("G91"));
+						// enqueue_and_echo_commands_P(s_text);
+						// enqueue_and_echo_commands_P(PSTR("G90"));
 					}
 					if(is_bed_select)
 					{
@@ -2091,11 +2269,13 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				}
 				else if(thermalManager.temp_hotend[0].celsius>195)
 				{
-					CLEAN_STRING(s_text);
-					sprintf((char*)s_text,PSTR("G0 E%d F60"),default_move_distance);
-					enqueue_and_echo_commands_P(PSTR("G91"));
-					enqueue_and_echo_commands_P(s_text);
-					enqueue_and_echo_commands_P(PSTR("G90"));
+					current_position[E_AXIS] = current_position[E_AXIS]+default_move_distance;
+					LGT_Line_To_Current_Position(E_AXIS);
+					// CLEAN_STRING(s_text);
+					// sprintf((char*)s_text,PSTR("G0 E%d F60"),default_move_distance);
+					// enqueue_and_echo_commands_P(PSTR("G91"));
+					// enqueue_and_echo_commands_P(s_text);
+					// enqueue_and_echo_commands_P(PSTR("G90"));
 					if(is_bed_select)
 					{
 						is_bed_select=false;
@@ -2105,18 +2285,20 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_JOG_EMINUS:
-				stopAutoFeed();
+				stopExtrude();
 				if(thermalManager.temp_hotend[0].target<200)
 				{
 					thermalManager.temp_hotend[0].target=200;
 					thermalManager.start_watching_hotend(0);
 					if(thermalManager.temp_hotend[0].celsius>195)
 					{
-						CLEAN_STRING(s_text);
-						sprintf((char*)s_text,PSTR("G0 E-%d F60"),default_move_distance);
-						enqueue_and_echo_commands_P(PSTR("G91"));
-						enqueue_and_echo_commands_P(s_text);
-						enqueue_and_echo_commands_P(PSTR("G90"));
+						current_position[E_AXIS] = current_position[E_AXIS]-default_move_distance;
+						LGT_Line_To_Current_Position(E_AXIS);
+						// CLEAN_STRING(s_text);
+						// sprintf((char*)s_text,PSTR("G0 E-%d F60"),default_move_distance);
+						// enqueue_and_echo_commands_P(PSTR("G91"));
+						// enqueue_and_echo_commands_P(s_text);
+						// enqueue_and_echo_commands_P(PSTR("G90"));
 					}
 					if(is_bed_select)
 					{
@@ -2126,11 +2308,13 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				}
 				else if(thermalManager.temp_hotend[0].celsius>195)
 				{
-					CLEAN_STRING(s_text);
-					sprintf((char*)s_text,PSTR("G0 E-%d F120"),default_move_distance);
-					enqueue_and_echo_commands_P(PSTR("G91"));
-					enqueue_and_echo_commands_P(s_text);
-					enqueue_and_echo_commands_P(PSTR("G90"));
+					current_position[E_AXIS] = current_position[E_AXIS]-default_move_distance;
+					LGT_Line_To_Current_Position(E_AXIS);
+					// CLEAN_STRING(s_text);
+					// sprintf((char*)s_text,PSTR("G0 E-%d F120"),default_move_distance);
+					// enqueue_and_echo_commands_P(PSTR("G91"));
+					// enqueue_and_echo_commands_P(s_text);
+					// enqueue_and_echo_commands_P(PSTR("G90"));
 					if(is_bed_select)
 					{
 						is_bed_select=false;
@@ -2140,19 +2324,15 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_AUTO_EPLUS:
-			   if(dir_auto_feed==-1)
-			   		stopAutoFeed();
 				startAutoFeed(1);
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_AUTO_EMINUS:
-				if(dir_auto_feed==1)
-					stopAutoFeed();
 				startAutoFeed(-1);
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_STOP:
-				stopAutoFeed();
+				stopExtrude();
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_BED_E:
@@ -2326,10 +2506,10 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				}
 				current_button_id=eBT_BUTTON_NONE;
 			break;
-		// 	case eBT_PRINT_ADJUST:
-		// 		next_window_ID=eMENU_ADJUST;
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
+			case eBT_PRINT_ADJUST:
+				next_window_ID=eMENU_ADJUST;
+				current_button_id=eBT_BUTTON_NONE;
+			break;
 			case eBT_PRINT_END:	
 				if(is_print_finish)
 				{
@@ -2351,81 +2531,83 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			current_button_id=eBT_BUTTON_NONE;
 			break;
 
-		// 	case eBT_ADJUSTE_PLUS:
-		// 		if(current_window_ID==eMENU_ADJUST)   //add e temp
-		// 		{
-		// 			if(setTemperatureInWindow(false,false))
-		// 				dispalyAdjustTemp();
-		// 		}
-		// 		else     //subtract flow
-		// 		{
-		// 			planner.flow_percentage[0]+=default_move_distance;
-		// 			if(planner.flow_percentage[0]>999)
-		// 				planner.flow_percentage[0]=999;
-		// 			dispalyAdjustFlow();
-		// 		}
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_ADJUSTE_MINUS:
-		// 		if(current_window_ID==eMENU_ADJUST)   //subtract e temp
-		// 		{
-		// 			if(setTemperatureInWindow(false,true))
-		// 				dispalyAdjustTemp();
-		// 		}
-		// 		else     //subtract flow
-		// 		{
-		// 			planner.flow_percentage[0]-=default_move_distance;
-		// 			if(planner.flow_percentage[0]<10)
-		// 				planner.flow_percentage[0]=0;
-		// 			dispalyAdjustFlow();
-		// 		}
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_ADJUSTBED_PLUS:
-		// 		if(setTemperatureInWindow(true,false))
-		// 			dispalyAdjustTemp();
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_ADJUSTBED_MINUS:
-		// 		if(setTemperatureInWindow(true,true))
-		// 			dispalyAdjustTemp();
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_ADJUSTFAN_PLUS:
-		// 		cur_fanspeed=thermalManager.fan_speed[0];
-		// 		cur_fanspeed+=default_move_distance;
-		// 		if(cur_fanspeed>255)
-		// 			cur_fanspeed=255;
-		// 		thermalManager.fan_speed[0]=cur_fanspeed;
-		// 		dispalyAdjustFanSpeed();
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_ADJUSTFAN_MINUS:
-		// 		cur_fanspeed=thermalManager.fan_speed[0];
-		// 		cur_fanspeed-=default_move_distance;
-		// 		if(cur_fanspeed<0)
-		// 			cur_fanspeed=0;
-		// 		thermalManager.fan_speed[0]=cur_fanspeed;
-		// 		dispalyAdjustFanSpeed();
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_ADJUSTSPEED_PLUS:
-		// //	Serial1.println(default_parameter[0]);
-		// 		feedrate_percentage+=default_move_distance;
-		// 		if(feedrate_percentage>999)
-		// 			feedrate_percentage=999;
-		// 		dispalyAdjustMoveSpeed();
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_ADJUSTSPEED_MINUS:
-		// 		feedrate_percentage-=default_move_distance;
-		// 		if(feedrate_percentage<10)
-		// 			feedrate_percentage=10;
-		// 		dispalyAdjustMoveSpeed();
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
+		// menu print adjust buttons
+			case eBT_ADJUSTE_PLUS:
+				if(current_window_ID==eMENU_ADJUST)   //add e temp
+				{
+					if(setTemperatureInWindow(false,false))
+						dispalyAdjustTemp();
+				}
+				else     //add flow
+				{
+					planner.flow_percentage[0]+=default_move_distance;
+					if(planner.flow_percentage[0]>999)
+						planner.flow_percentage[0]=999;
+					dispalyAdjustFlow();
+				}
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_ADJUSTE_MINUS:
+				if(current_window_ID==eMENU_ADJUST)   //subtract e temp
+				{
+					if(setTemperatureInWindow(false,true))
+						dispalyAdjustTemp();
+				}
+				else     //subtract flow
+				{
+					planner.flow_percentage[0]-=default_move_distance;
+					if(planner.flow_percentage[0]<10)
+						planner.flow_percentage[0]=0;
+					dispalyAdjustFlow();
+				}
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_ADJUSTBED_PLUS:
+				if(setTemperatureInWindow(true,false))
+					dispalyAdjustTemp();
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_ADJUSTBED_MINUS:
+				if(setTemperatureInWindow(true,true))
+					dispalyAdjustTemp();
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_ADJUSTFAN_PLUS: {
+				int16_t tempFan=thermalManager.fan_speed[0];
+				tempFan+=default_move_distance;
+				if(tempFan>255)
+					tempFan=255;
+				thermalManager.fan_speed[0]=uint8_t(tempFan);
+				dispalyAdjustFanSpeed();
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			}
+			case eBT_ADJUSTFAN_MINUS: {
+				int16_t tempFan=thermalManager.fan_speed[0];
+				tempFan-=default_move_distance;
+				if(tempFan<0)
+					tempFan=0;
+				thermalManager.fan_speed[0]=uint8_t(tempFan);
+				dispalyAdjustFanSpeed();
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			}
+			case eBT_ADJUSTSPEED_PLUS:
+				feedrate_percentage+=default_move_distance;
+				if(feedrate_percentage>999)
+					feedrate_percentage=999;
+				dispalyAdjustMoveSpeed();
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_ADJUSTSPEED_MINUS:
+				feedrate_percentage-=default_move_distance;
+				if(feedrate_percentage<10)
+					feedrate_percentage=10;
+				dispalyAdjustMoveSpeed();
+				current_button_id=eBT_BUTTON_NONE;
+			break;
 
-
+		// dialog buttons
 			case eBT_DIALOG_PRINT_START:
 				if(current_window_ID==eMENU_DIALOG_NO_FIL)
 				{
@@ -2581,34 +2763,34 @@ void display_image::LGT_Printer_Data_Update(void)
 			case eMENU_PRINT:
 				displayPrintInformation();
 			break;
-			// case eMENU_ADJUST:
-			// 	dispalyAdjustFanSpeed(); 
-			// 	dispalyAdjustTemp(); 	
-			// 	dispalyAdjustMoveSpeed();
-			// 	if(thermalManager.fan_speed[0]>0)
-			// 	{
-			// 		displayRunningFan(144, 105);	
-			// 	}
-			// 	// if(cur_pstatus==3)
-			// 	// 	cur_ppage=10;
-			// 	switch(cur_pstatus)   //save current status page when in adjust page 
-			// 	{
-			// 		case 0:
-			// 			cur_ppage=0;
-			// 		break;
-			// 		case 1:
-			// 			cur_ppage=1;
-			// 		break;
-			// 		case 2:
-			// 			cur_ppage=2;
-			// 		break;
-			// 		case 3:
-			// 			cur_ppage=10;
-			// 		break;
-			// 		default:
-			// 		break;
-			// 	}
-			// break;
+			case eMENU_ADJUST:
+				dispalyAdjustFanSpeed(); 
+				dispalyAdjustTemp(); 	
+				dispalyAdjustMoveSpeed();
+				if(thermalManager.fan_speed[0]>0)
+				{
+					displayRunningFan(144, 105);	
+				}
+				// if(cur_pstatus==3)
+				// 	cur_ppage=10;
+				switch(cur_pstatus)   //save current status page when in adjust page 
+				{
+					case 0:
+						cur_ppage=0;
+					break;
+					case 1:
+						cur_ppage=1;
+					break;
+					case 2:
+						cur_ppage=2;
+					break;
+					case 3:
+						cur_ppage=10;
+					break;
+					default:
+					break;
+				}
+			break;
 			// case eMENU_ADJUST_MORE:
 			// 	dispalyAdjustFlow();
 			// 	switch(cur_pstatus)   //save current status page when in adjust page 
@@ -2634,7 +2816,7 @@ void display_image::LGT_Printer_Data_Update(void)
 			break;
 			case eMENU_EXTRUDE:
 				dispalyExtrudeTemp();
-				actAutoFeed();
+				// actAutoFeed();
 				displayRunningAutoFeed();
 			break;
 			// case eMENU_FILE:
