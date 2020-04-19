@@ -70,6 +70,7 @@ enum E_BUTTON_KEY {
 
 /****************************Dialog page*******************************/
 	eBT_DIALOG_PRINT_START,eBT_DIALOG_PRINT_NO,eBT_DIALOG_REFACTORY_YES,eBT_DIALOG_SAVE_YES, eBT_DIALOG_ABORT_YES,
+    eBT_DIALOG_NOFILANET_YES, eBT_DIALOG_NOFILANET_NO,
 	
 /****************************Settings page*******************************/
 	eBT_SETTING_ADJUST,eBT_SETTING_REFACTORY,eBT_SETTING_SAVE,eBT_SETTING_LAST,eBT_SETTING_NEXT,eBT_SETTING_ADD,eBT_SETTING_SUB,
@@ -122,6 +123,7 @@ private:
     void LGT_Printer_Data_Update(void);
     void LGT_Ui_Buttoncmd(void);
 
+    void startAutoFeed(int8_t dir);
     bool setTemperatureInWindow(bool is_bed, bool sign);
     // void LGT_Tempabnormal_Warning(const char* info);    //is_printing=false
     // void LGT_Printerabnormal_Kill(const char* info);
@@ -155,6 +157,7 @@ private:
     void displayWindowExtrude(void);
     void scanWindowExtrude( uint16_t rv_x, uint16_t rv_y );
     void dispalyExtrudeTemp(void);
+    void dispalyExtrudeTemp(uint16_t Color); 
     void displayRunningAutoFeed(void);
 
     // /***************************preheating page*******************************************/
@@ -198,6 +201,7 @@ private:
     void displayHeating(void);
     void displayPrinting(void);
     void displayPause(void);
+    // void displayNofilament(void);
 
     void scanWindowPrint( uint16_t rv_x, uint16_t rv_y );
 
@@ -216,9 +220,9 @@ private:
     void dispalyDialogYesNo(uint8_t dialog_index);
     void dispalyDialogYes(uint8_t dialog_index);
     void displayDialogText(uint8_t dialog_index);
-    // void displayNofilament(void);
     void scanDialogStart(uint16_t rv_x, uint16_t rv_y );
-    void scanDialogEnd( uint16_t rv_x, uint16_t rv_y ); 
+    void scanDialogEnd( uint16_t rv_x, uint16_t rv_y );
+    void scanDialogNoFilament(uint16_t rv_x, uint16_t rv_y );
     // void scanDialogRecovery( uint16_t rv_x, uint16_t rv_y);
     // void scanDialogRefactory(uint16_t rv_x, uint16_t rv_y);
     // void scanDialogSave(uint16_t rv_x, uint16_t rv_y);

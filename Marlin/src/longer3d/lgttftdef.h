@@ -430,9 +430,9 @@
 #define DIALOG_PROMPT_MAX_FOLDER1		"Sorry, multi-level"
 #define DIALOG_PROMPT_MAX_FOLDER2		"folders are not supported."
 #define DIALOG_PROMPT_MAX_FOLDER3
-#define DIALOG_START_PRINT_NOFILA1      "No filament,please"                 //No filament,please change filament and start printing
-#define DIALOG_START_PRINT_NOFILA2		"change filament!"
-#define DIALOG_START_PRINT_NOFILA3		//"start printing!"
+#define DIALOG_START_PRINT_NOFILA1      "No filament, do"                 //No filament,please change filament and start printing
+#define DIALOG_START_PRINT_NOFILA2		"you want to change"
+#define DIALOG_START_PRINT_NOFILA3		"it?"
 
 
 

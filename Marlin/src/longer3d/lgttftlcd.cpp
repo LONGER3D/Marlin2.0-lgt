@@ -167,40 +167,6 @@ static void changeFilament(int16_t length)
 	}
 }
 
-static void startAutoFeed(int8_t dir)
-{
-	if(dir == dir_auto_feed || abs(dir) != 1) return; 
-	if(thermalManager.temp_hotend[0].target<200)
-	{
-		thermalManager.temp_hotend[0].target=200;
-		thermalManager.start_watching_hotend(0);
-		if(thermalManager.temp_hotend[0].celsius>195)
-		{  
-				DEBUG_ECHOLN("change filament");
-				if (dir == -dir_auto_feed) // reverse move need stop firstly
-					stopExtrude();
-				changeFilament(CHANGE_FILA_LENGTH * dir);
-		}
-		if(is_bed_select)
-		{
-			is_bed_select=false;
-			lcd.showImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
-		}
-	}
-	else if(thermalManager.temp_hotend[0].celsius>195)
-	{ 
-			DEBUG_ECHOLN("change filament");
-			if (dir == -dir_auto_feed) // reverse move need stop firstly
-				stopExtrude();
-			changeFilament(CHANGE_FILA_LENGTH * dir);
-		if(is_bed_select)
-		{
-			is_bed_select=false;
-			lcd.showImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
-		}
-	}
-}
-
 static void clearVarPrintEnd()
 {
 	// print_job_timer.reset();
@@ -299,6 +265,40 @@ void LgtLcdTft::actOnPause()
 	displayPause();
 }
 
+void LgtLcdTft::startAutoFeed(int8_t dir)
+{
+	if(dir == dir_auto_feed || abs(dir) != 1) return; 
+	if(thermalManager.temp_hotend[0].target<200)
+	{
+		thermalManager.temp_hotend[0].target=200;
+		thermalManager.start_watching_hotend(0);
+		if(thermalManager.temp_hotend[0].celsius>195)
+		{  
+				DEBUG_ECHOLN("change filament");
+				if (dir == -dir_auto_feed) // reverse move need stop firstly
+					stopExtrude();
+				changeFilament(CHANGE_FILA_LENGTH * dir);
+		}
+		if(is_bed_select)
+		{
+			is_bed_select=false;
+			lcd.showImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
+		}
+		dispalyExtrudeTemp(RED);
+	}
+	else if(thermalManager.temp_hotend[0].celsius>195)
+	{ 
+			DEBUG_ECHOLN("change filament");
+			if (dir == -dir_auto_feed) // reverse move need stop firstly
+				stopExtrude();
+			changeFilament(CHANGE_FILA_LENGTH * dir);
+		if(is_bed_select)
+		{
+			is_bed_select=false;
+			lcd.showImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
+		}
+	}
+}
 
 // /***************************launch page*******************************************/
 void LgtLcdTft::displayStartUpLogo(void)
@@ -832,6 +832,26 @@ void display_image::dispalyExtrudeTemp(void)
 		sprintf((char *)s_text,"%d/%d", (int16_t)thermalManager.temp_bed.celsius,thermalManager.temp_bed.target);
 	}
 	LCD_ShowString(8,143,s_text);
+
+}
+
+/**
+ *  note user head target temp. is changed
+ */
+void display_image::dispalyExtrudeTemp(uint16_t Color)
+{
+	LCD_Fill(5,143,65,163,White);		//clean extruder/bed temperature display zone
+	POINT_COLOR=Color;
+	CLEAN_STRING(s_text);
+	if(!is_bed_select)
+		sprintf((char *)s_text,"%d/%d",(int16_t)thermalManager.temp_hotend[0].celsius, thermalManager.temp_hotend[0].target);
+
+	else{
+		sprintf((char *)s_text,"%d/%d", (int16_t)thermalManager.temp_bed.celsius,thermalManager.temp_bed.target);
+	}
+	LCD_ShowString(8,143,s_text);
+	POINT_COLOR=BLACK;
+
 
 }
 
@@ -1695,6 +1715,18 @@ void display_image::scanDialogEnd( uint16_t rv_x, uint16_t rv_y )
 	}
 }
 
+void display_image::scanDialogNoFilament(uint16_t rv_x, uint16_t rv_y )
+{
+	if(rv_x>85&&rv_x<140&&rv_y>130&&rv_y<185) //select yes
+	{	
+		current_button_id=eBT_DIALOG_NOFILANET_YES;
+	}
+	else if(rv_x>180&&rv_x<235&&rv_y>130&&rv_y<185)  //select no
+	{	
+		current_button_id=eBT_DIALOG_PRINT_NO;
+	}
+}
+
 /********************************************************
  * is_bed:false->extruder0, true->bed
  * sign:  false->plus, true->minus 
@@ -1965,8 +1997,10 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 			break;
 
 			case eMENU_DIALOG_START:
-			case eMENU_DIALOG_NO_FIL:
 				scanDialogStart(cur_x,cur_y);
+				cur_x=cur_y=0;			
+			case eMENU_DIALOG_NO_FIL:
+				scanDialogNoFilament(cur_x,cur_y);
 				cur_x=cur_y=0;
 			break;
 			case eMENU_DIALOG_END:
@@ -2297,6 +2331,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 						is_bed_select=false;
 						displayImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
 					}
+					dispalyExtrudeTemp(RED);
 				}
 				else if(thermalManager.temp_hotend[0].celsius>195)
 				{
@@ -2326,6 +2361,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 						is_bed_select=false;
 						displayImage(15, 95, IMG_ADDR_BUTTON_BED_OFF);
 					}
+					dispalyExtrudeTemp(RED);
 				}
 				else if(thermalManager.temp_hotend[0].celsius>195)
 				{
@@ -2466,11 +2502,14 @@ void display_image::LGT_Ui_Buttoncmd(void)
 					// 	current_window_ID=eMENU_DIALOG_NO_FIL;
 					// 	extrude2file=true;
 					// }
-					// else
-					// {
+
+					if (IS_RUN_OUT()) {
+						dispalyDialogYesNo(eDIALOG_START_JOB_NOFILA);
+						current_window_ID=eMENU_DIALOG_NO_FIL;						
+					} else {
 						dispalyDialogYesNo(eDIALOG_PRINT_START);
 						current_window_ID=eMENU_DIALOG_START;
-					// }
+					}
 				}
 			break;
 			}
@@ -2630,44 +2669,42 @@ void display_image::LGT_Ui_Buttoncmd(void)
 
 		// dialog buttons
 			case eBT_DIALOG_PRINT_START:
-				if(current_window_ID==eMENU_DIALOG_NO_FIL)
+				is_printing=true;
+				is_print_finish=cur_flag=false;
+				cur_ppage=0;cur_pstatus=0;
+				if(current_window_ID==eMENU_DIALOG_START)
+					recovery_flag=false;
+				if(recovery_flag==false)
 				{
-					displayWindowExtrude();
-					current_window_ID=eMENU_EXTRUDE;
-				} else {
-					is_printing=true;
-					is_print_finish=cur_flag=false;
-					cur_ppage=0;cur_pstatus=0;
-					if(current_window_ID==eMENU_DIALOG_START)
-						recovery_flag=false;
-					if(recovery_flag==false)
-					{
-						// #if ENABLED(POWER_LOSS_RECOVERY)
-						// 	card.removeJobRecoveryFile();
-						// #endif
-						const char *fn = lgtCard.shortFilename();
-						DEBUG_ECHOLNPAIR("open filename: ", fn);
-						char cmd[4+ strlen(fn) + 1];
-						sprintf_P(cmd, PSTR("M23 %s"), fn);
-						enqueue_and_echo_commands_P(cmd);
-						enqueue_and_echo_commands_P(PSTR("M24"));
-						// W25QxxFlash.W25QXX_Write((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
-					}
-					else   //recovery
-					{
-						enqueue_and_echo_commands_P(PSTR("M1000"));
-						recovery_flag=false;
-						// W25QxxFlash.W25QXX_Read((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
-					}
-					displayWindowPrint();
-					current_window_ID=eMENU_PRINT;
+					// #if ENABLED(POWER_LOSS_RECOVERY)
+					// 	card.removeJobRecoveryFile();
+					// #endif
+					const char *fn = lgtCard.shortFilename();
+					DEBUG_ECHOLNPAIR("open filename: ", fn);
+					char cmd[4+ strlen(fn) + 1];
+					sprintf_P(cmd, PSTR("M23 %s"), fn);
+					enqueue_and_echo_commands_P(cmd);
+					enqueue_and_echo_commands_P(PSTR("M24"));
+					// W25QxxFlash.W25QXX_Write((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
 				}
+				else   //recovery
+				{
+					enqueue_and_echo_commands_P(PSTR("M1000"));
+					recovery_flag=false;
+					// W25QxxFlash.W25QXX_Read((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
+				}
+				next_window_ID = eMENU_PRINT;
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_DIALOG_PRINT_NO:
+			case eBT_DIALOG_NOFILANET_NO:
 				next_window_ID=eMENU_FILE1;
 				current_button_id=eBT_BUTTON_NONE;
 			break;
+			case eBT_DIALOG_NOFILANET_YES:
+				ret_menu_extrude = 4;
+				next_window_ID = eMENU_EXTRUDE;
+			break;			
 		// 	case eBT_DIALOG_REFACTORY_YES:
 		// 		current_button_id=eBT_BUTTON_NONE;
 		// 		current_window_ID=eMENU_SETTINGS;
