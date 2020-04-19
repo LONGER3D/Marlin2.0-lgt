@@ -15,7 +15,7 @@
 #include "../module/planner.h"
 #include "../module/printcounter.h"
 #include "../feature/runout.h"
-// #include "../feature/powerloss.h"
+#include "../feature/powerloss.h"
 
 #define DEBUG_LGTLCDTFT
 #define DEBUG_OUT ENABLED(DEBUG_LGTLCDTFT)
@@ -311,6 +311,13 @@ void LgtLcdTft::changeToPageRunout()
 
 }
 
+void LgtLcdTft::changeToPageRecovery()
+{
+	DEBUG_ECHOLN("change to recovery dialog");
+	next_window_ID = eMENU_DIALOG_RECOVERY;
+	
+}
+
 // /***************************launch page*******************************************/
 void LgtLcdTft::displayStartUpLogo(void)
 {
@@ -396,10 +403,10 @@ void display_image::scanWindowHome(uint16_t rv_x, uint16_t rv_y)
 	}
 	else if(rv_x>133&&rv_x<188&&rv_y>145&&rv_y<195) //recovery
 	{
-		if(recovery_flag)
-		{
-			next_window_ID=eMENU_DIALOG_RECOVERY;
-		}
+		// if(recovery_flag)
+		// {
+		// 	next_window_ID=eMENU_DIALOG_RECOVERY;
+		// }
 	}
 	else if(rv_x>215&&rv_x<270&&rv_y>145&&rv_y<195)
 	{
@@ -1751,6 +1758,18 @@ void display_image::scanDialogNoFilamentInPrint(uint16_t rv_x, uint16_t rv_y )
 	}	
 }
 
+void display_image::scanDialogRecovery( uint16_t rv_x, uint16_t rv_y)
+{
+	if(rv_x>85&&rv_x<140&&rv_y>130&&rv_y<185)  //select yes
+	{
+		current_button_id = eBT_DIALOG_RECOVERY_OK;
+	}
+	else if(rv_x>180&&rv_x<235&&rv_y>130&&rv_y<185) //select no
+	{
+		current_button_id = eBT_DIALOG_RECOVERY_NO;
+	}
+}
+
 /********************************************************
  * is_bed:false->extruder0, true->bed
  * sign:  false->plus, true->minus 
@@ -1935,6 +1954,11 @@ bool display_image::LGT_Ui_Update(void)
 				next_window_ID=eWINDOW_NONE;
 				displayWindowAdjustMore();
 			break;
+			case eMENU_DIALOG_RECOVERY:
+				current_window_ID=eMENU_DIALOG_RECOVERY;
+				next_window_ID=eWINDOW_NONE;
+				dispalyDialogYesNo(eDIALOG_PRINT_RECOVERY);
+			break;
 			// case eMENU_SETTINGS:
 			// 	current_window_ID=eMENU_SETTINGS;
 			// 	next_window_ID=eWINDOW_NONE;
@@ -1943,13 +1967,6 @@ bool display_image::LGT_Ui_Update(void)
 			// // eMENU_SETTINGS2,
 
 
-
-
-			// case eMENU_DIALOG_RECOVERY:
-			// 	current_window_ID=eMENU_DIALOG_RECOVERY;
-			// 	next_window_ID=eWINDOW_NONE;
-			// 	dispalyDialogYesNo(eDIALOG_PRINT_RECOVERY);
-			// break;
 			default:    // no page change just button press
 				button_type=true;
 				break;
@@ -2034,10 +2051,10 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 				scanDialogEnd(cur_x,cur_y);
 				cur_x=cur_y=0;
 			break;
-			// case eMENU_DIALOG_RECOVERY:
-			// 	scanDialogRecovery(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
+			case eMENU_DIALOG_RECOVERY:
+				scanDialogRecovery(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;
 			// case eMENU_DIALOG_REFACTORY:
 			// 	scanDialogRefactory(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
@@ -2682,33 +2699,34 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			break;
 
 		// dialog buttons
-			case eBT_DIALOG_PRINT_START:
+			case eBT_DIALOG_PRINT_START: {
 				is_printing=true;
 				is_print_finish=cur_flag=false;
 				cur_ppage=0;cur_pstatus=0;
-				if(current_window_ID==eMENU_DIALOG_START)
-					recovery_flag=false;
-				if(recovery_flag==false)
-				{
+				// if(current_window_ID==eMENU_DIALOG_START)
+				// 	recovery_flag=false;
+				// if(recovery_flag==false)
+				// {
 					// #if ENABLED(POWER_LOSS_RECOVERY)
 					// 	card.removeJobRecoveryFile();
 					// #endif
 					const char *fn = lgtCard.shortFilename();
-					DEBUG_ECHOLNPAIR("open filename: ", fn);
+					DEBUG_ECHOLNPAIR("open file: ", fn);
 					char cmd[4+ strlen(fn) + 1];
 					sprintf_P(cmd, PSTR("M23 %s"), fn);
 					enqueue_and_echo_commands_P(cmd);
 					enqueue_and_echo_commands_P(PSTR("M24"));
 					// W25QxxFlash.W25QXX_Write((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
-				}
-				else   //recovery
-				{
-					enqueue_and_echo_commands_P(PSTR("M1000"));
-					recovery_flag=false;
-					// W25QxxFlash.W25QXX_Read((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
-				}
+				// }
+				// else   //recovery
+				// {
+				// 	enqueue_and_echo_commands_P(PSTR("M1000"));
+				// 	recovery_flag=false;
+				// 	// W25QxxFlash.W25QXX_Read((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
+				// }
 				next_window_ID = eMENU_PRINT;
 				current_button_id=eBT_BUTTON_NONE;
+			}
 			break;
 			case eBT_DIALOG_PRINT_NO:
 			case eBT_DIALOG_NOFILANET_NO:
@@ -2728,7 +2746,25 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				ret_menu_extrude = 2;
 				next_window_ID = eMENU_EXTRUDE;
 				current_button_id=eBT_BUTTON_NONE;
-			break;					
+			break;
+			case eBT_DIALOG_RECOVERY_OK:
+				// clear some variables
+				is_printing=true;
+				is_print_finish=cur_flag=false;
+				cur_ppage=0;cur_pstatus=0;
+				// retrive longfilename
+				
+				// start recovery
+				DEBUG_ECHOLN("recovery start");
+				queue.inject_P(PSTR("M1000"));	// == recovery.resume()
+				next_window_ID = eMENU_PRINT;
+				current_button_id=eBT_BUTTON_NONE;
+				break;
+			case eBT_DIALOG_RECOVERY_NO:
+				recovery.cancel();	// == M1000 C
+				next_window_ID = eMENU_HOME;
+				current_button_id=eBT_BUTTON_NONE;
+				break;					
 		// 	case eBT_DIALOG_REFACTORY_YES:
 		// 		current_button_id=eBT_BUTTON_NONE;
 		// 		current_window_ID=eMENU_SETTINGS;
@@ -2954,6 +2990,9 @@ void LgtLcdTft::init()
     displayStartUpLogo();
     delay(10);
     displayWindowHome();
+    #if ENABLED(POWER_LOSS_RECOVERY)
+	recovery.check();
+	#endif
 }
 
 void LgtLcdTft::loop()
@@ -2963,7 +3002,7 @@ void LgtLcdTft::loop()
     #define TRUELY_TOUCHED() (touchCheck > CHECK_TOUCH_TIME)
     static millis_t nextTouchReadTime = 0;
     static uint8_t touchCheck = 0;
- 
+
     if (touch.isTouched()) { 
         if (!TRUELY_TOUCHED()) {
             const millis_t time = millis();
@@ -2982,12 +3021,11 @@ void LgtLcdTft::loop()
         touchCheck = 0;
         DEBUG_ECHOLN("touch: released ");
 		LGT_Ui_Buttoncmd();
-    	LGT_Ui_Update();
     } else {    // idle
         touchCheck = 0;
 		LGT_Printer_Data_Update();
     }
-
+	LGT_Ui_Update();
 }
 
 #endif

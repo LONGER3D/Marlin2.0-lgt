@@ -58,6 +58,10 @@ uint32_t PrintJobRecovery::cmd_sdpos, // = 0
   #include "../lcd/lgtdwlcd.h"
 #endif
 
+#if ENABLED(LGT_LCD_TFT)
+  #include "../longer3d/lgttftlcd.h"
+#endif
+
 #define DEBUG_OUT ENABLED(DEBUG_POWER_LOSS_RECOVERY)
 #include "../core/debug_out.h"
 
@@ -104,7 +108,7 @@ void PrintJobRecovery::changed() {
  * If a saved state exists send 'M1000 S' to initiate job recovery.
  */
 void PrintJobRecovery::check() {
-  #if ENABLED(LGT_LCD_DW)
+  #if ENABLED(LGT_LCD_DW) || ENABLED(LGT_LCD_TFT)
     if (!card.isMounted()) card.mount();
   #endif
   if (card.isMounted()) {
@@ -113,6 +117,9 @@ void PrintJobRecovery::check() {
     queue.inject_P(PSTR("M1000 S"));
     #if ENABLED(LGT_LCD_DW)
       check_recovery = true;
+    #endif
+    #if ENABLED(LGT_LCD_TFT)
+      lgtlcdtft.changeToPageRecovery();
     #endif
   }
 }

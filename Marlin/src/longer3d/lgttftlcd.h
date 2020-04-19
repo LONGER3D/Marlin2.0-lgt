@@ -72,7 +72,7 @@ enum E_BUTTON_KEY {
 /****************************Dialog page*******************************/
 	eBT_DIALOG_PRINT_START,eBT_DIALOG_PRINT_NO,eBT_DIALOG_REFACTORY_YES,eBT_DIALOG_SAVE_YES, eBT_DIALOG_ABORT_YES,
     eBT_DIALOG_NOFILANET_YES, eBT_DIALOG_NOFILANET_NO, eBT_DIALOG_NOFILANET_PRINT_YES, eBT_DIALOG_NOFILANET_PRINT_NO,
-	
+	eBT_DIALOG_RECOVERY_OK, eBT_DIALOG_RECOVERY_NO,
 /****************************Settings page*******************************/
 	eBT_SETTING_ADJUST,eBT_SETTING_REFACTORY,eBT_SETTING_SAVE,eBT_SETTING_LAST,eBT_SETTING_NEXT,eBT_SETTING_ADD,eBT_SETTING_SUB,
 
@@ -118,6 +118,7 @@ public:
     void moveOnPause();
     void actOnPause();
     void changeToPageRunout();
+    void changeToPageRecovery();
 
 
 private:
@@ -227,7 +228,7 @@ private:
     void scanDialogEnd( uint16_t rv_x, uint16_t rv_y );
     void scanDialogNoFilament(uint16_t rv_x, uint16_t rv_y );
     void scanDialogNoFilamentInPrint(uint16_t rv_x, uint16_t rv_y );
-    // void scanDialogRecovery( uint16_t rv_x, uint16_t rv_y);
+    void scanDialogRecovery( uint16_t rv_x, uint16_t rv_y);
     // void scanDialogRefactory(uint16_t rv_x, uint16_t rv_y);
     // void scanDialogSave(uint16_t rv_x, uint16_t rv_y);
     // void scanDialogYes(uint16_t rv_x, uint16_t rv_y);

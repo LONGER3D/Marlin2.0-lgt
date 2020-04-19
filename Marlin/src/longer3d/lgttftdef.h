@@ -400,7 +400,7 @@
 #define DIALOG_PROMPT_PRINT_ABORT1 		"Job isn't done. Do"//"Job's not done. Do you want to stop it?"
 #define DIALOG_PROMPT_PRINT_ABORT2		"you want to stop?"
 #define DIALOG_PROMPT_PRINT_ABORT3
-#define DIALOG_PROMPT_PRINT_RECOVERY1	"Are you sure to"//"Are you sure to recovery printing?"
+#define DIALOG_PROMPT_PRINT_RECOVERY1	"Do you want to"//"Are you sure to recovery printing?"
 #define DIALOG_PROMPT_PRINT_RECOVERY2	"recovery print-"
 #define DIALOG_PROMPT_PRINT_RECOVERY3	"ing?"
 #define DIALOG_PROMPT_ERROR_READ1		"Failed to read file,"   //"Failed to read file, please try again."

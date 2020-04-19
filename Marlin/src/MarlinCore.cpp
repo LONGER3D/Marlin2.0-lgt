@@ -1175,7 +1175,7 @@ void setup() {
     SETUP_RUN(est_init());
   #endif
 
-  #if DISABLED(LGT_LCD_DW)
+  #if DISABLED(LGT_LCD_DW) && DISABLED(LGT_LCD_TFT)
     #if ENABLED(POWER_LOSS_RECOVERY)
       SETUP_RUN(recovery.check());
     #endif
