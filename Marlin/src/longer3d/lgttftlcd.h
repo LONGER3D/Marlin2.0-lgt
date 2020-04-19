@@ -22,6 +22,7 @@ typedef enum{
 	eMENU_DIALOG_START,   //print or not print
 	eMENU_DIALOG_END,     //stop print or not stop print
 	eMENU_DIALOG_NO_FIL,   // no filament page
+    eMENU_DIALOG_NO_FIL_PRINT,
 	eMENU_DIALOG_RECOVERY,
 	eMENU_DIALOG_REFACTORY,
 	eMENU_DIALOG_SAVE,
@@ -70,7 +71,7 @@ enum E_BUTTON_KEY {
 
 /****************************Dialog page*******************************/
 	eBT_DIALOG_PRINT_START,eBT_DIALOG_PRINT_NO,eBT_DIALOG_REFACTORY_YES,eBT_DIALOG_SAVE_YES, eBT_DIALOG_ABORT_YES,
-    eBT_DIALOG_NOFILANET_YES, eBT_DIALOG_NOFILANET_NO,
+    eBT_DIALOG_NOFILANET_YES, eBT_DIALOG_NOFILANET_NO, eBT_DIALOG_NOFILANET_PRINT_YES, eBT_DIALOG_NOFILANET_PRINT_NO,
 	
 /****************************Settings page*******************************/
 	eBT_SETTING_ADJUST,eBT_SETTING_REFACTORY,eBT_SETTING_SAVE,eBT_SETTING_LAST,eBT_SETTING_NEXT,eBT_SETTING_ADD,eBT_SETTING_SUB,
@@ -116,6 +117,8 @@ public:
     void setPrintCommand(E_PRINT_CMD cmd);
     void moveOnPause();
     void actOnPause();
+    void changeToPageRunout();
+
 
 private:
     bool LGT_MainScanWindow(void);
@@ -223,6 +226,7 @@ private:
     void scanDialogStart(uint16_t rv_x, uint16_t rv_y );
     void scanDialogEnd( uint16_t rv_x, uint16_t rv_y );
     void scanDialogNoFilament(uint16_t rv_x, uint16_t rv_y );
+    void scanDialogNoFilamentInPrint(uint16_t rv_x, uint16_t rv_y );
     // void scanDialogRecovery( uint16_t rv_x, uint16_t rv_y);
     // void scanDialogRefactory(uint16_t rv_x, uint16_t rv_y);
     // void scanDialogSave(uint16_t rv_x, uint16_t rv_y);

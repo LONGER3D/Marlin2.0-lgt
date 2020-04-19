@@ -126,6 +126,7 @@ void GcodeSuite::M25() {
       lgtlcdtft.actOnPause();
       lgtlcdtft.moveOnPause();
       lgtlcdtft.setPrintCommand(E_PRINT_RESUME);
+      lgtlcdtft.changeToPageRunout();
     #endif
 
   #endif

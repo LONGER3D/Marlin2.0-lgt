@@ -50,7 +50,7 @@
 #define FILL_ZONE(x, y, w, h, bg_color)         LCD_Fill((uint16_t)(x), (uint16_t)(y), (uint16_t)((x)+(w)-1), (uint16_t)((y)+(h)-1), (uint16_t)bg_color)
 #define CLEAN_ZONE(x, y, w, h)                  FILL_ZONE(x, y, w, h, WHITE)
 #define CLEAN_SINGLE_TXT(x, y, w)               CLEAN_ZONE(x, y, w, 16)     /* clean single line text */
-#define IS_RUN_OUT()							READ(FIL_RUNOUT_PIN)
+#define IS_RUN_OUT()							READ(FIL_RUNOUT_PIN)	// simply check runout
 
 LgtLcdTft lgtlcdtft;
 
@@ -300,6 +300,17 @@ void LgtLcdTft::startAutoFeed(int8_t dir)
 	}
 }
 
+void LgtLcdTft::changeToPageRunout()
+{
+	// check if it in runout state
+	if (runout.filament_ran_out) {
+		// change to no filament dialog
+		dispalyDialogYesNo(eDIALOG_START_JOB_NOFILA);
+		current_window_ID=eMENU_DIALOG_NO_FIL_PRINT;;
+	}
+
+}
+
 // /***************************launch page*******************************************/
 void LgtLcdTft::displayStartUpLogo(void)
 {
@@ -374,8 +385,9 @@ void display_image::scanWindowHome(uint16_t rv_x, uint16_t rv_y)
 	{
 		next_window_ID=eMENU_FILE;
 	}
-	else if(rv_x>215&&rv_x<270&&rv_y>45&&rv_y<95)
+	else if(rv_x>215&&rv_x<270&&rv_y>45&&rv_y<95)	// extrude
 	{
+		ret_menu_extrude = 0;
 		next_window_ID=eMENU_EXTRUDE;
 	}
 	else if(rv_x>50&&rv_x<105&&rv_y>145&&rv_y<195)
@@ -905,7 +917,7 @@ void display_image::scanWindowExtrude( uint16_t rv_x, uint16_t rv_y )
 			next_window_ID=eMENU_ADJUST_MORE;
 		else if (ret_menu_extrude == 4)
 			next_window_ID=eMENU_FILE1;
-		ret_menu_extrude = 0;
+		// ret_menu_extrude = 0;	
 		if(dir_auto_feed!=0)
 			stopExtrude();
 	}
@@ -1727,6 +1739,18 @@ void display_image::scanDialogNoFilament(uint16_t rv_x, uint16_t rv_y )
 	}
 }
 
+void display_image::scanDialogNoFilamentInPrint(uint16_t rv_x, uint16_t rv_y )
+{
+	if(rv_x>85&&rv_x<140&&rv_y>130&&rv_y<185) //select yes
+	{	
+		current_button_id = eBT_DIALOG_NOFILANET_PRINT_YES;
+	}
+	else if(rv_x>180&&rv_x<235&&rv_y>130&&rv_y<185)  //select no
+	{	
+		current_button_id = eBT_DIALOG_NOFILANET_PRINT_NO;
+	}	
+}
+
 /********************************************************
  * is_bed:false->extruder0, true->bed
  * sign:  false->plus, true->minus 
@@ -2003,6 +2027,9 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 				scanDialogNoFilament(cur_x,cur_y);
 				cur_x=cur_y=0;
 			break;
+			case eMENU_DIALOG_NO_FIL_PRINT:
+				scanDialogNoFilamentInPrint(cur_x,cur_y);
+				cur_x=cur_y=0;		
 			case eMENU_DIALOG_END:
 				scanDialogEnd(cur_x,cur_y);
 				cur_x=cur_y=0;
@@ -2490,19 +2517,6 @@ void display_image::LGT_Ui_Buttoncmd(void)
 						;// show prompt dialog on max directory
 					}
 				} else {	// is gcode
-					// uint8_t check_cn=0;
-					// for(int i=CHECK_FILAMENT_TIMES;i>=0;i--)
-					// {
-					// 	if(READ(FIL_RUNOUT_PIN))
-					// 		check_cn++;
-					// }
-					// if(!check_filament_disable&&(check_cn>(CHECK_FILAMENT_TIMES-1)))
-					// {
-					// 	dispalyDialogYesNo(eDIALOG_START_JOB_NOFILA);
-					// 	current_window_ID=eMENU_DIALOG_NO_FIL;
-					// 	extrude2file=true;
-					// }
-
 					if (IS_RUN_OUT()) {
 						dispalyDialogYesNo(eDIALOG_START_JOB_NOFILA);
 						current_window_ID=eMENU_DIALOG_NO_FIL;						
@@ -2704,7 +2718,17 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			case eBT_DIALOG_NOFILANET_YES:
 				ret_menu_extrude = 4;
 				next_window_ID = eMENU_EXTRUDE;
-			break;			
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_DIALOG_NOFILANET_PRINT_NO:
+				next_window_ID=eMENU_PRINT;
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_DIALOG_NOFILANET_PRINT_YES:
+				ret_menu_extrude = 2;
+				next_window_ID = eMENU_EXTRUDE;
+				current_button_id=eBT_BUTTON_NONE;
+			break;					
 		// 	case eBT_DIALOG_REFACTORY_YES:
 		// 		current_button_id=eBT_BUTTON_NONE;
 		// 		current_window_ID=eMENU_SETTINGS;
