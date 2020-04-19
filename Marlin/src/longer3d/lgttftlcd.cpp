@@ -50,6 +50,7 @@
 #define FILL_ZONE(x, y, w, h, bg_color)         LCD_Fill((uint16_t)(x), (uint16_t)(y), (uint16_t)((x)+(w)-1), (uint16_t)((y)+(h)-1), (uint16_t)bg_color)
 #define CLEAN_ZONE(x, y, w, h)                  FILL_ZONE(x, y, w, h, WHITE)
 #define CLEAN_SINGLE_TXT(x, y, w)               CLEAN_ZONE(x, y, w, 16)     /* clean single line text */
+#define IS_RUN_OUT()							READ(FIL_RUNOUT_PIN)
 
 LgtLcdTft lgtlcdtft;
 
@@ -664,6 +665,10 @@ void display_image::displayFileList()
 
 }
 
+/**
+ * call when file count is changed
+ * such as change dir, remove, insert card
+ */
 void display_image::updateFilelist()
 {
 	if(!lgtCard.isCardInserted()) {
@@ -702,15 +707,16 @@ void LgtLcdTft::highlightChosenItem(uint16_t item)
     uint16_t lastItem = lgtCard.item();
     uint16_t lastIndex = lgtCard.fileIndex();   // save last selected file index
     uint16_t lastPage = lgtCard.selectedPage(); // save last selected page
-    if (lastItem == item && item > 0)   // nothing should change
-        return;
-    if (!lgtCard.setItem(item)) // fail to set item
-        return;
-    // if (lgtCard.isFileSelected() && lastIndex == lgtCard.fileIndex())
-    //     return;
-    DEBUG_ECHOLNPAIR("last item: ", lastItem);
+	DEBUG_ECHOLNPAIR("last item: ", lastItem);
     DEBUG_ECHOLNPAIR("last index: ", lastIndex);
     DEBUG_ECHOLNPAIR("select item: ", item);
+    // if (lastItem == item && item > 0)   // nothing should change
+    //     return;
+    if (!lgtCard.selectFile(item)) // fail to select file
+		return;
+	if (lastIndex == lgtCard.fileIndex() && lastIndex != 0) // nothing should change
+		return;
+
     DEBUG_ECHOLNPAIR("select index: ", lgtCard.fileIndex());
 
     if (lastPage == lgtCard.page()) {  // only restore when selected page is as same as last one
@@ -2378,11 +2384,10 @@ void display_image::LGT_Ui_Buttoncmd(void)
             // menu file buttons
 			case eBT_FILE_NEXT:
 				if (lgtCard.nextPage()) {
-					LCD_Fill(0, 25, 239, 174,White);	//clean file list display zone 
 					displayFileList();
 					displayFilePageNumber();
-					// if(choose_file_page==page_index&&choose_printfile!=-1)
-						// CardFile.ChoseFile(choose_printfile);
+					if(lgtCard.selectedPage()==lgtCard.page())
+						displayChosenFile();
 				}
 				current_button_id=eBT_BUTTON_NONE;
 			    break;
@@ -2390,8 +2395,8 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				if (lgtCard.previousPage()) {
 					displayFileList();
 					displayFilePageNumber();
-					// if(choose_file_page==page_index&&choose_printfile!=-1)
-						// CardFile.ChoseFile(choose_printfile);
+					if(lgtCard.selectedPage()==lgtCard.page())
+						displayChosenFile();
 				}
 				current_button_id=eBT_BUTTON_NONE;
 			    break;

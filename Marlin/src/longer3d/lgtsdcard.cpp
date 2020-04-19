@@ -71,6 +71,9 @@ bool LgtSdCard::isDir()
     return card.flag.filenameIsDir;
 }
 
+/**
+ * filename for open file
+ */
 const char *LgtSdCard::shortFilename()
 {
     if (m_fileCount == 0 || !m_isSelectFile)
@@ -79,6 +82,9 @@ const char *LgtSdCard::shortFilename()
     return card.filename;
 }
 
+/**
+ * get trimmed longfilename for list or showing in lcd
+ */
 const char *LgtSdCard::filename(uint16_t i)
 {
     if (m_fileCount == 0)
@@ -96,7 +102,7 @@ const char *LgtSdCard::filename(uint16_t i)
 }
 
 /**
- * get selected longfilename if any
+ * get trimmed longfilename if select a file
  */
 const char *LgtSdCard::filename()
 {
@@ -107,7 +113,11 @@ const char *LgtSdCard::filename()
     }
 }
 
-uint8_t LgtSdCard::setItem(uint16_t item)
+/**
+ * try to select a file in file list
+ * false: failed to set when exceed file index scope
+ */
+uint8_t LgtSdCard::selectFile(uint16_t item)
 {
     if (item < LIST_ITEM_MAX) {
         if (m_isReverseList) {

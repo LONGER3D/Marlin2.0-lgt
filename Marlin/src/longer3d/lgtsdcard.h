@@ -52,7 +52,7 @@ public:
         }
     }
 
-    uint8_t setItem(uint16_t item); // page_index_num
+    uint8_t selectFile(uint16_t item); // page_index_num
 
     inline uint16_t item() {return m_currentItem;}
 
