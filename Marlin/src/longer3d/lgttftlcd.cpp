@@ -716,7 +716,6 @@ void display_image::displayChosenFile()
 		lcd.setColor(BLACK);
 		lcd.setBgColor(WHITE);
 	}
-
 }
 
 void LgtLcdTft::highlightChosenItem(uint16_t item)
@@ -724,9 +723,11 @@ void LgtLcdTft::highlightChosenItem(uint16_t item)
     uint16_t lastItem = lgtCard.item();
     uint16_t lastIndex = lgtCard.fileIndex();   // save last selected file index
     uint16_t lastPage = lgtCard.selectedPage(); // save last selected page
+	bool isLastSelect = lgtCard.isFileSelected();
 	DEBUG_ECHOLNPAIR("last item: ", lastItem);
     DEBUG_ECHOLNPAIR("last index: ", lastIndex);
-    DEBUG_ECHOLNPAIR("select item: ", item);
+	DEBUG_ECHOLNPAIR("last is select", isLastSelect);
+    DEBUG_ECHOLNPAIR("try select item: ", item);
     // if (lastItem == item && item > 0)   // nothing should change
     //     return;
     if (!lgtCard.selectFile(item)) // fail to select file
@@ -736,13 +737,12 @@ void LgtLcdTft::highlightChosenItem(uint16_t item)
 
     DEBUG_ECHOLNPAIR("select index: ", lgtCard.fileIndex());
 
-    if (lastPage == lgtCard.page()) {  // only restore when selected page is as same as last one
+    if (isLastSelect && (lastPage == lgtCard.page())) {  // only restore when selected page is as same as last one
         // restore last selected item
         lcd.fill(35, 25 + lastItem * 30, 239, 55 - 1 + lastItem * 30, WHITE);
         lcd.print(35, 32 + lastItem*30, lgtCard.filename(lastIndex));
     }
     // highlight selecetd item
-    // lgtCard.setItem(item);
     // .. darkblue background
     lcd.fill(35, 25 + item * 30, 239, 55 - 1 + item * 30, DARKBLUE);
     // .. reprint filename
@@ -1490,8 +1490,8 @@ void display_image::dispalyCurrentStatus(void)
 }
 void display_image::displayCountUpTime(void)
 {
-	if (is_print_finish)
-		return;
+	// if (is_print_finish)
+		// return;
 	LCD_Fill(175,150,250,180,White);	//clean cout-up timer display zone
 	color=Black;
 	CLEAN_STRING(s_text);
@@ -1500,8 +1500,8 @@ void display_image::displayCountUpTime(void)
 }
 void display_image::displayCountDownTime(void)
 {
-	if (is_print_finish)
-		return;
+	// if (is_print_finish)
+		// return;
 	if( lgtCard.printTime() == 0){ 		/* if don't get total time */
 		CLEAN_STRING(s_text);
 		sprintf((char *)s_text,"%s",TXT_MENU_PRINT_CD_TIMER_NULL);
