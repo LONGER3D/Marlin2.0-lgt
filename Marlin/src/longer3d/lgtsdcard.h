@@ -96,7 +96,6 @@ public:
     CardUpdate update();
     bool isCardInserted() { return m_cardState; }
 
-
 private:
     void parseCura();
     void parseLegacyCura();
@@ -114,7 +113,7 @@ private:
     static char gComment[GCOMMENT_SIZE];
     static uint8_t indexGc;
 
-    uint16_t m_printTime;   // minute unit
+    uint16_t m_printTime;   // total print time. minute unit
 
     bool m_cardState;
 };

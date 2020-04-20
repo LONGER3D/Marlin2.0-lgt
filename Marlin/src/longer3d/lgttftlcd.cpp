@@ -99,13 +99,13 @@ static char s_text[64];
 // uint32_t print_times=0;
 // const float manual_feedrate_mm_m[] = MANUAL_FEEDRATE;
 
-// move
+// for movement
 static bool is_aixs_homed[XYZ]={false};
 
 static bool is_bed_select = false;
 // bool sd_insert=false;
-static bool is_printing=false;	// print status
-bool is_print_finish=false;
+static bool is_printing=false;	// print status. true on printing, false on not printing(idle, paused, and so on)
+static bool is_print_finish=false;	// true on finish printing
 
 static uint8_t ret_menu_extrude = 0;	// used for extrude page return  0 to home page , 2 to adjust more page, 4 to file page
 
@@ -122,7 +122,7 @@ static E_BUTTON_KEY current_button_id=eBT_BUTTON_NONE;
 // /**********  window definition  **********/
 static E_WINDOW_ID current_window_ID = eMENU_HOME,next_window_ID =eWINDOW_NONE;
 
-
+// for puase printing
 static float resume_xyze_position[XYZE]={0.0};
 static float resume_feedrate = 0.0;
 
@@ -230,9 +230,6 @@ void LgtLcdTft::setPrintCommand(E_PRINT_CMD cmd)
 	current_print_cmd = cmd;
 }
 
-#define FILAMENT_RUNOUT_MOVE_X 10
-#define FILAMENT_RUNOUT_MOVE_Y 200
-#define FILAMENT_RUNOUT_MOVE_F 50
 
 void LgtLcdTft::moveOnPause()
 {
@@ -313,8 +310,9 @@ void LgtLcdTft::changeToPageRunout()
 
 void LgtLcdTft::changeToPageRecovery()
 {
-	DEBUG_ECHOLN("change to recovery dialog");
-	next_window_ID = eMENU_DIALOG_RECOVERY;
+	DEBUG_ECHOLN("show recovery dialog");
+	dispalyDialogYesNo(eDIALOG_PRINT_RECOVERY);
+	current_window_ID = eMENU_DIALOG_RECOVERY;
 	
 }
 
@@ -401,7 +399,7 @@ void display_image::scanWindowHome(uint16_t rv_x, uint16_t rv_y)
 	{
 		next_window_ID=eMENU_PREHEAT;
 	}
-	else if(rv_x>133&&rv_x<188&&rv_y>145&&rv_y<195) //recovery
+	else if(rv_x>133&&rv_x<188&&rv_y>145&&rv_y<195) //recovery  depricated button
 	{
 		// if(recovery_flag)
 		// {
@@ -1167,7 +1165,104 @@ void display_image::scanWindowLeveling( uint16_t rv_x, uint16_t rv_y )
 }
 
 // /***************************settings page*******************************************/
+void display_image::displayWindowSettings(void)
+{
+	lcdClear(White);
+	LCD_Fill(0, 0, 320, 24, BG_COLOR_CAPTION_SETTINGS); 	//caption background
+	#ifndef Chinese
+		displayImage(115, 5, IMG_ADDR_CAPTION_SETTINGS);		//caption words
+	#else
+		displayImage(115, 5, IMG_ADDR_CAPTION_SETTINGS_CN);		//caption words
+	#endif
+	displayImage(255, 30, IMG_ADDR_BUTTON_MODIFY);
+	displayImage(255, 105, IMG_ADDR_BUTTON_RESTORE);
+	displayImage(178, 180, IMG_ADDR_BUTTON_SAVE);
+	displayImage(5, 180, IMG_ADDR_BUTTON_PAGE_LAST);
+	displayImage(101, 180, IMG_ADDR_BUTTON_PAGE_NEXT);
+	displayImage(255, 180, IMG_ADDR_BUTTON_RETURN);	
+	//draw frame
+	POINT_COLOR=DARKBLUE;	
+	LCD_DrawLine(0, 175, 240, 175);	
+	LCD_DrawLine(0, 176, 240, 176);
+	LCD_DrawLine(240, 175, 240, 25);
+	LCD_DrawLine(241, 176, 241, 25);
+	displayArgumentList();
+	displayArugumentPageNumber();
+}
 
+void display_image::displayArugumentPageNumber(void)
+{
+	// LCD_Fill(69, 195, 94, 215, WHITE);	//celan file page display zone
+	// CLEAN_STRING(s_text);
+	// color=BLACK;
+	// sprintf((char *)s_text, "%d/%d", page_index + 1, ARGUMENST_MAX_PAGE + 1);
+	// LCD_ShowString(69, 200,s_text);
+}
+void display_image::displayArgumentList(void)
+{
+	// uint8_t i,j=0;
+	// color = BLACK;
+	// for(i = page_index*5; i < page_index*5 +5; i++, j++)
+	// {
+	// 	if(i >=  ARGUMENST_MAX_NUM)	return;		//avoid display unnecessary strings 
+	// 	memset(s_text, 0, sizeof(s_text));	
+    //     memset(s_argus, 0, sizeof(s_argus));
+	// 	convertArgu2Str(i, s_argus);
+    //     sprintf((char*)s_text, "%-20s%s", c_machine_argument[i], s_argus);
+    //     LCD_ShowString(10, 32 + 30*j,s_text);
+	// }
+}
+
+void display_image::scanWindowSettings(uint16_t rv_x, uint16_t rv_y)
+{
+	if(rv_x>255&&rv_x<315&&rv_y>180&&rv_y<240) //return
+	{			
+		next_window_ID=eMENU_HOME_MORE;
+	}
+	else if(rv_x>0&&rv_x<240&&rv_y>25&&rv_y<55) //1st 
+	{		
+		current_button_id=eBT_FILE_LIST1;
+	}
+	else if(rv_x>0&&rv_x<240&&rv_y>55&&rv_y<85) //2nd 
+	{		
+		current_button_id=eBT_FILE_LIST2;
+	}
+	else if(rv_x>0&&rv_x<240&&rv_y>85&&rv_y<115) //3rd 
+	{		
+		current_button_id=eBT_FILE_LIST3;
+	}
+	else if(rv_x>0&&rv_x<240&&rv_y>115&&rv_y<145) //4th 
+	{		
+		current_button_id=eBT_FILE_LIST4;
+	}
+	else if(rv_x>0&&rv_x<240&&rv_y>145&&rv_y<175)  //5th 
+	{		
+		current_button_id=eBT_FILE_LIST5;
+	}
+	else if(rv_x>5&&rv_x<60&&rv_y>180&&rv_y<235)  	//last page
+	{	
+		current_button_id=eBT_SETTING_LAST;
+	}
+	else if(rv_x>100&&rv_x<155&&rv_y>180&&rv_y<235) //next page
+	{	
+		current_button_id=eBT_SETTING_NEXT;
+	}
+	else if(rv_x>255&&rv_x<315&&rv_y>30&&rv_y<85)   //modify
+	{	
+		current_button_id=eBT_SETTING_ADJUST;
+	}
+	else if(rv_x>255&&rv_x<315&&rv_y>105&&rv_y<160)  //restore
+	{	
+		current_button_id=eBT_SETTING_REFACTORY;
+	}	
+	else if(rv_x>178&&rv_x<233&&rv_y>180&&rv_y<235)  //save	
+	{
+		if(is_setting_change)
+			current_button_id=eBT_SETTING_SAVE;
+	}
+}
+
+// /***************************settings page 2*******************************************/
 
 
 // /***************************about page*******************************************/
@@ -1959,11 +2054,11 @@ bool display_image::LGT_Ui_Update(void)
 				next_window_ID=eWINDOW_NONE;
 				dispalyDialogYesNo(eDIALOG_PRINT_RECOVERY);
 			break;
-			// case eMENU_SETTINGS:
-			// 	current_window_ID=eMENU_SETTINGS;
-			// 	next_window_ID=eWINDOW_NONE;
-			// 	displayWindowSettings();
-			// break;
+			case eMENU_SETTINGS:
+				current_window_ID=eMENU_SETTINGS;
+				next_window_ID=eWINDOW_NONE;
+				displayWindowSettings();
+			break;
 			// // eMENU_SETTINGS2,
 
 
@@ -2753,7 +2848,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				is_print_finish=cur_flag=false;
 				cur_ppage=0;cur_pstatus=0;
 				// retrive longfilename
-				
+
 				// start recovery
 				DEBUG_ECHOLN("recovery start");
 				queue.inject_P(PSTR("M1000"));	// == recovery.resume()
@@ -3018,14 +3113,14 @@ void LgtLcdTft::loop()
             }
         }
     } else if (TRUELY_TOUCHED()) {  // touch released
-        touchCheck = 0;
+        touchCheck = 0;	// reset touch checker
         DEBUG_ECHOLN("touch: released ");
 		LGT_Ui_Buttoncmd();
+		LGT_Ui_Update();
     } else {    // idle
-        touchCheck = 0;
+        touchCheck = 0;	// reset touch checker
 		LGT_Printer_Data_Update();
     }
-	LGT_Ui_Update();
 }
 
 #endif

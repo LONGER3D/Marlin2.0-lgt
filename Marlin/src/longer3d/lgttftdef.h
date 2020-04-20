@@ -8,6 +8,10 @@
 #define CHANGE_FILA_LENGTH		500
 #define UNLOAD_FILA_FEEDRATE    600
 
+#define FILAMENT_RUNOUT_MOVE_X 10
+#define FILAMENT_RUNOUT_MOVE_Y 200
+#define FILAMENT_RUNOUT_MOVE_F 50
+
 /* image size definition */
 #define IMG_SIZE_LOGO0              20008			    /* 200*50 logo alfawise     */
 #define IMG_SIZE_LOGO1              48008				/* 200*120 logo iformer     */

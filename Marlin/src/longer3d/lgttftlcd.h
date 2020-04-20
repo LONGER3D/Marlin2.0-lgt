@@ -182,10 +182,10 @@ private:
     void scanWindowAbout(uint16_t rv_x, uint16_t rv_y);
 
     // /***************************settings page*******************************************/   
-    // void displayArugumentPageNumber(void);
-    // void displayArgumentList(void);
-    // void displayWindowSettings(void);
-    // void scanWindowSettings(uint16_t rv_x, uint16_t rv_y);
+    void displayWindowSettings(void);
+    void displayArugumentPageNumber(void);
+    void displayArgumentList(void);
+    void scanWindowSettings(uint16_t rv_x, uint16_t rv_y);
     // void displayWindowSettings2(void);
     // void displayModifyArgument(void);
     // void scanWindowSettings2(uint16_t rv_x, uint16_t rv_y);

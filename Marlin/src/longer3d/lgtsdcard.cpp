@@ -25,6 +25,7 @@ static inline uint16_t codeValue()
 {
     return (strtoul(CodePointer + 1, nullptr, 10));
 }
+
 static inline uint16_t codeValue2()
 {
     return (strtoul(CodePointer + 17, nullptr, 10));
@@ -52,6 +53,9 @@ uint16_t LgtSdCard::count()
     return m_fileCount;
 }
 
+/**
+ * clear file variable when change dir or card
+ */
 void LgtSdCard::clear()
 {
     m_fileCount = 0;
@@ -87,16 +91,15 @@ const char *LgtSdCard::shortFilename()
  */
 const char *LgtSdCard::filename(uint16_t i)
 {
+    #define MAX_TRIMMED_FILENAME_LEN 25
     if (m_fileCount == 0)
         return nullptr;
     card.getfilename_sorted(i);
     char *fn = card.longFilename[0] ? card.longFilename : card.filename;
     uint16_t len = strlen(fn);
-    if (len > 25) {
-        const char *s = "...\0\0";
-        strncpy_P(fn + 22, s, sizeof(s));
-        // fn[25] = '\0';
-        // fn[26] = '\0';
+    if (len > MAX_TRIMMED_FILENAME_LEN) {
+        const char suffix[] = "...\0\0";
+        strncpy_P(fn + MAX_TRIMMED_FILENAME_LEN - 3, suffix, sizeof(suffix));
     }
     return fn;
 }
@@ -115,7 +118,7 @@ const char *LgtSdCard::filename()
 
 /**
  * try to select a file in file list
- * false: failed to set when exceed file index scope
+ * return 0: failed to set when exceed file index scope
  */
 uint8_t LgtSdCard::selectFile(uint16_t item)
 {
@@ -180,6 +183,9 @@ int8_t LgtSdCard::upDir()
     return card.cdup();
 }
 
+/**
+ * get up time form lcd
+ */
 void LgtSdCard::upTime(char *p)
 {
     uint16_t h, m, s;
@@ -189,12 +195,15 @@ void LgtSdCard::upTime(char *p)
     sprintf(p,"%02d:%02d:%02d", h, m, s);
 }
 
+/** 
+ * get down time for lcd
+ */
 void LgtSdCard::downTime(char *p)
 {
     if (m_printTime == 0)
         return;
     uint16_t remain, h, m;
-    remain= m_printTime * card.ratioNotDone();
+    remain= uint16(ceil(float(m_printTime) * card.ratioNotDone()));
     h = remain / 60;
     m = remain % 60;
     // SERIAL_ECHOLNPAIR_F("remain ratio: ", card.ratioNotDone());
@@ -202,6 +211,9 @@ void LgtSdCard::downTime(char *p)
     sprintf(p, "%d H %d M", h, m);
 }
 
+/**
+ * parse and get total print time from gcode comment
+ */
 void LgtSdCard::parseComment()
 {
     if (strstr(gComment, "TIME:") != nullptr) {
@@ -215,6 +227,9 @@ void LgtSdCard::parseComment()
     }
 }
 
+/**
+ * parse cura(after v2.0) gcode comment
+ */
 void LgtSdCard::parseCura()
 {
 	uint32_t second = 0;
@@ -226,7 +241,9 @@ void LgtSdCard::parseCura()
 	}    
 }
 
-
+/**
+ * parse old cura(before v2.0) gocde comment
+ */
 void LgtSdCard::parseLegacyCura()
 {
     uint16_t hour = 0;
