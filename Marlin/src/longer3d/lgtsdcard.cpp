@@ -91,15 +91,20 @@ const char *LgtSdCard::shortFilename()
  */
 const char *LgtSdCard::filename(uint16_t i)
 {
-    #define MAX_TRIMMED_FILENAME_LEN 25
+    #define MAX_TRIM_FILENAME_LEN 25
     if (m_fileCount == 0)
         return nullptr;
     card.getfilename_sorted(i);
     char *fn = card.longFilename[0] ? card.longFilename : card.filename;
     uint16_t len = strlen(fn);
-    if (len > MAX_TRIMMED_FILENAME_LEN) {
-        const char suffix[] = "...\0\0";
-        strncpy_P(fn + MAX_TRIMMED_FILENAME_LEN - 3, suffix, sizeof(suffix));
+    if (len > MAX_TRIM_FILENAME_LEN) {
+        // const char *suffix = "...";
+        // strncpy_P(fn + MAX_TRIM_FILENAME_LEN - 3, suffix, sizeof(suffix));
+        fn[MAX_TRIM_FILENAME_LEN - 3] = '.';
+        fn[MAX_TRIM_FILENAME_LEN - 2] = '.';
+        fn[MAX_TRIM_FILENAME_LEN - 1] = '.';       
+        fn[MAX_TRIM_FILENAME_LEN] = '\0';
+        fn[MAX_TRIM_FILENAME_LEN] = '\0';
     }
     return fn;
 }
