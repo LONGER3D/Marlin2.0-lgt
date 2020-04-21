@@ -14,13 +14,13 @@
 #define W25Q32 	0XEF15
 #define W25Q64 	0XEF16
 #define W25Q128	0XEF17
-#define W25Q256 0XEF18
+#define W25Q256   0XEF18
 
 // command
 #define W25X_WriteEnable		0x06 
 #define W25X_WriteDisable		0x04 
 #define W25X_ReadStatusReg		0x05 
-#define W25X_WriteStatusReg		0x01 
+#define W25X_WriteStatusReg	0x01 
 #define W25X_ReadData			0x03 
 #define W25X_FastReadData		0x0B 
 #define W25X_FastReadDual		0x3B 
@@ -34,7 +34,8 @@
 #define W25X_ManufactDeviceID	0x90 
 #define W25X_JedecDeviceID		0x9F 
 
-#define W25QXX_CS(v) WRITE(SPI_CS_PIN, v) //digitalWrite(PC5,v) 
+#define W25QXX_CS(v)          WRITE(SPI_CS_PIN, v) //digitalWrite(PC5,v) 
+#define FLASH_PAGE_SIZE       NOOP  // 4096
 
 W25QXX spiFlash;
 
@@ -67,9 +68,9 @@ uint16_t W25QXX::W25QXX_ReadID()
 //pBuffer：data storage area
 //WriteAddr: address of start writing （24bit）
 //NumByteToWrite:number of bytes to write （max:65535）
-uint8_t W25QXX_BUFFER[4096];
 void W25QXX::W25QXX_Write(uint8_t* pBuffer,uint32_t WriteAddr,uint16_t NumByteToWrite)
 {
+   static uint8_t W25QXX_BUFFER[4096];
    uint32_t secpos;
 	uint16_t secoff;
 	uint16_t secremain;	   

@@ -1,7 +1,9 @@
 #pragma once
 #include <stdint.h>
 
-#define LIST_ITEM_MAX 5u
+#ifndef LIST_ITEM_MAX
+#define LIST_ITEM_MAX 5
+#endif
 #define GCOMMENT_SIZE 64
 
 enum CardUpdate : uint8_t {
@@ -57,6 +59,7 @@ public:
     inline uint16_t item() {return m_currentItem;}
 
     inline bool isReverseList() {return m_isReverseList;}
+    inline void setListOrder(bool order) {m_isReverseList = order;}
 
     bool isDir();
     const char *shortFilename();

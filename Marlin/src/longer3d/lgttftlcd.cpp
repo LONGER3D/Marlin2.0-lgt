@@ -7,6 +7,7 @@
 #include "../feature/touch/xpt2046.h"
 #include "w25qxx.h"
 #include "lgtsdcard.h"
+#include "lgtstore.h"
 
 #include "../module/temperature.h"
 #include "../sd/cardreader.h"
@@ -125,6 +126,30 @@ static E_WINDOW_ID current_window_ID = eMENU_HOME,next_window_ID =eWINDOW_NONE;
 // for puase printing
 static float resume_xyze_position[XYZE]={0.0};
 static float resume_feedrate = 0.0;
+
+static const char *txt_menu_setts[SETTINGS_MAX_LEN] = {
+	TXT_MENU_SETTS_ACCL, //"Accel(mm/s^2):",
+	TXT_MENU_SETTS_JERK_XY,//"Vxy-jerk(mm/s):",
+	TXT_MENU_SETTS_JERK_Z,//"Vz-jerk(mm/s):",
+	TXT_MENU_SETTS_JERK_E,//"Ve-jerk(mm/s):",
+	TXT_MENU_SETTS_VMAX_X,//"Vmax x(mm/s):",
+	TXT_MENU_SETTS_VMAX_Y,//"Vmax y(mm/s):",
+	TXT_MENU_SETTS_VMAX_Z,//"Vmax z(mm/s):",
+	TXT_MENU_SETTS_VMAX_E,//"Vmax e(mm/s):",
+	TXT_MENU_SETTS_VMIN,//"Vmin(mm/s):",
+	TXT_MENU_SETTS_VTRAVEL,//"Vtrav min(mm/s):",
+	TXT_MENU_SETTS_AMAX_X,//"Amax x(mm/s^2):",
+	TXT_MENU_SETTS_AMAX_Y,//"Amax y(mm/s^2):",	
+	TXT_MENU_SETTS_AMAX_Z,//"Amax z(mm/s^2):",
+	TXT_MENU_SETTS_AMAX_E,//"Amax e(mm/s^2):",
+	TXT_MENU_SETTS_ARETRACT,//"A-retract(mm/s^2):",
+	TXT_MENU_SETTS_STEP_X,//"X(steps/mm):",	
+	TXT_MENU_SETTS_STEP_Y,//"Y(steps/mm):",	
+	TXT_MENU_SETTS_STEP_Z,//"Z(steps/mm):",	
+	TXT_MENU_SETTS_STEP_E,//"E(steps/mm):",
+	TXT_MENU_SETTS_CHECK_FILA,//"Filament check:",
+	TXT_MENU_SETTS_LIST_ORDER,//"File list order:"
+};
 
 // /***************************static function definition****************************************/
 
@@ -1186,31 +1211,37 @@ void display_image::displayWindowSettings(void)
 	LCD_DrawLine(0, 176, 240, 176);
 	LCD_DrawLine(240, 175, 240, 25);
 	LCD_DrawLine(241, 176, 241, 25);
+	lgtStore.syncSettings();	// sync setttings struct before list
 	displayArgumentList();
 	displayArugumentPageNumber();
 }
 
 void display_image::displayArugumentPageNumber(void)
 {
-	// LCD_Fill(69, 195, 94, 215, WHITE);	//celan file page display zone
-	// CLEAN_STRING(s_text);
-	// color=BLACK;
-	// sprintf((char *)s_text, "%d/%d", page_index + 1, ARGUMENST_MAX_PAGE + 1);
-	// LCD_ShowString(69, 200,s_text);
+	LCD_Fill(69, 195, 94, 215, WHITE);	//celan file page display zone
+	CLEAN_STRING(s_text);
+	color=BLACK;
+	sprintf((char *)s_text, "%d/%d", lgtStore.page() + 1, SETTINGS_MAX_PAGE);
+	LCD_ShowString(69, 200,s_text);
 }
+
 void display_image::displayArgumentList(void)
 {
-	// uint8_t i,j=0;
-	// color = BLACK;
-	// for(i = page_index*5; i < page_index*5 +5; i++, j++)
-	// {
-	// 	if(i >=  ARGUMENST_MAX_NUM)	return;		//avoid display unnecessary strings 
-	// 	memset(s_text, 0, sizeof(s_text));	
-    //     memset(s_argus, 0, sizeof(s_argus));
-	// 	convertArgu2Str(i, s_argus);
-    //     sprintf((char*)s_text, "%-20s%s", c_machine_argument[i], s_argus);
-    //     LCD_ShowString(10, 32 + 30*j,s_text);
-	// }
+	LCD_Fill(0, 25, 239, 174,White);	//clean file list display zone 
+	color = BLACK;
+	uint8_t start = lgtStore.page() * LIST_ITEM_MAX;
+	uint8_t end = start + LIST_ITEM_MAX;
+	NOMORE(end, SETTINGS_MAX_LEN);
+	// DEBUG_ECHOLNPAIR("list start:", start);
+	// DEBUG_ECHOLNPAIR("list end: ", end);
+	for (uint8_t i = start, j = 0; i < end; ++i, ++j) {
+		CLEAN_STRING(s_text);
+		char str[10] = {0};
+		lgtStore.settingString(i, str);
+		sprintf((char*)s_text, "%-20s%s", txt_menu_setts[i], str);
+		LCD_ShowString(10, 32 + 30*j, s_text);
+	}
+
 }
 
 void display_image::scanWindowSettings(uint16_t rv_x, uint16_t rv_y)
@@ -1261,7 +1292,6 @@ void display_image::scanWindowSettings(uint16_t rv_x, uint16_t rv_y)
 			current_button_id=eBT_SETTING_SAVE;
 	}
 }
-
 // /***************************settings page 2*******************************************/
 
 
@@ -1488,6 +1518,7 @@ void display_image::dispalyCurrentStatus(void)
 		break;
 	}
 }
+
 void display_image::displayCountUpTime(void)
 {
 	// if (is_print_finish)
@@ -1498,6 +1529,7 @@ void display_image::displayCountUpTime(void)
 	lgtCard.upTime(s_text);
 	LCD_ShowString(175,157,s_text);
 }
+
 void display_image::displayCountDownTime(void)
 {
 	// if (is_print_finish)
@@ -1526,6 +1558,7 @@ void display_image::displayHeating(void)
 	LCD_ShowString(45,202,s_text);	
 	color=BLACK;
 }
+
 void display_image::displayPrinting(void)
 {
 	LCD_Fill(0,190,200,240,White); 
@@ -1537,6 +1570,7 @@ void display_image::displayPrinting(void)
 	sprintf((char*)s_text,"%s",TXT_MENU_PRINT_STATUS_RUNNING);
 	LCD_ShowString(45,202,s_text);
 }
+
 void display_image::displayPause(void)
 {
 	LCD_Fill(0,190,200,240,White); 
@@ -1817,6 +1851,7 @@ void display_image::scanDialogStart(uint16_t rv_x, uint16_t rv_y )
 		current_button_id=eBT_DIALOG_PRINT_NO;
 	}
 }
+
 void display_image::scanDialogEnd( uint16_t rv_x, uint16_t rv_y )
 {
 	if(rv_x>85&&rv_x<140&&rv_y>130&&rv_y<185)  //select yes
@@ -2021,7 +2056,7 @@ bool display_image::LGT_Ui_Update(void)
 			case eMENU_PREHEAT:
 				current_window_ID=eMENU_PREHEAT;
 				next_window_ID=eWINDOW_NONE;
-					displayWindowPreheat();
+				displayWindowPreheat();
 			break;
 			case eMENU_LEVELING:
 				current_window_ID=eMENU_LEVELING;
@@ -2060,8 +2095,6 @@ bool display_image::LGT_Ui_Update(void)
 				displayWindowSettings();
 			break;
 			// // eMENU_SETTINGS2,
-
-
 			default:    // no page change just button press
 				button_type=true;
 				break;
@@ -2107,10 +2140,10 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 				scanWindowLeveling(cur_x,cur_y);
 				cur_x=cur_y=0;
 			break;
-			// case eMENU_SETTINGS:
-			// 	scanWindowSettings(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
+			case eMENU_SETTINGS:
+				scanWindowSettings(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;
 			// case eMENU_SETTINGS2:
 			// 	scanWindowSettings2(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
@@ -2897,32 +2930,45 @@ void display_image::LGT_Ui_Buttoncmd(void)
 		// 		dispalyDialogYesNo(eDIALOG_SETTS_SAVE);
 		// 		current_window_ID=eMENU_DIALOG_SAVE;
 		// 	break;
-		// 	case eBT_SETTING_LAST:
-		// 		if(page_index > 0)
-		// 		{
-		// 			page_index = page_index - 1;
-		// 		//	choose_printfile=0;
-		// 			LCD_Fill(0, 25, 239, 174,White);	//clean file list display zone 
-		// 			displayArgumentList();
-		// 			displayArugumentPageNumber();	
-		// 			displayImage(5, 180, IMG_ADDR_BUTTON_PAGE_LAST);
-		// 		}
-		// 		 choose_setting=ARGUMENST_MAX_NUM;
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_SETTING_NEXT:
-		// 		if(page_index < ARGUMENST_MAX_PAGE)
-		// 		{
-		// 			page_index = page_index + 1;
-		// 		//	choose_printfile=0; 	 
-		// 			LCD_Fill(0, 25, 239, 174,White);	//clean file list display zone 
-		// 			displayArgumentList();
-		// 			displayArugumentPageNumber();
-		// 			displayImage(101, 180, IMG_ADDR_BUTTON_PAGE_NEXT);
-		// 		}
-		// 		 choose_setting=ARGUMENST_MAX_NUM;
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
+			case eBT_SETTING_LAST:
+				if (lgtStore.previousPage()) {
+					displayArgumentList();
+					displayArugumentPageNumber();
+					// if(lgtCard.selectedPage()==lgtCard.page())
+						// displayChosenFile();
+				}
+
+				// if(page_index > 0)
+				// {
+				// 	page_index = page_index - 1;
+				// //	choose_printfile=0;
+				// 	LCD_Fill(0, 25, 239, 174,White);	//clean file list display zone 
+				// 	displayArgumentList();
+				// 	displayArugumentPageNumber();	
+				// 	displayImage(5, 180, IMG_ADDR_BUTTON_PAGE_LAST);
+				// }
+				//  choose_setting=ARGUMENST_MAX_NUM;
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_SETTING_NEXT:
+				if (lgtStore.nextPage()) {
+					displayArgumentList();
+					displayArugumentPageNumber();
+					// if(lgtCard.selectedPage()==lgtCard.page())
+						// displayChosenFile();
+				}		
+				// if(page_index < ARGUMENST_MAX_PAGE)
+				// {
+				// 	page_index = page_index + 1;
+				// //	choose_printfile=0; 	 
+				// 	LCD_Fill(0, 25, 239, 174,White);	//clean file list display zone 
+				// 	displayArgumentList();
+				// 	displayArugumentPageNumber();
+				// 	displayImage(101, 180, IMG_ADDR_BUTTON_PAGE_NEXT);
+				// }
+				//  choose_setting=ARGUMENST_MAX_NUM;
+				current_button_id=eBT_BUTTON_NONE;
+			break;
 		// 	case eBT_SETTING_ADD:
 		// 		current_button_id=eBT_BUTTON_NONE;
 		// 		changeValueArgument(choose_setting, 1);
