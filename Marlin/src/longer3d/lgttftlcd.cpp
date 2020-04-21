@@ -127,30 +127,6 @@ static E_WINDOW_ID current_window_ID = eMENU_HOME,next_window_ID =eWINDOW_NONE;
 static float resume_xyze_position[XYZE]={0.0};
 static float resume_feedrate = 0.0;
 
-static const char *txt_menu_setts[SETTINGS_MAX_LEN] = {
-	TXT_MENU_SETTS_ACCL, //"Accel(mm/s^2):",
-	TXT_MENU_SETTS_JERK_XY,//"Vxy-jerk(mm/s):",
-	TXT_MENU_SETTS_JERK_Z,//"Vz-jerk(mm/s):",
-	TXT_MENU_SETTS_JERK_E,//"Ve-jerk(mm/s):",
-	TXT_MENU_SETTS_VMAX_X,//"Vmax x(mm/s):",
-	TXT_MENU_SETTS_VMAX_Y,//"Vmax y(mm/s):",
-	TXT_MENU_SETTS_VMAX_Z,//"Vmax z(mm/s):",
-	TXT_MENU_SETTS_VMAX_E,//"Vmax e(mm/s):",
-	TXT_MENU_SETTS_VMIN,//"Vmin(mm/s):",
-	TXT_MENU_SETTS_VTRAVEL,//"Vtrav min(mm/s):",
-	TXT_MENU_SETTS_AMAX_X,//"Amax x(mm/s^2):",
-	TXT_MENU_SETTS_AMAX_Y,//"Amax y(mm/s^2):",	
-	TXT_MENU_SETTS_AMAX_Z,//"Amax z(mm/s^2):",
-	TXT_MENU_SETTS_AMAX_E,//"Amax e(mm/s^2):",
-	TXT_MENU_SETTS_ARETRACT,//"A-retract(mm/s^2):",
-	TXT_MENU_SETTS_STEP_X,//"X(steps/mm):",	
-	TXT_MENU_SETTS_STEP_Y,//"Y(steps/mm):",	
-	TXT_MENU_SETTS_STEP_Z,//"Z(steps/mm):",	
-	TXT_MENU_SETTS_STEP_E,//"E(steps/mm):",
-	TXT_MENU_SETTS_CHECK_FILA,//"Filament check:",
-	TXT_MENU_SETTS_LIST_ORDER,//"File list order:"
-};
-
 // /***************************static function definition****************************************/
 
 // constexpr uint8_t xy_bits = _BV(X_AXIS) | _BV(Y_AXIS);
@@ -1236,11 +1212,71 @@ void display_image::displayArgumentList(void)
 	// DEBUG_ECHOLNPAIR("list end: ", end);
 	for (uint8_t i = start, j = 0; i < end; ++i, ++j) {
 		CLEAN_STRING(s_text);
-		char str[10] = {0};
-		lgtStore.settingString(i, str);
-		sprintf((char*)s_text, "%-20s%s", txt_menu_setts[i], str);
+		lgtStore.settingString(i, s_text);
 		LCD_ShowString(10, 32 + 30*j, s_text);
 	}
+
+}
+
+// highlight selecetd item when return from open file dialog
+void LgtLcdTft::highlightSetting()
+{
+	if (lgtStore.isSettingSelected() &&
+		(lgtStore.selectedPage() == lgtStore.page())) {
+		uint16_t item = lgtStore.item();
+		lcd.fill(0, 25 + item * 30, 239, 55 - 1 + item * 30, DARKBLUE);
+		// .. reprint name
+		lcd.setColor(WHITE);
+		lcd.setBgColor(DARKBLUE);
+		CLEAN_STRING(s_text);
+		lgtStore.settingString(lgtStore.settingIndex(), s_text);
+		lcd.print(10, 32 + item*30, s_text);
+		lcd.setColor(BLACK);
+		lcd.setBgColor(WHITE);
+	}
+}
+
+void LgtLcdTft::chooseSetting(uint16_t item)
+{
+    uint16_t lastItem = lgtStore.item();
+    uint16_t lastIndex = lgtStore.settingIndex();   // save last selected file index
+    uint16_t lastPage = lgtStore.selectedPage(); // save last selected page
+	bool isLastSelect = lgtStore.isSettingSelected();
+	// DEBUG_ECHOLNPAIR("last item: ", lastItem);
+    // DEBUG_ECHOLNPAIR("last index: ", lastIndex);
+	// DEBUG_ECHOLNPAIR("last is select", isLastSelect);
+    // DEBUG_ECHOLNPAIR("try select item: ", item);
+
+    if (lgtStore.selectSetting(item)) // fail to select file
+		return;
+	if (lastIndex == lgtStore.settingIndex() && lastIndex != 0) // nothing should change
+		return;
+
+    DEBUG_ECHOLNPAIR("select index: ", lgtStore.settingIndex());
+
+    if (isLastSelect && (lastPage == lgtStore.page())) {  // only restore when selected page is as same as last one
+        // restore last selected item
+        lcd.fill(0, 25 + lastItem * 30, 239, 55 - 1 + lastItem * 30, WHITE);
+		CLEAN_STRING(s_text);
+		lgtStore.settingString(lastIndex, s_text);
+        lcd.print(10, 32 + lastItem*30, s_text);
+    }
+    // highlight selecetd item
+	highlightSetting();
+
+
+	// Display_Screen.LCD_Fill(0, 25+page_index_num*30, 239, 55 - 1 + page_index_num*30,White);		//clean file last file display zone 
+	// page_index_num = index;
+	// Display_Screen.displayArgumentList();						
+	// Display_Screen.LCD_Fill(0, 25+page_index_num*30, 239, 55 - 1 + page_index_num*30,DARKBLUE);
+    // //page_index_num=index;
+	// memset(s_argus, 0, sizeof(s_argus));
+	// convertArgu2Str(i, s_argus);
+	// sprintf((char*)s_text, "%-20s%s", c_machine_argument[i], s_argus);
+    // color=WHITE,bgColor=DARKBLUE;
+    // LCD_ShowString(10,32+page_index_num*30,s_text);   //page_index start from 0
+    // color=BLACK,bgColor=WHITE;
+
 
 }
 
@@ -2093,6 +2129,7 @@ bool display_image::LGT_Ui_Update(void)
 				current_window_ID=eMENU_SETTINGS;
 				next_window_ID=eWINDOW_NONE;
 				displayWindowSettings();
+				highlightSetting();
 			break;
 			// // eMENU_SETTINGS2,
 			default:    // no page change just button press
@@ -2612,35 +2649,35 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				if(current_window_ID==eMENU_FILE) {
                     highlightChosenItem(0);
                 } else
-					;//ChoseArgument(0);
+					chooseSetting(0);
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_FILE_LIST2:
 				if(current_window_ID==eMENU_FILE) {
                     highlightChosenItem(1);
                 } else
-					;//ChoseArgument(1);	
+					chooseSetting(1);	
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_FILE_LIST3:
 				if(current_window_ID==eMENU_FILE)
 					highlightChosenItem(2);
 				else
-					;//ChoseArgument(2);
+					chooseSetting(2);
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_FILE_LIST4:
 				if(current_window_ID==eMENU_FILE)
 					highlightChosenItem(3);
 				else
-					;//ChoseArgument(3);
+					chooseSetting(3);
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_FILE_LIST5:
 				if(current_window_ID==eMENU_FILE)
 					highlightChosenItem(4);
 				else
-					;// ChoseArgument(4);
+					chooseSetting(4);
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_FILE_OPEN:
@@ -2934,39 +2971,16 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				if (lgtStore.previousPage()) {
 					displayArgumentList();
 					displayArugumentPageNumber();
-					// if(lgtCard.selectedPage()==lgtCard.page())
-						// displayChosenFile();
+					highlightSetting();
 				}
-
-				// if(page_index > 0)
-				// {
-				// 	page_index = page_index - 1;
-				// //	choose_printfile=0;
-				// 	LCD_Fill(0, 25, 239, 174,White);	//clean file list display zone 
-				// 	displayArgumentList();
-				// 	displayArugumentPageNumber();	
-				// 	displayImage(5, 180, IMG_ADDR_BUTTON_PAGE_LAST);
-				// }
-				//  choose_setting=ARGUMENST_MAX_NUM;
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_SETTING_NEXT:
 				if (lgtStore.nextPage()) {
 					displayArgumentList();
 					displayArugumentPageNumber();
-					// if(lgtCard.selectedPage()==lgtCard.page())
-						// displayChosenFile();
+					highlightSetting();
 				}		
-				// if(page_index < ARGUMENST_MAX_PAGE)
-				// {
-				// 	page_index = page_index + 1;
-				// //	choose_printfile=0; 	 
-				// 	LCD_Fill(0, 25, 239, 174,White);	//clean file list display zone 
-				// 	displayArgumentList();
-				// 	displayArugumentPageNumber();
-				// 	displayImage(101, 180, IMG_ADDR_BUTTON_PAGE_NEXT);
-				// }
-				//  choose_setting=ARGUMENST_MAX_NUM;
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 		// 	case eBT_SETTING_ADD:

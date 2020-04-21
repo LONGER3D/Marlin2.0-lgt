@@ -186,6 +186,8 @@ private:
     void displayArugumentPageNumber(void);
     void displayArgumentList(void);
     void scanWindowSettings(uint16_t rv_x, uint16_t rv_y);
+    void chooseSetting(uint16_t item);
+    void highlightSetting();
     // void displayWindowSettings2(void);
     // void displayModifyArgument(void);
     // void scanWindowSettings2(uint16_t rv_x, uint16_t rv_y);

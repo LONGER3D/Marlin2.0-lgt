@@ -42,9 +42,9 @@ private:
     Settings m_settings;    // store temp setttings data
 
     uint8_t m_currentPage;     // current page
-
-    // uint16_t m_currentItem;     // select item index
-    // uint16_t  m_currentFile;    // select file index
+    uint8_t m_currentItem;     // select item index
+    uint8_t  m_currentSetting;    // select index
+    bool m_isSelectSetting;
 
 private:
     float distanceMultiplier(uint8_t i);
@@ -83,6 +83,31 @@ public:
             return 0;
         }
     }
+
+    inline uint8_t settingIndex() {return m_currentSetting;} // get current selected setting
+
+    inline uint8_t item() {return m_currentItem;}
+
+    inline bool isSettingSelected() {return m_isSelectSetting;}
+
+    inline uint8_t selectedPage()
+    {
+        if (isSettingSelected())
+            return m_currentSetting / LIST_ITEM_MAX;
+        else
+            return 0;
+    }
+
+    bool selectSetting(uint16_t item);
+
+    void clear()
+    {
+        m_currentPage = 0;     // current page
+        m_currentItem = 0;     // select item index
+        m_currentSetting = 0;    // select index
+        m_isSelectSetting = false;       
+    }
+
 
 };
 

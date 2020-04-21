@@ -16,9 +16,34 @@
 
 LgtStore lgtStore;
 
+static const char *txt_menu_setts[SETTINGS_MAX_LEN] = {
+	TXT_MENU_SETTS_ACCL, //"Accel(mm/s^2):",
+	TXT_MENU_SETTS_JERK_XY,//"Vxy-jerk(mm/s):",
+	TXT_MENU_SETTS_JERK_Z,//"Vz-jerk(mm/s):",
+	TXT_MENU_SETTS_JERK_E,//"Ve-jerk(mm/s):",
+	TXT_MENU_SETTS_VMAX_X,//"Vmax x(mm/s):",
+	TXT_MENU_SETTS_VMAX_Y,//"Vmax y(mm/s):",
+	TXT_MENU_SETTS_VMAX_Z,//"Vmax z(mm/s):",
+	TXT_MENU_SETTS_VMAX_E,//"Vmax e(mm/s):",
+	TXT_MENU_SETTS_VMIN,//"Vmin(mm/s):",
+	TXT_MENU_SETTS_VTRAVEL,//"Vtrav min(mm/s):",
+	TXT_MENU_SETTS_AMAX_X,//"Amax x(mm/s^2):",
+	TXT_MENU_SETTS_AMAX_Y,//"Amax y(mm/s^2):",	
+	TXT_MENU_SETTS_AMAX_Z,//"Amax z(mm/s^2):",
+	TXT_MENU_SETTS_AMAX_E,//"Amax e(mm/s^2):",
+	TXT_MENU_SETTS_ARETRACT,//"A-retract(mm/s^2):",
+	TXT_MENU_SETTS_STEP_X,//"X(steps/mm):",	
+	TXT_MENU_SETTS_STEP_Y,//"Y(steps/mm):",	
+	TXT_MENU_SETTS_STEP_Z,//"Z(steps/mm):",	
+	TXT_MENU_SETTS_STEP_E,//"E(steps/mm):",
+	TXT_MENU_SETTS_CHECK_FILA,//"Filament check:",
+	TXT_MENU_SETTS_LIST_ORDER,//"File list order:"
+};
+
 LgtStore::LgtStore()
 {
     memset(reinterpret_cast<void *>(&m_settings), 0, sizeof(m_settings));
+    clear();
 }
 
 void LgtStore::save()
@@ -165,8 +190,9 @@ void LgtStore::syncSettings()
     // m_settings.enabledPowerloss = recovery.enabled;
 }
 
-void LgtStore::settingString(uint8_t i, char* p)
+void LgtStore::settingString(uint8_t i, char* str)
 {
+    char p[10] = {0};
 	if (i >= SETTINGS_MAX_LEN) {			/* error index */
 		return;
 	} else if (i >= 19) {  	/* bool type */				
@@ -190,6 +216,9 @@ void LgtStore::settingString(uint8_t i, char* p)
 	} else { /* float type */
         sprintf(p,"%8.2f", *reinterpret_cast<float *>(settingPointer(i)));
 	}
+
+    sprintf(str, "%-20s%s", txt_menu_setts[i], p);
+
 }
 
 void *LgtStore::settingPointer(uint8_t i)
@@ -286,5 +315,20 @@ void LgtStore::changeSetting(uint8_t i, int8_t inc_sign, uint8_t distance)
 	}
 	// ConfigSettings.calcAccelRates();
 }
+
+ bool LgtStore::selectSetting(uint16_t item)
+ {
+    if (item < LIST_ITEM_MAX) {
+        uint16_t n = m_currentPage * LIST_ITEM_MAX + item;
+        if (n < SETTINGS_MAX_LEN) {
+            m_currentItem = item;
+            m_currentSetting = n;
+            m_isSelectSetting = true;
+            return false;   // success to set
+        }
+    }
+    return true;   // fail to set
+ }
+
 
 #endif
