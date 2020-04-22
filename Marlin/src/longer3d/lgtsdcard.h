@@ -119,6 +119,8 @@ private:
     uint16_t m_printTime;   // total print time. minute unit
 
     bool m_cardState;
+
+    char *recoveryFilename[32];
 };
 
 extern LgtSdCard lgtCard;

@@ -4,6 +4,7 @@
 #include "w25qxx.h"
 #include "lgtsdcard.h"
 #include "lgttftdef.h"
+#include "lgttouch.h"
 
 // #include "../../src/libs/crc16.h"
 #include "../feature/runout.h"
@@ -11,8 +12,8 @@
 
 #define WRITE_VAR(value)        do { FLASH_WRITE_VAR(addr, value); addr += sizeof(value); } while(0)
 #define READ_VAR(value)         do { FLASH_READ_VAR(addr, value); addr += sizeof(value); } while(0)
-// #define SAVE_SETTINGS()         FLASH_WRITE_VAR(FLASH_ADDR_SETTINGS, m_settings)
-// #define LOAD_SETTINGS()         FLASH_READ_VAR(FLASH_ADDR_SETTINGS, m_settings)
+// #define SAVE_SETTINGS()         FLASH_WRITE_VAR(SPIFLASH_ADDR_SETTINGS, m_settings)
+// #define LOAD_SETTINGS()         FLASH_READ_VAR(SPIFLASH_ADDR_SETTINGS, m_settings)
 
 LgtStore lgtStore;
 
@@ -62,12 +63,12 @@ void LgtStore::save()
     // m_settings.crc = crc;
     
     // save some settings in spiflash
-    uint32_t addr = FLASH_ADDR_SETTINGS;
+    uint32_t addr = SPIFLASH_ADDR_SETTINGS;
     WRITE_VAR(m_settings.version);
     WRITE_VAR(m_settings.listOrder);
     WRITE_VAR(m_settings.enabledRunout);
     WRITE_VAR(m_settings.enabledPowerloss);
-    SERIAL_ECHOPAIR("settings stored to spiflash(", addr - FLASH_ADDR_SETTINGS);
+    SERIAL_ECHOPAIR("settings stored to spiflash(", addr - SPIFLASH_ADDR_SETTINGS);
     SERIAL_ECHOLN(" bytes)");
 
     //  save other settings in internal flash
@@ -78,9 +79,9 @@ void LgtStore::save()
 /**
  * validate if settings is stored in spiflash
  */
-bool LgtStore::validate()
+bool LgtStore::validate(const char *current, const char*stored)
 {
-    if (strcmp(m_settings.version, SETTINGS_VERSION) == 0)
+    if (strcmp(current, stored) == 0)
         return true;
     return false;
 }
@@ -92,13 +93,13 @@ bool LgtStore::validate()
  */
 bool LgtStore::load()
 {
-    uint32_t addr = FLASH_ADDR_SETTINGS;
+    uint32_t addr = SPIFLASH_ADDR_SETTINGS;
 
     SERIAL_ECHOLN("-- load settings form spiflash start --");
     READ_VAR(m_settings.version);
     SERIAL_ECHOLNPAIR("stored version: ", m_settings.version);
     SERIAL_ECHOLNPAIR("current version: ", SETTINGS_VERSION);
-    if (!validate()) {
+    if (!validate(SETTINGS_VERSION, m_settings.version)) {
        SERIAL_ECHOLN("load failed, reset settings");
        _reset();
        return false;    
@@ -410,5 +411,86 @@ void LgtStore::changeSetting(uint8_t i, int8_t distance)
     return true;   // fail to set
  }
 
+void LgtStore::saveTouch()
+{
+    TouchCalibration &touch = lgtTouch.calibrationData();
+    // set version string
+    strcpy(touch.version, TOUCH_VERSION);
+    // save calibration data in spiflash
+    uint32_t addr = SPIFLASH_ADDR_TOUCH;
+    WRITE_VAR(touch);
+    SERIAL_ECHOPAIR("touch data stored to spiflash(", addr - SPIFLASH_ADDR_TOUCH);
+    SERIAL_ECHOLN(" bytes)");
+}
+
+bool LgtStore::loadTouch()
+{
+    SERIAL_ECHOLN("-- load touch data form spiflash start --");
+    uint32_t addr = SPIFLASH_ADDR_TOUCH;
+    TouchCalibration &touch = lgtTouch.calibrationData();
+    READ_VAR(touch.version);
+    SERIAL_ECHOLNPAIR("stored version: ", touch.version);
+    SERIAL_ECHOLNPAIR("current version: ", TOUCH_VERSION);
+    if (!validate(TOUCH_VERSION, touch.version)) {
+       SERIAL_ECHOLN("load failed, reset touch data");
+        lgtTouch.resetCalibration();
+       return false;    
+    }
+    READ_VAR(touch.xCalibration);
+    SERIAL_ECHOLNPAIR("xCali: ", touch.xCalibration);
+
+    READ_VAR(touch.yCalibration);
+    SERIAL_ECHOLNPAIR("yCali: ", touch.yCalibration);
+
+    READ_VAR(touch.xOffset);
+    SERIAL_ECHOLNPAIR("xOffset: ", touch.xOffset);
+
+    READ_VAR(touch.yOffset);
+    SERIAL_ECHOLNPAIR("yOffset: ", touch.yOffset);
+
+    SERIAL_ECHOLN("-- load touch data form spiflash end --");
+    return true;
+}
+
+void LgtStore::saveRecovery()
+{
+    // TouchCalibration &touch = lgtTouch.calibrationData();
+    // // set version string
+    // strcpy(touch.version, TOUCH_VERSION);
+    // // save calibration data in spiflash
+    // uint32_t addr = SPIFLASH_ADDR_TOUCH;
+    // WRITE_VAR(touch);
+    // SERIAL_ECHOPAIR("settings stored to spiflash(", addr - SPIFLASH_ADDR_SETTINGS);
+    // SERIAL_ECHOLN(" bytes)");
+}
+
+bool LgtStore::loadRecovery()
+{
+    // SERIAL_ECHOLN("-- load touch data form spiflash start --");
+    // uint32_t addr = SPIFLASH_ADDR_TOUCH;
+    // TouchCalibration &touch = lgtTouch.calibrationData();
+    // READ_VAR(touch.version);
+    // SERIAL_ECHOLNPAIR("stored version: ", touch.version);
+    // SERIAL_ECHOLNPAIR("current version: ", TOUCH_VERSION);
+    // if (!validate(SETTINGS_VERSION, touch.version)) {
+    //    SERIAL_ECHOLN("load failed, reset touch data");
+    //     lgtTouch.resetCalibration();
+    //    return false;    
+    // }
+    // READ_VAR(touch.xCalibration);
+    // SERIAL_ECHOLNPAIR("xCali: ", touch.xCalibration);
+
+    // READ_VAR(touch.yCalibration);
+    // SERIAL_ECHOLNPAIR("yCali: ", touch.yCalibration);
+
+    // READ_VAR(touch.xOffset);
+    // SERIAL_ECHOLNPAIR("xOffset: ", touch.xOffset);
+
+    // READ_VAR(touch.yOffset);
+    // SERIAL_ECHOLNPAIR("yOffset: ", touch.yOffset);
+
+    // SERIAL_ECHOLN("-- load touch data form spiflash end --");
+    return true;
+}
 
 #endif

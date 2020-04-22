@@ -3218,6 +3218,8 @@ void LgtLcdTft::init()
     #if ENABLED(POWER_LOSS_RECOVERY)
 	recovery.check();
 	#endif
+	// load touch calibration
+	lgtStore.loadTouch();
 	// load tft settings
 	lgtStore.load();
 }

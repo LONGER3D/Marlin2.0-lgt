@@ -4,6 +4,7 @@
 #include "lgttouch.h"
 #include "lcddrive/lcdapi.h"
 #include "lgttftdef.h"
+#include "lgtstore.h"
 
 #define DEBUG_LGT_TOUCH
 #define DEBUG_OUT ENABLED(DEBUG_LGT_TOUCH)
@@ -13,14 +14,6 @@
 #define ERR_RANGE 50u           // touch error range
 
 LgtTouch lgtTouch;
-
-LgtTouch::LgtTouch()
-{
-    calib.xCalibration = XPT2046_X_CALIBRATION;
-    calib.yCalibration = XPT2046_Y_CALIBRATION;
-    calib.xOffset      = XPT2046_X_OFFSET;
-    calib.yOffset      = XPT2046_Y_OFFSET;    
-}
 
 /**
  * read touch x-y value
@@ -268,13 +261,23 @@ uint8_t LgtTouch::calibrate()
   MYSERIAL0.print("X: "); MYSERIAL0.print(x[2]); MYSERIAL0.print("   Y: "); MYSERIAL0.println(y[2]);
   MYSERIAL0.print("X: "); MYSERIAL0.print(x[3]); MYSERIAL0.print("   Y: "); MYSERIAL0.println(y[3]);
   MYSERIAL0.flush();
-
+ 
+  // save data
+  lgtStore.saveTouch();
   // wait for touch
   while (!isTouched()) { /* nada */ }
   lgtlcd.setColor(BLACK);
   lgtlcd.setBgColor(WHITE);
 
  return 1;
+}
+
+void LgtTouch::resetCalibration()
+{
+    calib.xCalibration = XPT2046_X_CALIBRATION;
+    calib.yCalibration = XPT2046_Y_CALIBRATION;
+    calib.xOffset      = XPT2046_X_OFFSET;
+    calib.yOffset      = XPT2046_Y_OFFSET; 
 }
 
 

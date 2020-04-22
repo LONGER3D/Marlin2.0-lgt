@@ -3,12 +3,18 @@
 #include "../module/planner.h"
 
 #if ENABLED(LGT_LCD_TFT)
+#define SPIFLASH_SIZE               0x400000    // 4MB
+#define SPIFLASH_DATA_SIZE          0x1000      // 1KB
+#define SPIFLASH_ADDR_DATA          (SPIFLASH_SIZE - SPIFLASH_DATA_SIZE)
+#define SPIFLASH_ADDR_TOUCH         SPIFLASH_ADDR_DATA      
+#define SPIFLASH_ADDR_RECOVERY      (SPIFLASH_ADDR_TOUCH + 16)
+#define SPIFLASH_ADDR_SETTINGS      (SPIFLASH_ADDR_RECOVERY + 64)
 
-#define FLASH_ADDR_SETTINGS 0x300800u
+#define TOUCH_VERSION       "V01"
 #define SETTINGS_VERSION    "V02"   // change value when settings struct is changed
 
 #ifndef LIST_ITEM_MAX
-#define LIST_ITEM_MAX        5
+    #define LIST_ITEM_MAX        5
 #endif
 
 #define SETTINGS_MAX_LEN 22 // ** it must sync with settings struct
@@ -55,7 +61,7 @@ private:
 private:
     float distanceMultiplier(uint8_t i);
     void  *settingPointer(uint8_t i);
-    bool validate();
+    bool validate(const char *current, const char*stored);
     void _reset();
 
 public:
@@ -127,6 +133,11 @@ public:
     inline bool isModified() { return m_settingsModified; }
     inline void setModified(bool b) { m_settingsModified = b; }
 
+    void saveTouch();
+    bool loadTouch();
+
+    void saveRecovery();
+    bool loadRecovery();
 };
 
 extern LgtStore lgtStore;
