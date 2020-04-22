@@ -5,12 +5,14 @@
 #if ENABLED(LGT_LCD_TFT)
 
 #define FLASH_ADDR_SETTINGS 0x300800u
-#define SETTINGS_VERSION    "V01"
+#define SETTINGS_VERSION    "V02"   // change value when settings struct is changed
 
 #ifndef LIST_ITEM_MAX
 #define LIST_ITEM_MAX        5
 #endif
-#define SETTINGS_MAX_LEN 21 // it must sync with settings struct
+
+#define SETTINGS_MAX_LEN 22 // ** it must sync with settings struct
+
 #if (SETTINGS_MAX_LEN % 5) == 0
 	#define SETTINGS_MAX_PAGE (SETTINGS_MAX_LEN / 5)
 #else
@@ -33,9 +35,9 @@ struct Settings
     // start to store in spiflash
     char version[4];    // Vxx\0
     // uint16_t crc;       // checksum for data below
-	bool enabledRunout;
-	bool listOrder;
-    // bool enabledPowerloss;
+    bool listOrder;
+    bool enabledRunout;
+    bool enabledPowerloss;
 }; 
 
 class LgtStore 

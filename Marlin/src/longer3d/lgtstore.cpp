@@ -3,18 +3,20 @@
 #if ENABLED(LGT_LCD_TFT)
 #include "w25qxx.h"
 #include "lgtsdcard.h"
-#include "../feature/runout.h"
-// #include "../feature/powerloss.h"
-#include "../../src/libs/crc16.h"
 #include "lgttftdef.h"
 
-#define WRITE_VAR(value)              do { FLASH_WRITE_VAR(addr, value); addr += sizeof(value); } while(0)
-#define READ_VAR(value)              do { FLASH_READ_VAR(addr, value); addr += sizeof(value); } while(0)
-#define SAVE_SETTINGS() FLASH_WRITE_VAR(FLASH_ADDR_SETTINGS, m_settings)
-#define LOAD_SETTINGS() FLASH_READ_VAR(FLASH_ADDR_SETTINGS, m_settings)
+// #include "../../src/libs/crc16.h"
+#include "../feature/runout.h"
+#include "../feature/powerloss.h"
+
+#define WRITE_VAR(value)        do { FLASH_WRITE_VAR(addr, value); addr += sizeof(value); } while(0)
+#define READ_VAR(value)         do { FLASH_READ_VAR(addr, value); addr += sizeof(value); } while(0)
+// #define SAVE_SETTINGS()         FLASH_WRITE_VAR(FLASH_ADDR_SETTINGS, m_settings)
+// #define LOAD_SETTINGS()         FLASH_READ_VAR(FLASH_ADDR_SETTINGS, m_settings)
 
 LgtStore lgtStore;
 
+// this coanst text arry must sync with settings struct and settingPointer function
 static const char *txt_menu_setts[SETTINGS_MAX_LEN] = {
 	TXT_MENU_SETTS_ACCL, //"Accel(mm/s^2):",
 	TXT_MENU_SETTS_JERK_XY,//"Vxy-jerk(mm/s):",
@@ -35,8 +37,9 @@ static const char *txt_menu_setts[SETTINGS_MAX_LEN] = {
 	TXT_MENU_SETTS_STEP_Y,//"Y(steps/mm):",	
 	TXT_MENU_SETTS_STEP_Z,//"Z(steps/mm):",	
 	TXT_MENU_SETTS_STEP_E,//"E(steps/mm):",
+    TXT_MENU_SETTS_LIST_ORDER,//"File list order:"
 	TXT_MENU_SETTS_CHECK_FILA,//"Filament check:",
-	TXT_MENU_SETTS_LIST_ORDER,//"File list order:"
+    TXT_MENU_SETTS_RECOVERY
 };
 
 LgtStore::LgtStore()
@@ -63,6 +66,7 @@ void LgtStore::save()
     WRITE_VAR(m_settings.version);
     WRITE_VAR(m_settings.enabledRunout);
     WRITE_VAR(m_settings.listOrder);
+    WRITE_VAR(m_settings.enabledPowerloss);
     SERIAL_ECHOPAIR("settings stored to spiflash(", addr - FLASH_ADDR_SETTINGS);
     SERIAL_ECHOLN(" bytes)");
 
@@ -81,8 +85,8 @@ bool LgtStore::validate()
     return false;
 }
 
-
 /**
+ * load settings from spiflash
  * spi flash -> settings struct -> memory(apply)
  */
 bool LgtStore::load()
@@ -107,9 +111,11 @@ bool LgtStore::load()
     SERIAL_ECHOLNPAIR("listOrder: ", m_settings.listOrder);
     lgtCard.setListOrder(m_settings.listOrder);
 
-    // READ_VAR(m_settings.enabledPowerloss);
-    // recovery.enable(m_settings.enabledPowerloss); 
+    READ_VAR(m_settings.enabledPowerloss);
+    SERIAL_ECHOLNPAIR("enabledPowerloss: ", m_settings.enabledPowerloss);
+    recovery.enable(m_settings.enabledPowerloss); 
     SERIAL_ECHOLN("-- load settings form spiflash end --");
+
     return true;
 
     // LOAD_SETTINGS();
@@ -150,7 +156,7 @@ void LgtStore::_reset()
 {
     runout.enabled = true;
     lgtCard.setListOrder(false);
-    // recovery.enable(PLR_ENABLED_DEFAULT);
+    recovery.enable(PLR_ENABLED_DEFAULT);
 }
 
 /**
@@ -224,7 +230,7 @@ void LgtStore::applySettings()
 
     runout.enabled = m_settings.enabledRunout;
     lgtCard.setListOrder(m_settings.listOrder);
-    // recovery.enable(m_settings.enabledPowerloss);
+    recovery.enable(m_settings.enabledPowerloss);
 }
 
 /**
@@ -250,27 +256,35 @@ void LgtStore::syncSettings()
     #endif
     m_settings.enabledRunout = runout.enabled;
     m_settings.listOrder = lgtCard.isReverseList();
-    // m_settings.enabledPowerloss = recovery.enabled;
+    m_settings.enabledPowerloss = recovery.enabled;
 }
 
 void LgtStore::settingString(uint8_t i, char* str)
 {
     char p[10] = {0};
-	if (i >= SETTINGS_MAX_LEN) {			/* error index */
+	if (i >= SETTINGS_MAX_LEN) { /* error index */
 		return;
-	} else if (i >= 19) {  	/* bool type */				
+	} else if (i >= 20) {  	    /* bool type */				
         #ifndef Chinese
-            if(*reinterpret_cast<bool *>(settingPointer(i)))
-                sprintf(p,"%8s", TXT_MENU_SETTS_VALUE_ON);
-            else
-                sprintf(p,"%8s", TXT_MENU_SETTS_VALUE_OFF);
+            const char * format = "%8s";
         #else
-            if(*reinterpret_cast<bool *>(settingPointer(i)))
-                sprintf(p,"%5s", TXT_MENU_SETTS_VALUE_INVERSE);
-            else
-                sprintf(p,"%5s", TXT_MENU_SETTS_VALUE_FORWARD);
+            const char * format = "%5s";
         #endif
-	} else if (i >= 10 && i<= 13) { /* uint32 type */		
+        if(*reinterpret_cast<bool *>(settingPointer(i)))
+            sprintf(p, format, TXT_MENU_SETTS_VALUE_ON);
+        else
+            sprintf(p, format, TXT_MENU_SETTS_VALUE_OFF);
+	} else if (i == 19) {       // bool type
+        #ifndef Chinese
+            const char * format = "%8s";
+        #else
+            const char * format = "%5s";
+        #endif
+        if(*reinterpret_cast<bool *>(settingPointer(i)))
+            sprintf(p, format, TXT_MENU_SETTS_VALUE_INVERSE);
+        else
+            sprintf(p, format, TXT_MENU_SETTS_VALUE_FORWARD);
+    } else if (i >= 10 && i<= 13) { /* uint32 type */		
 		#ifndef Chinese 				
 			sprintf(p,"%8lu", *reinterpret_cast<uint32_t *>(settingPointer(i)));			
 		#else
@@ -288,6 +302,7 @@ void *LgtStore::settingPointer(uint8_t i)
 {
 	switch(i)
 	{
+        // float type
 		case 0:
 			return &m_settings.acceleration;	
 		case 1:
@@ -308,6 +323,7 @@ void *LgtStore::settingPointer(uint8_t i)
 			return &m_settings.minimumfeedrate;
 		case 9:
 			return &m_settings.mintravelfeedrate;
+        // uint32 type
 		case 10:
 			return &m_settings.max_acceleration_units_per_sq_second[0];
 		case 11: 
@@ -316,6 +332,7 @@ void *LgtStore::settingPointer(uint8_t i)
 			return &m_settings.max_acceleration_units_per_sq_second[2];
 		case 13:
 			return &m_settings.max_acceleration_units_per_sq_second[3];
+        // float type
 		case 14: 
 			return &m_settings.retract_acceleration;
 		case 15:
@@ -326,10 +343,13 @@ void *LgtStore::settingPointer(uint8_t i)
 			return &m_settings.axis_steps_per_unit[2];
 		case 18:
 			return &m_settings.axis_steps_per_unit[3];
-		case 19:
+        // bool type
+        case 19:
+            return &m_settings.listOrder;        
+		case 20:
 			return &m_settings.enabledRunout;
-        case 20:
-            return &m_settings.listOrder;
+        case 21:
+            return &m_settings.enabledPowerloss;
 		default: return 0;
 	}
 }
