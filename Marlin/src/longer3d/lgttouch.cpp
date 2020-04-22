@@ -14,10 +14,13 @@
 
 LgtTouch lgtTouch;
 
-int16_t LgtTouch::xCalibration = XPT2046_X_CALIBRATION;
-int16_t LgtTouch::yCalibration = XPT2046_Y_CALIBRATION;
-int16_t LgtTouch::xOffset = XPT2046_X_OFFSET;
-int16_t LgtTouch::yOffset = XPT2046_Y_OFFSET;
+LgtTouch::LgtTouch()
+{
+    calib.xCalibration = XPT2046_X_CALIBRATION;
+    calib.yCalibration = XPT2046_Y_CALIBRATION;
+    calib.xOffset      = XPT2046_X_OFFSET;
+    calib.yOffset      = XPT2046_Y_OFFSET;    
+}
 
 /**
  * read touch x-y value
@@ -58,20 +61,20 @@ uint8_t LgtTouch::readTouchXY2(uint16_t &x, uint16_t &y)
 
 uint8_t LgtTouch::readTouchPoint(uint16_t &x, uint16_t &y)
 {
-  if (xCalibration + xOffset == 0) {
+  if (calib.xCalibration + calib.xOffset == 0) {
     // Not yet set, so use defines as fallback...
-    xCalibration = XPT2046_X_CALIBRATION;
-    xOffset      = XPT2046_X_OFFSET;
-    yCalibration = XPT2046_Y_CALIBRATION;
-    yOffset      = XPT2046_Y_OFFSET;
+    calib.xCalibration = XPT2046_X_CALIBRATION;
+    calib.xOffset      = XPT2046_X_OFFSET;
+    calib.yCalibration = XPT2046_Y_CALIBRATION;
+    calib.yOffset      = XPT2046_Y_OFFSET;
   }
 
   if (!isTouched())
     return 0;
   uint16_t xAd, yAd;
   if (readTouchXY2(xAd, yAd)) {
-    x = uint16_t((uint32_t(xAd) * xCalibration) >> 16) + xOffset;
-    y = uint16_t((uint32_t(yAd) * yCalibration) >> 16) + yOffset;
+    x = uint16_t((uint32_t(xAd) * calib.xCalibration) >> 16) + calib.xOffset;
+    y = uint16_t((uint32_t(yAd) * calib.yCalibration) >> 16) + calib.yOffset;
   } else {
     DEBUG_ECHOLN("read touch failed");
     x = y = 0;
@@ -186,11 +189,11 @@ uint8_t LgtTouch::calibrate()
 
   // calulate touch coefficient
   // 36569088L == ((int32_t)(299 - 20)) << 17
-  xCalibration = (int16_t)(36569088L / ((int32_t)x[3] + (int32_t)x[2] - (int32_t)x[1] - (int32_t)x[0]));
+  calib.xCalibration = (int16_t)(36569088L / ((int32_t)x[3] + (int32_t)x[2] - (int32_t)x[1] - (int32_t)x[0]));
   // 26083328L == ((int32_t)(219 - 20)) << 17
-  yCalibration = (int16_t)(26083328L / ((int32_t)y[3] - (int32_t)y[2] + (int32_t)y[1] - (int32_t)y[0]));
-  xOffset = (int16_t)(20 - ((((int32_t)(x[0] + x[1])) * (int32_t)xCalibration) >> 17));
-  yOffset = (int16_t)(20 - ((((int32_t)(y[0] + y[2])) * (int32_t)yCalibration) >> 17));
+  calib.yCalibration = (int16_t)(26083328L / ((int32_t)y[3] - (int32_t)y[2] + (int32_t)y[1] - (int32_t)y[0]));
+  calib.xOffset = (int16_t)(20 - ((((int32_t)(x[0] + x[1])) * (int32_t)calib.xCalibration) >> 17));
+  calib.yOffset = (int16_t)(20 - ((((int32_t)(y[0] + y[2])) * (int32_t)calib.yCalibration) >> 17));
 
   // print result to lcd
 
@@ -206,29 +209,29 @@ uint8_t LgtTouch::calibrate()
 
   sprintf(text, TXT_X_CALIBRATION);
   lgtlcd.print(76, 108, text);
-  sprintf(text, "%6d", xCalibration);
-  lgtlcd.m_color = xCalibration >= 0 ? GREEN : RED;
+  sprintf(text, "%6d", calib.xCalibration);
+  lgtlcd.m_color = calib.xCalibration >= 0 ? GREEN : RED;
   lgtlcd.print(196, 108, text);
   lgtlcd.m_color = YELLOW;
 
   sprintf(text, TXT_Y_CALIBRATION);
   lgtlcd.print(76, 124, text);
-  sprintf(text, "%6d", yCalibration);
-  lgtlcd.m_color = yCalibration >= 0 ? GREEN : RED;
+  sprintf(text, "%6d", calib.yCalibration);
+  lgtlcd.m_color = calib.yCalibration >= 0 ? GREEN : RED;
   lgtlcd.print(196, 124, text);
   lgtlcd.m_color = YELLOW;
 
   sprintf(text, TXT_X_OFFSET);
   lgtlcd.print(76, 140, text);
-  sprintf(text, "%6d", xOffset);
-  lgtlcd.m_color = xOffset >= 0 ? GREEN : RED;
+  sprintf(text, "%6d", calib.xOffset);
+  lgtlcd.m_color = calib.xOffset >= 0 ? GREEN : RED;
   lgtlcd.print(196, 140, text);
   lgtlcd.m_color = YELLOW;
 
   sprintf(text, TXT_Y_OFFSET);
   lgtlcd.print(76, 156, text);
-  sprintf(text, "%6d", yOffset);
-  lgtlcd.m_color = yOffset >= 0 ? GREEN : RED;
+  sprintf(text, "%6d", calib.yOffset);
+  lgtlcd.m_color = calib.yOffset >= 0 ? GREEN : RED;
   lgtlcd.print(196, 156, text);
   lgtlcd.m_color = GREEN;
   length = sprintf(text, TXT_PROMPT_INFO1);
@@ -239,25 +242,25 @@ uint8_t LgtTouch::calibrate()
 
   // print result to serial
   MYSERIAL0.print("xCalibration:");
-  MYSERIAL0.print(xCalibration);
+  MYSERIAL0.print(calib.xCalibration);
   MYSERIAL0.println();
   MYSERIAL0.print("yCalibration:");
-  MYSERIAL0.print(yCalibration);
+  MYSERIAL0.print(calib.yCalibration);
   MYSERIAL0.println();
   MYSERIAL0.print("xOffset:");
-  MYSERIAL0.print(xOffset);
+  MYSERIAL0.print(calib.xOffset);
   MYSERIAL0.println();
   MYSERIAL0.print("yOffset:");
-  MYSERIAL0.print(yOffset);
+  MYSERIAL0.print(calib.yOffset);
 
-  x[0] = (uint16_t)((((int32_t)x[0] * (int32_t)xCalibration) >> 16) + xOffset);
-  x[1] = (uint16_t)((((int32_t)x[1] * (int32_t)xCalibration) >> 16) + xOffset);
-  x[2] = (uint16_t)((((int32_t)x[2] * (int32_t)xCalibration) >> 16) + xOffset);
-  x[3] = (uint16_t)((((int32_t)x[3] * (int32_t)xCalibration) >> 16) + xOffset);
-  y[0] = (uint16_t)((((int32_t)y[0] * (int32_t)yCalibration) >> 16) + yOffset);
-  y[1] = (uint16_t)((((int32_t)y[1] * (int32_t)yCalibration) >> 16) + yOffset);
-  y[2] = (uint16_t)((((int32_t)y[2] * (int32_t)yCalibration) >> 16) + yOffset);
-  y[3] = (uint16_t)((((int32_t)y[3] * (int32_t)yCalibration) >> 16) + yOffset);
+  x[0] = (uint16_t)((((int32_t)x[0] * (int32_t)calib.xCalibration) >> 16) + calib.xOffset);
+  x[1] = (uint16_t)((((int32_t)x[1] * (int32_t)calib.xCalibration) >> 16) + calib.xOffset);
+  x[2] = (uint16_t)((((int32_t)x[2] * (int32_t)calib.xCalibration) >> 16) + calib.xOffset);
+  x[3] = (uint16_t)((((int32_t)x[3] * (int32_t)calib.xCalibration) >> 16) + calib.xOffset);
+  y[0] = (uint16_t)((((int32_t)y[0] * (int32_t)calib.yCalibration) >> 16) + calib.yOffset);
+  y[1] = (uint16_t)((((int32_t)y[1] * (int32_t)calib.yCalibration) >> 16) + calib.yOffset);
+  y[2] = (uint16_t)((((int32_t)y[2] * (int32_t)calib.yCalibration) >> 16) + calib.yOffset);
+  y[3] = (uint16_t)((((int32_t)y[3] * (int32_t)calib.yCalibration) >> 16) + calib.yOffset);
 
   MYSERIAL0.println("\nCalibrated coordinates:");
   MYSERIAL0.print("X: "); MYSERIAL0.print(x[0]); MYSERIAL0.print("   Y: "); MYSERIAL0.println(y[0]);
