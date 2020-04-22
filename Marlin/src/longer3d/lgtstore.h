@@ -1,15 +1,15 @@
 #pragma once
 
-// #include "../../inc/MarlinConfigPre.h"
 #include "../module/planner.h"
 
 #if ENABLED(LGT_LCD_TFT)
 
+#define FLASH_ADDR_SETTINGS 0x300800u
 #define SETTINGS_VERSION    "V01"
+
 #ifndef LIST_ITEM_MAX
 #define LIST_ITEM_MAX        5
 #endif
-
 #define SETTINGS_MAX_LEN 21 // it must sync with settings struct
 #if (SETTINGS_MAX_LEN % 5) == 0
 	#define SETTINGS_MAX_PAGE (SETTINGS_MAX_LEN / 5)
@@ -19,9 +19,6 @@
 
 struct Settings
 {
-    // new
-    char version[4];    // Vxx\0
-    uint16_t crc;       // checksum for data below
 	float acceleration; // data start
 	float max_xy_jerk;
 	float max_z_jerk;
@@ -32,12 +29,17 @@ struct Settings
 	uint32_t max_acceleration_units_per_sq_second[XYZE];
 	float retract_acceleration;
 	float axis_steps_per_unit[XYZE];
+
+    // start to store in spiflash
+    char version[4];    // Vxx\0
+    // uint16_t crc;       // checksum for data below
 	bool enabledRunout;
 	bool listOrder;
     // bool enabledPowerloss;
 }; 
 
-class LgtStore {
+class LgtStore 
+{
 private:
     Settings m_settings;    // store temp setttings data
 
@@ -51,6 +53,8 @@ private:
 private:
     float distanceMultiplier(uint8_t i);
     void  *settingPointer(uint8_t i);
+    bool validate();
+    void _reset();
 
 public:
     LgtStore();
@@ -66,7 +70,7 @@ public:
     void applySettings();
     void syncSettings();
     void save();
-    void load();
+    bool load();
     void reset();
 
     void settingString(uint8_t i, char* p);

@@ -8,9 +8,8 @@
 #include "../../src/libs/crc16.h"
 #include "lgttftdef.h"
 
-#define FLASH_WRITE_VAR(addr, value)  spiFlash.W25QXX_Write(reinterpret_cast<uint8_t *>(&value), uint32_t(addr), sizeof(value))
-#define FLASH_READ_VAR(addr, value)   spiFlash.W25QXX_Read(reinterpret_cast<uint8_t *>(&value), uint32_t(addr), sizeof(value))
-#define FLASH_ADDR_SETTINGS 0x300800u
+#define WRITE_VAR(value)              do { FLASH_WRITE_VAR(addr, value); addr += sizeof(value); } while(0)
+#define READ_VAR(value)              do { FLASH_READ_VAR(addr, value); addr += sizeof(value); } while(0)
 #define SAVE_SETTINGS() FLASH_WRITE_VAR(FLASH_ADDR_SETTINGS, m_settings)
 #define LOAD_SETTINGS() FLASH_READ_VAR(FLASH_ADDR_SETTINGS, m_settings)
 
@@ -51,54 +50,111 @@ void LgtStore::save()
 
     // set version string
     strcpy(m_settings.version, SETTINGS_VERSION);
-    SERIAL_ECHOLNPAIR("save version: ", m_settings.version);
+    // SERIAL_ECHOLNPAIR("save version: ", m_settings.version);
+
     // calc crc
-    uint16_t crc = 0;
-    crc16(&crc, reinterpret_cast<void *>(&m_settings.acceleration), sizeof(m_settings) - 4 - 2);
-    SERIAL_ECHOLNPAIR("save crc: ", crc);
-    m_settings.crc = crc;
-    SAVE_SETTINGS();    // save setttings struct into spi flash
+    // uint16_t crc = 0;
+    // crc16(&crc, reinterpret_cast<void *>(&m_settings.acceleration), sizeof(m_settings) - 4 - 2);
+    // SERIAL_ECHOLNPAIR("save crc: ", crc);
+    // m_settings.crc = crc;
+    
+    // save some settings in spiflash
+    uint32_t addr = FLASH_ADDR_SETTINGS;
+    WRITE_VAR(m_settings.version);
+    WRITE_VAR(m_settings.enabledRunout);
+    WRITE_VAR(m_settings.listOrder);
+    SERIAL_ECHOPAIR("settings stored to spiflash(", addr - FLASH_ADDR_SETTINGS);
+    SERIAL_ECHOLN(" bytes)");
+
+    //  save other settings in internal flash
+    queue.enqueue_now_P("M500"); 
     setModified(false);
 }
 
 /**
+ * validate if settings is stored in spiflash
+ */
+bool LgtStore::validate()
+{
+    if (strcmp(m_settings.version, SETTINGS_VERSION) == 0)
+        return true;
+    return false;
+}
+
+
+/**
  * spi flash -> settings struct -> memory(apply)
  */
-void LgtStore::load()
+bool LgtStore::load()
 {
-    LOAD_SETTINGS();
+    uint32_t addr = FLASH_ADDR_SETTINGS;
 
-    SERIAL_ECHOLNPAIR("load settings version: ", m_settings.version);
-    SERIAL_ECHOLNPAIR("load settings crc: ", m_settings.crc);
-    // calc crc
-    uint16_t crc = 0;
-    crc16(&crc, reinterpret_cast<void *>(&m_settings.acceleration), sizeof(m_settings) - 4 - 2);
-    SERIAL_ECHOLNPAIR("current crc: ", crc);   
-
-    LOOP_XYZE_N(i) {
-        planner.settings.axis_steps_per_mm[i]          = m_settings.axis_steps_per_unit[i];
-        planner.settings.max_feedrate_mm_s[i]          = m_settings.max_feedrate[i];
-        planner.settings.max_acceleration_mm_per_s2[i] = m_settings.max_acceleration_units_per_sq_second[i];
+    SERIAL_ECHOLN("-- load settings form spiflash start --");
+    READ_VAR(m_settings.version);
+    SERIAL_ECHOLNPAIR("stored version: ", m_settings.version);
+    SERIAL_ECHOLNPAIR("current version: ", SETTINGS_VERSION);
+    if (!validate()) {
+       SERIAL_ECHOLN("load failed, reset settings");
+       _reset();
+       return false;    
     }
-    planner.refresh_positioning();
-    planner.settings.acceleration = m_settings.acceleration;
-    planner.settings.retract_acceleration = m_settings.retract_acceleration;;
-    planner.settings.min_feedrate_mm_s =   m_settings.minimumfeedrate;
-    planner.settings.min_travel_feedrate_mm_s = m_settings.mintravelfeedrate;
-    planner.max_jerk[X_AXIS] = m_settings.max_xy_jerk;
-    planner.max_jerk[Y_AXIS] = m_settings.max_xy_jerk;
-    planner.max_jerk[Z_AXIS] =  m_settings.max_z_jerk;
-    #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
-      planner.max_jerk[E_AXIS] =  m_settings.max_e_jerk;
-    #endif
 
+    READ_VAR(m_settings.enabledRunout);
+    SERIAL_ECHOLNPAIR("enabledRunout: ", m_settings.enabledRunout);
     runout.enabled = m_settings.enabledRunout;
+
+    READ_VAR(m_settings.listOrder);
+    SERIAL_ECHOLNPAIR("listOrder: ", m_settings.listOrder);
     lgtCard.setListOrder(m_settings.listOrder);
-    // recovery.enable(m_settings.enabledPowerloss);
+
+    // READ_VAR(m_settings.enabledPowerloss);
+    // recovery.enable(m_settings.enabledPowerloss); 
+    SERIAL_ECHOLN("-- load settings form spiflash end --");
+    return true;
+
+    // LOAD_SETTINGS();
+
+    // SERIAL_ECHOLNPAIR("load settings version: ", m_settings.version);
+    // SERIAL_ECHOLNPAIR("load settings crc: ", m_settings.crc);
+    // // calc crc
+    // uint16_t crc = 0;
+    // crc16(&crc, reinterpret_cast<void *>(&m_settings.acceleration), sizeof(m_settings) - 4 - 2);
+    // SERIAL_ECHOLNPAIR("current crc: ", crc);   
+
+    // LOOP_XYZE_N(i) {
+    //     planner.settings.axis_steps_per_mm[i]          = m_settings.axis_steps_per_unit[i];
+    //     planner.settings.max_feedrate_mm_s[i]          = m_settings.max_feedrate[i];
+    //     planner.settings.max_acceleration_mm_per_s2[i] = m_settings.max_acceleration_units_per_sq_second[i];
+    // }
+    // planner.refresh_positioning();
+    // planner.settings.acceleration = m_settings.acceleration;
+    // planner.settings.retract_acceleration = m_settings.retract_acceleration;;
+    // planner.settings.min_feedrate_mm_s =   m_settings.minimumfeedrate;
+    // planner.settings.min_travel_feedrate_mm_s = m_settings.mintravelfeedrate;
+    // planner.max_jerk[X_AXIS] = m_settings.max_xy_jerk;
+    // planner.max_jerk[Y_AXIS] = m_settings.max_xy_jerk;
+    // planner.max_jerk[Z_AXIS] =  m_settings.max_z_jerk;
+    // #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
+    //   planner.max_jerk[E_AXIS] =  m_settings.max_e_jerk;
+    // #endif
+
+    // runout.enabled = m_settings.enabledRunout;
+    // lgtCard.setListOrder(m_settings.listOrder);
+    // // recovery.enable(m_settings.enabledPowerloss); 
 }
 
 /**
- * reset variables
+ * reset lgttft variables
+ */
+void LgtStore::_reset()
+{
+    runout.enabled = true;
+    lgtCard.setListOrder(false);
+    // recovery.enable(PLR_ENABLED_DEFAULT);
+}
+
+/**
+ * reset all variables
  */
 void LgtStore::reset()
 {
@@ -123,16 +179,9 @@ void LgtStore::reset()
       planner.max_jerk[E_AXIS] =  DEFAULT_EJERK;
     #endif
 
-    runout.enabled = true;
-    lgtCard.setListOrder(false);
-    // recovery.enable(PLR_ENABLED_DEFAULT);
-
-    syncSettings();
-    setModified(true);
+    _reset();
 
 // ///////////////////////////
-
-
 //     LOOP_XYZE_N(i) {
 //         m_settings.axis_steps_per_unit[i]=tmp1[i];  
 //         m_settings.max_feedrate[i]=tmp2[i];  
@@ -239,7 +288,6 @@ void *LgtStore::settingPointer(uint8_t i)
 {
 	switch(i)
 	{
-		default: return 0;
 		case 0:
 			return &m_settings.acceleration;	
 		case 1:
@@ -282,6 +330,7 @@ void *LgtStore::settingPointer(uint8_t i)
 			return &m_settings.enabledRunout;
         case 20:
             return &m_settings.listOrder;
+		default: return 0;
 	}
 }
 

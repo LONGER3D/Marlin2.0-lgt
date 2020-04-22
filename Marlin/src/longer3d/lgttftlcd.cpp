@@ -2195,8 +2195,8 @@ bool display_image::LGT_Ui_Update(void)
 			case eMENU_SETTINGS:
 				current_window_ID=eMENU_SETTINGS;
 				next_window_ID=eWINDOW_NONE;
-				lgtStore.setModified(false);
 				lgtStore.syncSettings();	// sync setttings struct before list
+				lgtStore.setModified(false);	
 				displayWindowSettings();
 				highlightSetting();
 			break;
@@ -3016,6 +3016,8 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				break;					
 			case eBT_DIALOG_REFACTORY_YES:
 				lgtStore.reset();
+    			lgtStore.syncSettings();
+    			lgtStore.setModified(true);
 				next_window_ID=eMENU_SETTINGS_RETURN;
 				current_button_id=eBT_BUTTON_NONE;
 			break;
@@ -3044,9 +3046,6 @@ void display_image::LGT_Ui_Buttoncmd(void)
 					// apply and save current settings
 					lgtStore.applySettings();
 					lgtStore.save();
-
-					lgtStore.load();
-
 					dispalyDialogYes(eDIALOG_SETTS_SAVE_OK);
 					current_window_ID=eMENU_DIALOG_SAVE_OK;
 				}
@@ -3231,6 +3230,8 @@ void LgtLcdTft::init()
     #if ENABLED(POWER_LOSS_RECOVERY)
 	recovery.check();
 	#endif
+	// load tft settings
+	lgtStore.load();
 }
 
 void LgtLcdTft::loop()

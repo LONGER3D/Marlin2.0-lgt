@@ -103,8 +103,8 @@ const char *LgtSdCard::filename(uint16_t i)
         fn[MAX_TRIM_FILENAME_LEN - 3] = '.';
         fn[MAX_TRIM_FILENAME_LEN - 2] = '.';
         fn[MAX_TRIM_FILENAME_LEN - 1] = '.';       
-        fn[MAX_TRIM_FILENAME_LEN] = '\0';
-        fn[MAX_TRIM_FILENAME_LEN] = '\0';
+        fn[MAX_TRIM_FILENAME_LEN    ] = '\0';
+        fn[MAX_TRIM_FILENAME_LEN + 1] = '\0';
     }
     return fn;
 }

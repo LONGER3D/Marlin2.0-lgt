@@ -2,6 +2,9 @@
 
 #include "stdint.h"
 
+#define FLASH_WRITE_VAR(addr, value)  spiFlash.W25QXX_Write(reinterpret_cast<uint8_t *>(&value), uint32_t(addr), sizeof(value))
+#define FLASH_READ_VAR(addr, value)   spiFlash.W25QXX_Read(reinterpret_cast<uint8_t *>(&value), uint32_t(addr), sizeof(value))
+
 class W25QXX
 {
 public:
