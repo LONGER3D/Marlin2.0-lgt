@@ -64,8 +64,8 @@ void LgtStore::save()
     // save some settings in spiflash
     uint32_t addr = FLASH_ADDR_SETTINGS;
     WRITE_VAR(m_settings.version);
-    WRITE_VAR(m_settings.enabledRunout);
     WRITE_VAR(m_settings.listOrder);
+    WRITE_VAR(m_settings.enabledRunout);
     WRITE_VAR(m_settings.enabledPowerloss);
     SERIAL_ECHOPAIR("settings stored to spiflash(", addr - FLASH_ADDR_SETTINGS);
     SERIAL_ECHOLN(" bytes)");
@@ -88,6 +88,7 @@ bool LgtStore::validate()
 /**
  * load settings from spiflash
  * spi flash -> settings struct -> memory(apply)
+ * load sequence must be consistent with save
  */
 bool LgtStore::load()
 {
@@ -103,13 +104,13 @@ bool LgtStore::load()
        return false;    
     }
 
-    READ_VAR(m_settings.enabledRunout);
-    SERIAL_ECHOLNPAIR("enabledRunout: ", m_settings.enabledRunout);
-    runout.enabled = m_settings.enabledRunout;
-
     READ_VAR(m_settings.listOrder);
     SERIAL_ECHOLNPAIR("listOrder: ", m_settings.listOrder);
     lgtCard.setListOrder(m_settings.listOrder);
+
+    READ_VAR(m_settings.enabledRunout);
+    SERIAL_ECHOLNPAIR("enabledRunout: ", m_settings.enabledRunout);
+    runout.enabled = m_settings.enabledRunout;
 
     READ_VAR(m_settings.enabledPowerloss);
     SERIAL_ECHOLNPAIR("enabledPowerloss: ", m_settings.enabledPowerloss);
@@ -154,8 +155,8 @@ bool LgtStore::load()
  */
 void LgtStore::_reset()
 {
-    runout.enabled = true;
     lgtCard.setListOrder(false);
+    runout.enabled = true;
     recovery.enable(PLR_ENABLED_DEFAULT);
 }
 
@@ -228,8 +229,8 @@ void LgtStore::applySettings()
       planner.max_jerk[E_AXIS] =  m_settings.max_e_jerk;
     #endif
 
-    runout.enabled = m_settings.enabledRunout;
     lgtCard.setListOrder(m_settings.listOrder);
+    runout.enabled = m_settings.enabledRunout;
     recovery.enable(m_settings.enabledPowerloss);
 }
 
@@ -254,8 +255,8 @@ void LgtStore::syncSettings()
     #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
       m_settings.max_e_jerk = planner.max_jerk[E_AXIS];
     #endif
-    m_settings.enabledRunout = runout.enabled;
     m_settings.listOrder = lgtCard.isReverseList();
+    m_settings.enabledRunout = runout.enabled;
     m_settings.enabledPowerloss = recovery.enabled;
 }
 
