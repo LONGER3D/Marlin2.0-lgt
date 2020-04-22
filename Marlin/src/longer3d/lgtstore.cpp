@@ -452,45 +452,45 @@ bool LgtStore::loadTouch()
     return true;
 }
 
-void LgtStore::saveRecovery()
-{
-    // TouchCalibration &touch = lgtTouch.calibrationData();
-    // // set version string
-    // strcpy(touch.version, TOUCH_VERSION);
-    // // save calibration data in spiflash
-    // uint32_t addr = SPIFLASH_ADDR_TOUCH;
-    // WRITE_VAR(touch);
-    // SERIAL_ECHOPAIR("settings stored to spiflash(", addr - SPIFLASH_ADDR_SETTINGS);
-    // SERIAL_ECHOLN(" bytes)");
-}
+// void LgtStore::saveRecovery()
+// {
+//     // TouchCalibration &touch = lgtTouch.calibrationData();
+//     // // set version string
+//     // strcpy(touch.version, TOUCH_VERSION);
+//     // // save calibration data in spiflash
+//     // uint32_t addr = SPIFLASH_ADDR_TOUCH;
+//     // WRITE_VAR(touch);
+//     // SERIAL_ECHOPAIR("settings stored to spiflash(", addr - SPIFLASH_ADDR_SETTINGS);
+//     // SERIAL_ECHOLN(" bytes)");
+// }
 
-bool LgtStore::loadRecovery()
-{
-    // SERIAL_ECHOLN("-- load touch data form spiflash start --");
-    // uint32_t addr = SPIFLASH_ADDR_TOUCH;
-    // TouchCalibration &touch = lgtTouch.calibrationData();
-    // READ_VAR(touch.version);
-    // SERIAL_ECHOLNPAIR("stored version: ", touch.version);
-    // SERIAL_ECHOLNPAIR("current version: ", TOUCH_VERSION);
-    // if (!validate(SETTINGS_VERSION, touch.version)) {
-    //    SERIAL_ECHOLN("load failed, reset touch data");
-    //     lgtTouch.resetCalibration();
-    //    return false;    
-    // }
-    // READ_VAR(touch.xCalibration);
-    // SERIAL_ECHOLNPAIR("xCali: ", touch.xCalibration);
+// bool LgtStore::loadRecovery()
+// {
+//     // SERIAL_ECHOLN("-- load touch data form spiflash start --");
+//     // uint32_t addr = SPIFLASH_ADDR_TOUCH;
+//     // TouchCalibration &touch = lgtTouch.calibrationData();
+//     // READ_VAR(touch.version);
+//     // SERIAL_ECHOLNPAIR("stored version: ", touch.version);
+//     // SERIAL_ECHOLNPAIR("current version: ", TOUCH_VERSION);
+//     // if (!validate(SETTINGS_VERSION, touch.version)) {
+//     //    SERIAL_ECHOLN("load failed, reset touch data");
+//     //     lgtTouch.resetCalibration();
+//     //    return false;    
+//     // }
+//     // READ_VAR(touch.xCalibration);
+//     // SERIAL_ECHOLNPAIR("xCali: ", touch.xCalibration);
 
-    // READ_VAR(touch.yCalibration);
-    // SERIAL_ECHOLNPAIR("yCali: ", touch.yCalibration);
+//     // READ_VAR(touch.yCalibration);
+//     // SERIAL_ECHOLNPAIR("yCali: ", touch.yCalibration);
 
-    // READ_VAR(touch.xOffset);
-    // SERIAL_ECHOLNPAIR("xOffset: ", touch.xOffset);
+//     // READ_VAR(touch.xOffset);
+//     // SERIAL_ECHOLNPAIR("xOffset: ", touch.xOffset);
 
-    // READ_VAR(touch.yOffset);
-    // SERIAL_ECHOLNPAIR("yOffset: ", touch.yOffset);
+//     // READ_VAR(touch.yOffset);
+//     // SERIAL_ECHOLNPAIR("yOffset: ", touch.yOffset);
 
-    // SERIAL_ECHOLN("-- load touch data form spiflash end --");
-    return true;
-}
+//     // SERIAL_ECHOLN("-- load touch data form spiflash end --");
+//     return true;
+// }
 
 #endif

@@ -120,7 +120,6 @@ private:
 
     bool m_cardState;
 
-    char *recoveryFilename[32];
 };
 
 extern LgtSdCard lgtCard;

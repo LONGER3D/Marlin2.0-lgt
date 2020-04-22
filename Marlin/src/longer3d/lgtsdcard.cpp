@@ -37,7 +37,6 @@ LgtSdCard::LgtSdCard()
     clear();
     m_isReverseList = false;
     m_printTime = 0;
-    ZERO(recoveryFilename);
 }
 
 uint16_t LgtSdCard::count()
