@@ -38,29 +38,23 @@ enum XPTCoordinate : uint8_t {
   #define XPT2046_Z1_THRESHOLD 10
 #endif
 
+#if ENABLED(LGT_LCD_TFT)
+  class LgtTouch;
+#endif
+
 class XPT2046 {
 public:
   static void init();
   static uint8_t read_buttons();
-  #if  ENABLED(LGT_LCD_TFT)
-    uint8_t readTouchPoint(uint16_t &x, uint16_t &y);
-    uint8_t calibrate();
-  #endif
   bool getTouchPoint(uint16_t &x, uint16_t &y);
   static bool isTouched();
   inline void waitForRelease() { while (isTouched()) { /* nada */ } }
   inline void waitForTouch(uint16_t &x, uint16_t &y) { while (!getTouchPoint(x, y)) { /* nada */ } }
+  #if ENABLED(LGT_LCD_TFT)
+    friend class LgtTouch;
+  #endif
 private:
   static uint16_t getInTouch(const XPTCoordinate coordinate);
-  #if ENABLED(LGT_LCD_TFT)
-    uint8_t readTouchXY(uint16_t &x,uint16_t &y);
-    uint8_t readTouchXY2(uint16_t &x,uint16_t &y);
-    static int16_t xCalibration;
-    static int16_t yCalibration;
-    static int16_t xOffset;
-    static int16_t yOffset;
-  #endif
-  
 
 };
 

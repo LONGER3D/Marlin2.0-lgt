@@ -4,7 +4,7 @@
 #include "lgttftlcd.h"
 #include "lgttftdef.h"
 #include "lcddrive/lcdapi.h"
-#include "../feature/touch/xpt2046.h"
+#include "lgttouch.h"
 #include "w25qxx.h"
 #include "lgtsdcard.h"
 #include "lgtstore.h"
@@ -2201,7 +2201,6 @@ bool display_image::LGT_Ui_Update(void)
 				highlightSetting();
 			break;
 			case eMENU_SETTINGS_RETURN:	// for return to setting page without sync data
-				DEBUG_ECHOLN("return to setting menu");
 				current_window_ID=eMENU_SETTINGS;
 				next_window_ID=eWINDOW_NONE;
 				displayWindowSettings();
@@ -2952,27 +2951,16 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				is_printing=true;
 				is_print_finish=cur_flag=false;
 				cur_ppage=0;cur_pstatus=0;
-				// if(current_window_ID==eMENU_DIALOG_START)
-				// 	recovery_flag=false;
-				// if(recovery_flag==false)
-				// {
-					// #if ENABLED(POWER_LOSS_RECOVERY)
-					// 	card.removeJobRecoveryFile();
-					// #endif
-					const char *fn = lgtCard.shortFilename();
-					DEBUG_ECHOLNPAIR("open file: ", fn);
-					char cmd[4+ strlen(fn) + 1];
-					sprintf_P(cmd, PSTR("M23 %s"), fn);
-					enqueue_and_echo_commands_P(cmd);
-					enqueue_and_echo_commands_P(PSTR("M24"));
+
+				const char *fn = lgtCard.shortFilename();
+				DEBUG_ECHOLNPAIR("open file: ", fn);
+				char cmd[4+ strlen(fn) + 1];
+				sprintf_P(cmd, PSTR("M23 %s"), fn);
+				enqueue_and_echo_commands_P(cmd);
+				enqueue_and_echo_commands_P(PSTR("M24"));
 					// W25QxxFlash.W25QXX_Write((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
-				// }
-				// else   //recovery
-				// {
-				// 	enqueue_and_echo_commands_P(PSTR("M1000"));
-				// 	recovery_flag=false;
-				// 	// W25QxxFlash.W25QXX_Read((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
-				// }
+
+				// W25QxxFlash.W25QXX_Read((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
 				next_window_ID = eMENU_PRINT;
 				current_button_id=eBT_BUTTON_NONE;
 			}
@@ -3223,7 +3211,7 @@ void LgtLcdTft::init()
     // init tft-lcd
     lcd.init();
     lcd.clear();
-    // touch.calibrate();
+    lgtTouch.calibrate();
     displayStartUpLogo();
     delay(10);
     displayWindowHome();
@@ -3242,14 +3230,14 @@ void LgtLcdTft::loop()
     static millis_t nextTouchReadTime = 0;
     static uint8_t touchCheck = 0;
 
-    if (touch.isTouched()) { 
+    if (lgtTouch.isTouched()) { 
         if (!TRUELY_TOUCHED()) {
             const millis_t time = millis();
             if (ELAPSED(time, nextTouchReadTime)) {
                 nextTouchReadTime = time + TOUCH_DELAY;
                 touchCheck++;
                 if (TRUELY_TOUCHED()) {  // truely touched
-                    touch.readTouchPoint(cur_x, cur_y);
+                    lgtTouch.readTouchPoint(cur_x, cur_y);
                     DEBUG_ECHOPAIR("touch: x: ", cur_x);
                     DEBUG_ECHOLNPAIR(", y: ", cur_y);
                     LGT_MainScanWindow();   // touch pos will be clear after scanning

@@ -368,7 +368,7 @@
 #define TXT_DIALOG_CAPTION_NO_FIALMENT      "No Filament"    
 #define TXT_DIALOG_CAPTION_OPEN_FOLER       "Open Folder"  
 
-
+// touch calibration
 #define TXT_TFT_CONTROLLER_ID            "ControllerID:  %04X" //"ControllerID:"
 #define TXT_TFT_CONTROLLER               "Controller: %s"
 #define TXT_TOUCH_CALIBRATION            "Touch calibration"
@@ -376,13 +376,11 @@
 #define TXT_BOTTOM_LEFT                  "Bottom Left"
 #define TXT_TOP_RIGHT                    "Top Right"
 #define TXT_BOTTOM_RIGHT                 "Bottom Right"
-
 #define TXT_CALI_COMPLETED               "Touch calibration completed"
 #define TXT_X_CALIBRATION                "X_CALIBRATION:"
 #define TXT_Y_CALIBRATION                "Y_CALIBRATION:"
 #define TXT_X_OFFSET              		 "X_OFFSET:"
 #define TXT_Y_OFFSET                     "Y_OFFSET:"
-
 #define TXT_PROMPT_INFO1                 "Please click the screen to"
 #define TXT_PROMPT_INFO2                 "return to the main home page!"
 
@@ -439,6 +437,6 @@
 #define DIALOG_START_PRINT_NOFILA2		"you want to change"
 #define DIALOG_START_PRINT_NOFILA3		"it?"
 
+#else
 
-
-#endif
+#endif	// Chinese
