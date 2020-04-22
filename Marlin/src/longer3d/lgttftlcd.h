@@ -18,6 +18,7 @@ typedef enum{
 	eMENU_EXTRUDE,
 	eMENU_SETTINGS,
 	eMENU_SETTINGS2,
+    eMENU_SETTINGS_RETURN,
 	eMENU_ABOUT,
 	eMENU_DIALOG_START,   //print or not print
 	eMENU_DIALOG_END,     //stop print or not stop print
@@ -74,7 +75,7 @@ enum E_BUTTON_KEY {
     eBT_DIALOG_NOFILANET_YES, eBT_DIALOG_NOFILANET_NO, eBT_DIALOG_NOFILANET_PRINT_YES, eBT_DIALOG_NOFILANET_PRINT_NO,
 	eBT_DIALOG_RECOVERY_OK, eBT_DIALOG_RECOVERY_NO,
 /****************************Settings page*******************************/
-	eBT_SETTING_ADJUST,eBT_SETTING_REFACTORY,eBT_SETTING_SAVE,eBT_SETTING_LAST,eBT_SETTING_NEXT,eBT_SETTING_ADD,eBT_SETTING_SUB,
+	eBT_SETTING_MODIFY,eBT_SETTING_REFACTORY,eBT_SETTING_SAVE,eBT_SETTING_LAST,eBT_SETTING_NEXT,eBT_SETTING_ADD,eBT_SETTING_SUB,
 
 	eBT_DISTANCE_CHANGE
 };
@@ -188,9 +189,10 @@ private:
     void scanWindowSettings(uint16_t rv_x, uint16_t rv_y);
     void chooseSetting(uint16_t item);
     void highlightSetting();
-    // void displayWindowSettings2(void);
-    // void displayModifyArgument(void);
-    // void scanWindowSettings2(uint16_t rv_x, uint16_t rv_y);
+    // /***************************settings modify page*******************************************/   
+    void displayWindowSettings2(void);
+    void displayModifyArgument(void);
+    void scanWindowSettings2(uint16_t rv_x, uint16_t rv_y);
 
     // /***************************Printing page*******************************************/
     void displayWindowPrint(void);
@@ -231,8 +233,9 @@ private:
     void scanDialogNoFilament(uint16_t rv_x, uint16_t rv_y );
     void scanDialogNoFilamentInPrint(uint16_t rv_x, uint16_t rv_y );
     void scanDialogRecovery( uint16_t rv_x, uint16_t rv_y);
-    // void scanDialogRefactory(uint16_t rv_x, uint16_t rv_y);
-    // void scanDialogSave(uint16_t rv_x, uint16_t rv_y);
+    void scanDialogRefactory(uint16_t rv_x, uint16_t rv_y);
+    void scanDialogSave(uint16_t rv_x, uint16_t rv_y);
+    void scanDialogSaveOk(uint16_t rv_x, uint16_t rv_y);
     // void scanDialogYes(uint16_t rv_x, uint16_t rv_y);
 
 private:

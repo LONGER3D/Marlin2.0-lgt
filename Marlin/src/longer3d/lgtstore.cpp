@@ -48,15 +48,17 @@ LgtStore::LgtStore()
 
 void LgtStore::save()
 {
+
     // set version string
     strcpy(m_settings.version, SETTINGS_VERSION);
-    SERIAL_ECHOLNPAIR("store version: ", m_settings.version);
+    SERIAL_ECHOLNPAIR("save version: ", m_settings.version);
     // calc crc
     uint16_t crc = 0;
     crc16(&crc, reinterpret_cast<void *>(&m_settings.acceleration), sizeof(m_settings) - 4 - 2);
-    SERIAL_ECHOLNPAIR("store crc: ", crc);
+    SERIAL_ECHOLNPAIR("save crc: ", crc);
     m_settings.crc = crc;
     SAVE_SETTINGS();    // save setttings struct into spi flash
+    setModified(false);
 }
 
 /**
@@ -65,6 +67,14 @@ void LgtStore::save()
 void LgtStore::load()
 {
     LOAD_SETTINGS();
+
+    SERIAL_ECHOLNPAIR("load settings version: ", m_settings.version);
+    SERIAL_ECHOLNPAIR("load settings crc: ", m_settings.crc);
+    // calc crc
+    uint16_t crc = 0;
+    crc16(&crc, reinterpret_cast<void *>(&m_settings.acceleration), sizeof(m_settings) - 4 - 2);
+    SERIAL_ECHOLNPAIR("current crc: ", crc);   
+
     LOOP_XYZE_N(i) {
         planner.settings.axis_steps_per_mm[i]          = m_settings.axis_steps_per_unit[i];
         planner.settings.max_feedrate_mm_s[i]          = m_settings.max_feedrate[i];
@@ -116,6 +126,10 @@ void LgtStore::reset()
     runout.enabled = true;
     lgtCard.setListOrder(false);
     // recovery.enable(PLR_ENABLED_DEFAULT);
+
+    syncSettings();
+    setModified(true);
+
 // ///////////////////////////
 
 
@@ -286,7 +300,7 @@ float LgtStore::distanceMultiplier(uint8_t i)
 	}
 }
 
-void LgtStore::changeSetting(uint8_t i, int8_t inc_sign, uint8_t distance)
+void LgtStore::changeSetting(uint8_t i, int8_t distance)
 {
 	if(i >= SETTINGS_MAX_LEN){			/* error index */
 		return;
@@ -294,25 +308,21 @@ void LgtStore::changeSetting(uint8_t i, int8_t inc_sign, uint8_t distance)
 	else if(i >= 19)  	/* bool type */
 	{				
 		*(bool *)settingPointer(i) = !(*(bool *)settingPointer(i));
-		return;
 	}
 	else if(i >= 10 && i<= 13)  /* unsigned long type */
 	{		
 		*(unsigned long *)settingPointer(i) = *(unsigned long *)settingPointer(i) +
-			inc_sign * distance * (unsigned long)distanceMultiplier(i);
-		if((long)*(unsigned long *)settingPointer(i) < 0) *(unsigned long *)settingPointer(i) = 0;	//minimum value
-	}
-	else if(i >= 15 && i<= 18) /* float type */
-	{		
-		*(float *)settingPointer(i) = *(float *)settingPointer(i) + inc_sign * distance * distanceMultiplier(i);
-		if(*(float *)settingPointer(i) < 0.0) *(float *)settingPointer(i) = 0.0;		//minimum value
-	}
-	else /* float type */
+			distance * (unsigned long)distanceMultiplier(i);
+		if((long)*(unsigned long *)settingPointer(i) < 0)
+            *(unsigned long *)settingPointer(i) = 0;	//minimum value
+	} 
+    else /* float type */
 	{								
-		*(float *)settingPointer(i) = *(float *)settingPointer(i) + inc_sign * distance * distanceMultiplier(i);
-		if(*(float *)settingPointer(i) < 0.0) *(float *)settingPointer(i) = 0.0;	//minimum value
-		return;
+		*(float *)settingPointer(i) = *(float *)settingPointer(i) + distance * distanceMultiplier(i);
+		if(*(float *)settingPointer(i) < 0.0) 
+            *(float *)settingPointer(i) = 0.0;	//minimum value
 	}
+    setModified(true);
 	// ConfigSettings.calcAccelRates();
 }
 

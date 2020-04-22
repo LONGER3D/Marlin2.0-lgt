@@ -46,12 +46,23 @@ private:
     uint8_t  m_currentSetting;    // select index
     bool m_isSelectSetting;
 
+    bool m_settingsModified;
+
 private:
     float distanceMultiplier(uint8_t i);
     void  *settingPointer(uint8_t i);
 
 public:
     LgtStore();
+
+    inline void clear()
+    {
+        m_currentPage = 0;     // current page
+        m_currentItem = 0;     // select item index
+        m_currentSetting = 0;    // select index
+        m_isSelectSetting = false;       
+    }
+
     void applySettings();
     void syncSettings();
     void save();
@@ -59,9 +70,16 @@ public:
     void reset();
 
     void settingString(uint8_t i, char* p);
-    void changeSetting(uint8_t i, int8_t inc_sign, uint8_t distance);
+    inline void settingString(char *p) { settingString(settingIndex(), p); }
+    void changeSetting(uint8_t i, int8_t distance);
 
-    uint8_t page() { return m_currentPage;}
+    inline void changeSetting(int8_t d) 
+    { 
+        if (!isSettingSelected()) return;
+        changeSetting(settingIndex(), d); 
+    }
+
+    inline uint8_t page() { return m_currentPage;}
 
     inline uint8_t nextPage()
     {
@@ -100,14 +118,8 @@ public:
 
     bool selectSetting(uint16_t item);
 
-    void clear()
-    {
-        m_currentPage = 0;     // current page
-        m_currentItem = 0;     // select item index
-        m_currentSetting = 0;    // select index
-        m_isSelectSetting = false;       
-    }
-
+    inline bool isModified() { return m_settingsModified; }
+    inline void setModified(bool b) { m_settingsModified = b; }
 
 };
 

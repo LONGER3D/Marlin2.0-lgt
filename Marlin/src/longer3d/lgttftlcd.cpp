@@ -1187,7 +1187,6 @@ void display_image::displayWindowSettings(void)
 	LCD_DrawLine(0, 176, 240, 176);
 	LCD_DrawLine(240, 175, 240, 25);
 	LCD_DrawLine(241, 176, 241, 25);
-	lgtStore.syncSettings();	// sync setttings struct before list
 	displayArgumentList();
 	displayArugumentPageNumber();
 }
@@ -1316,7 +1315,7 @@ void display_image::scanWindowSettings(uint16_t rv_x, uint16_t rv_y)
 	}
 	else if(rv_x>255&&rv_x<315&&rv_y>30&&rv_y<85)   //modify
 	{	
-		current_button_id=eBT_SETTING_ADJUST;
+		current_button_id=eBT_SETTING_MODIFY;
 	}
 	else if(rv_x>255&&rv_x<315&&rv_y>105&&rv_y<160)  //restore
 	{	
@@ -1324,12 +1323,52 @@ void display_image::scanWindowSettings(uint16_t rv_x, uint16_t rv_y)
 	}	
 	else if(rv_x>178&&rv_x<233&&rv_y>180&&rv_y<235)  //save	
 	{
-		if(is_setting_change)
-			current_button_id=eBT_SETTING_SAVE;
+		current_button_id=eBT_SETTING_SAVE;
 	}
 }
-// /***************************settings page 2*******************************************/
+// /***************************settings modify page*******************************************/
+void display_image::displayWindowSettings2(void)
+{
+	lcdClear(White);
+	LCD_Fill(0, 0, 320, 24, BG_COLOR_CAPTION_SETTINGS); 	//caption background
+	#ifndef Chinese
+		displayImage(115, 5, IMG_ADDR_CAPTION_SETTINGS);		//caption words
+	#else
+		displayImage(115, 5, IMG_ADDR_CAPTION_SETTINGS_CN);		//caption words
+	#endif
+	initialMoveDistance(255, 43);	
+	displayImage(150, 180, IMG_ADDR_BUTTON_SUB);
+	displayImage(35, 180, IMG_ADDR_BUTTON_ADD);
+	displayImage(255, 180, IMG_ADDR_BUTTON_RETURN);	
+	displayModifyArgument();
+}
+void display_image::displayModifyArgument(void)
+{
+	LCD_Fill(170, 100, 240, 120, WHITE);	//celan value  display zone
+	POINT_COLOR = BLACK;
+    memset(s_text, 0, sizeof(s_text));  
+	lgtStore.settingString(s_text);
+    LCD_ShowString(10, 100,s_text);
 
+}
+void display_image::scanWindowSettings2(uint16_t rv_x, uint16_t rv_y)
+{
+	if(rv_x>255&&rv_x<315&&rv_y>180&&rv_y<240) //return
+	{			
+		next_window_ID=eMENU_SETTINGS_RETURN;
+	}
+	else if(rv_x>35&&rv_x<90&&rv_y>180&&rv_y<235)  //add
+	{		
+		current_button_id=eBT_SETTING_ADD;
+	}
+	else if(rv_x>150&&rv_x<205&&rv_y>180&&rv_y<235)  //subs
+	{		
+		current_button_id=eBT_SETTING_SUB;
+	}else if(rv_x>255&&rv_x<315&&rv_y>43&&rv_y<83)  //distance
+	{		
+	    current_button_id=eBT_DISTANCE_CHANGE;
+	}
+}
 
 // /***************************about page*******************************************/
 void display_image::displayWindowAbout(void)
@@ -1936,6 +1975,38 @@ void display_image::scanDialogRecovery( uint16_t rv_x, uint16_t rv_y)
 	}
 }
 
+void display_image::scanDialogSave(uint16_t rv_x, uint16_t rv_y)
+{
+	if(rv_x>85&&rv_x<140&&rv_y>130&&rv_y<185)  //select yes
+	{
+		current_button_id=eBT_DIALOG_SAVE_YES;
+	}
+	else if(rv_x>180&&rv_x<235&&rv_y>130&&rv_y<185) //select no
+	{
+		next_window_ID=eMENU_HOME_MORE;
+	}
+}
+
+void display_image::scanDialogSaveOk(uint16_t rv_x, uint16_t rv_y)
+{
+	if(rv_x>132&&rv_x<187&&rv_y>130&&rv_y<185)  //select ok
+	{
+		next_window_ID = eMENU_SETTINGS_RETURN;
+	}
+}
+
+void display_image::scanDialogRefactory(uint16_t rv_x, uint16_t rv_y)
+{
+	if(rv_x>85&&rv_x<140&&rv_y>130&&rv_y<185)  //select yes
+	{
+		current_button_id=eBT_DIALOG_REFACTORY_YES;
+	}
+	else if(rv_x>180&&rv_x<235&&rv_y>130&&rv_y<185) //select no
+	{
+		next_window_ID=eMENU_SETTINGS_RETURN;
+	}
+}
+
 /********************************************************
  * is_bed:false->extruder0, true->bed
  * sign:  false->plus, true->minus 
@@ -2044,13 +2115,9 @@ bool display_image::LGT_Ui_Update(void)
 			case eMENU_HOME_MORE:
 				if((current_window_ID==eMENU_LEVELING)&&all_axes_homed())
 					enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
-				if(current_window_ID==eMENU_SETTINGS&&is_setting_change)
-				{
-					// page_index=0;
-					// choose_setting=ARGUMENST_MAX_NUM;
-					// setting_return_more=true;
-					// dispalyDialogYesNo(eDIALOG_SETTS_SAVE);
-					// current_window_ID=eMENU_DIALOG_SAVE;
+				if(current_window_ID == eMENU_SETTINGS && lgtStore.isModified()) {
+					dispalyDialogYesNo(eDIALOG_SETTS_SAVE);
+					current_window_ID=eMENU_DIALOG_SAVE;
 				}
 				else
 				{
@@ -2128,10 +2195,23 @@ bool display_image::LGT_Ui_Update(void)
 			case eMENU_SETTINGS:
 				current_window_ID=eMENU_SETTINGS;
 				next_window_ID=eWINDOW_NONE;
+				lgtStore.setModified(false);
+				lgtStore.syncSettings();	// sync setttings struct before list
 				displayWindowSettings();
 				highlightSetting();
 			break;
-			// // eMENU_SETTINGS2,
+			case eMENU_SETTINGS_RETURN:	// for return to setting page without sync data
+				DEBUG_ECHOLN("return to setting menu");
+				current_window_ID=eMENU_SETTINGS;
+				next_window_ID=eWINDOW_NONE;
+				displayWindowSettings();
+				highlightSetting();
+				break;		
+			case eMENU_SETTINGS2:
+				current_window_ID=eMENU_SETTINGS2;
+				next_window_ID=eWINDOW_NONE;
+				displayWindowSettings2();	
+				break;
 			default:    // no page change just button press
 				button_type=true;
 				break;
@@ -2181,10 +2261,10 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 				scanWindowSettings(cur_x,cur_y);
 				cur_x=cur_y=0;
 			break;
-			// case eMENU_SETTINGS2:
-			// 	scanWindowSettings2(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
+			case eMENU_SETTINGS2:
+				scanWindowSettings2(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;
 			case eMENU_ABOUT:
 				scanWindowAbout(cur_x,cur_y);
 				cur_x=cur_y=0;
@@ -2220,14 +2300,18 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 				scanDialogRecovery(cur_x,cur_y);
 				cur_x=cur_y=0;
 			break;
-			// case eMENU_DIALOG_REFACTORY:
-			// 	scanDialogRefactory(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
-			// case eMENU_DIALOG_SAVE:
-			// 	scanDialogSave(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
+			case eMENU_DIALOG_REFACTORY:
+				scanDialogRefactory(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;
+			case eMENU_DIALOG_SAVE:
+				scanDialogSave(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;
+			case eMENU_DIALOG_SAVE_OK:
+				scanDialogSaveOk(cur_x,cur_y);
+				cur_x=cur_y=0;
+			break;
 			// case eMENU_DIALOG_SAVE_OK:case eMENU_DIALOG_ERRORTEMPE:case eMENU_DIALOG_ERRORTEMPBED:
 			// 	scanDialogYes(cur_x,cur_y);
 			// 	cur_x=cur_y=0;
@@ -2930,43 +3014,44 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				next_window_ID = eMENU_HOME;
 				current_button_id=eBT_BUTTON_NONE;
 				break;					
-		// 	case eBT_DIALOG_REFACTORY_YES:
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		current_window_ID=eMENU_SETTINGS;
-		// 		ConfigSettings.restoreDefaultSettings();
-		// 		page_index=0;
-		// 		is_setting_change=true;
-		// 		displayWindowSettings();
-		// 	break;
-		// 	case eBT_DIALOG_SAVE_YES:
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		FLASH_WRITE_VAR(SAVE_ADDR_SETTINGS, re_settings);
-		// 		dispalyDialogYes(eDIALOG_SETTS_SAVE_OK);
-		// 		current_window_ID=eMENU_DIALOG_SAVE_OK;
-		// 		//ConfigSettings.settingsReset();
-		// 		ConfigSettings.settingsLoad();
-		// 		is_setting_change=false;
-		// 	break;
-		// 	case eBT_SETTING_ADJUST:
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		if(choose_setting>=ARGUMENST_MAX_NUM) break;
-		// 		current_window_ID=eMENU_SETTINGS2;
-		// 		displayWindowSettings2();
-		// 		// change_window = true ;
-		// 		// highlightSelectedIcon(255,30,55,55);	
-		// 		// displayImage(255, 30, pic_address_button_modify);
-		// 	break;
-		// 	case eBT_SETTING_REFACTORY:
-		// 		dispalyDialogYesNo(eDIALOG_SETTS_RESTORE);
-		// 		current_window_ID=eMENU_DIALOG_REFACTORY;
-		// 		//ConfigSettings.restoreDefaultSettings();
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 	break;
-		// 	case eBT_SETTING_SAVE:
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		dispalyDialogYesNo(eDIALOG_SETTS_SAVE);
-		// 		current_window_ID=eMENU_DIALOG_SAVE;
-		// 	break;
+			case eBT_DIALOG_REFACTORY_YES:
+				lgtStore.reset();
+				next_window_ID=eMENU_SETTINGS_RETURN;
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_DIALOG_SAVE_YES:	// save and return home more
+				if (lgtStore.isModified()) {
+					// apply and save current settings
+					lgtStore.applySettings();
+					lgtStore.save();
+					next_window_ID = eMENU_HOME_MORE;
+				}
+				current_button_id=eBT_BUTTON_NONE;
+				break;
+			case eBT_SETTING_MODIFY:
+				current_button_id=eBT_BUTTON_NONE;
+				if (lgtStore.isSettingSelected() && 
+					(lgtStore.selectedPage() == lgtStore.page()))
+					next_window_ID=eMENU_SETTINGS2;
+				break;
+			case eBT_SETTING_REFACTORY:
+				dispalyDialogYesNo(eDIALOG_SETTS_RESTORE);
+				current_window_ID=eMENU_DIALOG_REFACTORY;
+				current_button_id=eBT_BUTTON_NONE;
+			break;
+			case eBT_SETTING_SAVE:		// save and show save ok dialog
+				if (lgtStore.isModified()) {
+					// apply and save current settings
+					lgtStore.applySettings();
+					lgtStore.save();
+
+					lgtStore.load();
+
+					dispalyDialogYes(eDIALOG_SETTS_SAVE_OK);
+					current_window_ID=eMENU_DIALOG_SAVE_OK;
+				}
+				current_button_id=eBT_BUTTON_NONE;
+			break;
 			case eBT_SETTING_LAST:
 				if (lgtStore.previousPage()) {
 					displayArgumentList();
@@ -2983,18 +3068,16 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				}		
 				current_button_id=eBT_BUTTON_NONE;
 			break;
-		// 	case eBT_SETTING_ADD:
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		changeValueArgument(choose_setting, 1);
-		// 		displayModifyArgument();
-		// 		is_setting_change=true;
-		// 	break;
-		// 	case eBT_SETTING_SUB:
-		// 		current_button_id=eBT_BUTTON_NONE;
-		// 		changeValueArgument(choose_setting, -1);
-		// 		displayModifyArgument();
-		// 		is_setting_change=true;
-		// 	break;
+			case eBT_SETTING_ADD:
+				current_button_id=eBT_BUTTON_NONE;
+				lgtStore.changeSetting(int8_t(default_move_distance));
+				displayModifyArgument();
+			break;
+			case eBT_SETTING_SUB:
+				current_button_id=eBT_BUTTON_NONE;
+				lgtStore.changeSetting(int8_t(default_move_distance) * -1);
+				displayModifyArgument();
+			break;
 			case eBT_BUTTON_NONE:
 			default:
 				current_button_id=eBT_BUTTON_NONE;
