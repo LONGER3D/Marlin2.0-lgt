@@ -480,4 +480,25 @@ bool LgtStore::loadRecovery()
     return true;
 }
 
+/**
+ * @brief clear verison value of settings stored in spiflash
+ */
+void LgtStore::clearSettings()
+{
+    char tmp[4] = {0};
+    FLASH_WRITE_VAR(SPIFLASH_ADDR_SETTINGS, tmp);
+    SERIAL_ECHOLN("settings in spiflash has been cleared");
+}
+
+/**
+ * @brief clear version value of touch calibration stored in spiflash
+ */
+void LgtStore::clearTouch()
+{
+    char tmp[4] = {0};
+    FLASH_WRITE_VAR(SPIFLASH_ADDR_TOUCH, tmp);
+    SERIAL_ECHOLN("touch data in spiflash has been cleared");
+
+}
+
 #endif

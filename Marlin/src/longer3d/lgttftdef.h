@@ -381,8 +381,8 @@
 #define TXT_Y_CALIBRATION                "Y_CALIBRATION:"
 #define TXT_X_OFFSET              		 "X_OFFSET:"
 #define TXT_Y_OFFSET                     "Y_OFFSET:"
-#define TXT_PROMPT_INFO1                 "Please click the screen to"
-#define TXT_PROMPT_INFO2                 "return to the main home page!"
+#define TXT_PROMPT_INFO1                 "Please reboot the printer manually"
+// #define TXT_PROMPT_INFO2                 "return to the main home page!"
 
 //Printer killed
 #define TXT_PRINTER_KILLED_INFO1        "Printer halted. Kill()"

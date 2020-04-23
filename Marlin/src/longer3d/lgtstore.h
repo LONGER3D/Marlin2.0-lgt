@@ -138,6 +138,10 @@ public:
 
     void saveRecovery();
     bool loadRecovery();
+
+    void clearSettings();
+    void clearTouch();
+
 };
 
 extern LgtStore lgtStore;

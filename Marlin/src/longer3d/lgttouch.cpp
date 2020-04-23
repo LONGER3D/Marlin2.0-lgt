@@ -228,9 +228,9 @@ uint8_t LgtTouch::calibrate()
   lgtlcd.print(196, 156, text);
   lgtlcd.m_color = GREEN;
   length = sprintf(text, TXT_PROMPT_INFO1);
-  lgtlcd.print(160 - length * 4, 180, text);
-  length = sprintf(text, TXT_PROMPT_INFO2);
-  lgtlcd.print(160 - length * 4, 198, text);
+  lgtlcd.print(160 - length * 4, 180, text);  // center alignment
+  // length = sprintf(text, TXT_PROMPT_INFO2);
+  // lgtlcd.print(160 - length * 4, 198, text);
   lgtlcd.m_color = WHITE;
 
   // print result to serial
