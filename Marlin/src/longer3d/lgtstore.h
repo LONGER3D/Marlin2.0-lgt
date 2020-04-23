@@ -10,7 +10,7 @@
 #define SPIFLASH_ADDR_RECOVERY      (SPIFLASH_ADDR_TOUCH + 16)
 #define SPIFLASH_ADDR_SETTINGS      (SPIFLASH_ADDR_RECOVERY + 64)
 
-#define TOUCH_VERSION       "V01"
+#define TOUCH_VERSION       "V01"   // change value when default touch data is changed(change touch screen)
 #define SETTINGS_VERSION    "V02"   // change value when settings struct is changed
 
 #ifndef LIST_ITEM_MAX

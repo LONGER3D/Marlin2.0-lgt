@@ -2502,7 +2502,8 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_MOVE_RETURN:
-				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
+				if (all_axes_homed())
+					enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 

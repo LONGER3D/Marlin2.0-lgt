@@ -34,7 +34,7 @@
 #define GRAY        0X8430//0xF7DE
 
 
-#define IMAGE_BUFF_SIZE  4000   // store image data from spiflash
+#define IMAGE_BUFF_SIZE  4096   // store image data from spiflash
 // #define SLOW_SHOW_IMAGE      // using slowly io write method  
 
 struct imageHeader {

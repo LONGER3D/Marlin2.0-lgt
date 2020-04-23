@@ -192,7 +192,7 @@ void LgtLcdApi::showRawImage(uint16_t xsta,uint16_t ysta,uint16_t width,uint16_t
 		uint16_t real_size = (get_image_times-k)>1?IMAGE_BUFF_SIZE:(image_size-k*IMAGE_BUFF_SIZE);
 		spiFlash.W25QXX_Read(image_buffer, addr+k*IMAGE_BUFF_SIZE,real_size);
 
-        #if ENABLED(LCD_USE_DMA_FSMC) 
+        #if 0 //ENABLED(LCD_USE_DMA_FSMC)  // to do: no need swap bytes
              #define SWAP(a, b) (((a) ^= (b)), ((b) ^= (a)), ((a) ^= (b)))
              for (uint16_t i = 0; i < real_size; i = i + 2) {
                 SWAP(image_buffer[i], image_buffer[i + 1]);    // little-endian to big-endian
