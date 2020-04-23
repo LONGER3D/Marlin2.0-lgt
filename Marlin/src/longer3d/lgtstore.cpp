@@ -13,8 +13,6 @@
 
 #define WRITE_VAR(value)        do { FLASH_WRITE_VAR(addr, value); addr += sizeof(value); } while(0)
 #define READ_VAR(value)         do { FLASH_READ_VAR(addr, value); addr += sizeof(value); } while(0)
-// #define SAVE_SETTINGS()         FLASH_WRITE_VAR(SPIFLASH_ADDR_SETTINGS, m_settings)
-// #define LOAD_SETTINGS()         FLASH_READ_VAR(SPIFLASH_ADDR_SETTINGS, m_settings)
 
 LgtStore lgtStore;
 
@@ -50,12 +48,15 @@ LgtStore::LgtStore()
     clear();
 }
 
+/**
+ * @brief save lgt custom settings into spiflash,
+ *        and run M500 command or save other settings
+ */
 void LgtStore::save()
 {
 
     // set version string
     strcpy(m_settings.version, SETTINGS_VERSION);
-    // SERIAL_ECHOLNPAIR("save version: ", m_settings.version);
 
     // calc crc
     // uint16_t crc = 0;
@@ -63,12 +64,10 @@ void LgtStore::save()
     // SERIAL_ECHOLNPAIR("save crc: ", crc);
     // m_settings.crc = crc;
     
-    // save some settings in spiflash
+    // save lgt custom settings in spiflash
     uint32_t addr = SPIFLASH_ADDR_SETTINGS;
     WRITE_VAR(m_settings.version);
     WRITE_VAR(m_settings.listOrder);
-    WRITE_VAR(m_settings.enabledRunout);
-    WRITE_VAR(m_settings.enabledPowerloss);
     SERIAL_ECHOPAIR("settings stored in spiflash(", addr - SPIFLASH_ADDR_SETTINGS);
     SERIAL_ECHOLN(" bytes)");
 
@@ -88,9 +87,9 @@ bool LgtStore::validate(const char *current, const char*stored)
 }
 
 /**
- * load settings from spiflash
- * spi flash -> settings struct -> memory(apply)
- * load sequence must be consistent with save
+ * @brief load lgt custom settings from spiflash,
+ *        spi flash -> settings struct -> memory(apply),
+ *        load sequence must be consistent with save sequcence.
  */
 bool LgtStore::load()
 {
@@ -110,13 +109,6 @@ bool LgtStore::load()
     SERIAL_ECHOLNPAIR("listOrder: ", m_settings.listOrder);
     lgtCard.setListOrder(m_settings.listOrder);
 
-    READ_VAR(m_settings.enabledRunout);
-    SERIAL_ECHOLNPAIR("enabledRunout: ", m_settings.enabledRunout);
-    runout.enabled = m_settings.enabledRunout;
-
-    READ_VAR(m_settings.enabledPowerloss);
-    SERIAL_ECHOLNPAIR("enabledPowerloss: ", m_settings.enabledPowerloss);
-    recovery.enable(m_settings.enabledPowerloss); 
     SERIAL_ECHOLN("-- load settings form spiflash end --");
 
     return true;
@@ -153,13 +145,12 @@ bool LgtStore::load()
 }
 
 /**
- * reset lgttft variables
+ * reset lgt custom variables
  */
 void LgtStore::_reset()
 {
     lgtCard.setListOrder(false);
-    runout.enabled = true;
-    recovery.enable(PLR_ENABLED_DEFAULT);
+
 }
 
 /**
@@ -187,6 +178,9 @@ void LgtStore::reset()
     #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
       planner.max_jerk[E_AXIS] =  DEFAULT_EJERK;
     #endif
+
+    runout.enabled = true;
+    recovery.enable(PLR_ENABLED_DEFAULT);
 
     _reset();
 

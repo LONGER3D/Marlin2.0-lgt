@@ -17,9 +17,13 @@ void GcodeSuite::M995()
         lgtTouch.calibrate();
 }
 
+/**
+ * @brief clear settings in spiflash 
+ */  
 void GcodeSuite::M2100()
 {
-
+   if (parser.seen('C'))
+        lgtStore.clearSettings();
 }
 
 

@@ -11,7 +11,7 @@
 #define SPIFLASH_ADDR_SETTINGS      (SPIFLASH_ADDR_RECOVERY + 64)
 
 #define TOUCH_VERSION       "V01"   // change value when default touch data is changed(change touch screen)
-#define SETTINGS_VERSION    "V02"   // change value when settings struct is changed
+#define SETTINGS_VERSION    "V01"   // change value when custom settings is changed
 
 #ifndef LIST_ITEM_MAX
     #define LIST_ITEM_MAX        5
@@ -39,9 +39,9 @@ struct Settings
 	float axis_steps_per_unit[XYZE];
 
     // start to store in spiflash
-    char version[4];    // Vxx\0
-    // uint16_t crc;       // checksum for data below
-    bool listOrder;
+    char version[4];        // Vxx\0
+    // uint16_t crc;        // checksum for data below
+    bool listOrder;         // need to store in spiflash
     bool enabledRunout;
     bool enabledPowerloss;
 }; 
