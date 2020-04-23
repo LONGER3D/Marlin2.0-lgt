@@ -63,6 +63,7 @@ public:
 
     bool isDir();
     const char *shortFilename();
+    const char *longFilename();
     const char *filename(uint16_t i);
     const char *filename();
     inline uint16_t fileIndex() {return m_currentFile;} // get current selected file
@@ -94,7 +95,7 @@ public:
     void parseComment();
 
     void setPrintTime(uint16_t t) { m_printTime = t; }
-    uint16_t printTime() { return m_printTime; }
+    uint16_t &printTime() { return m_printTime; }
 
     CardUpdate update();
     bool isCardInserted() { return m_cardState; }

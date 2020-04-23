@@ -5,6 +5,7 @@
 #include "../sd/cardreader.h"
 #include "../module/printcounter.h"
 #include "../HAL/STM32F1/sdio.h"
+#include "lgtstore.h"
 
 LgtSdCard lgtCard;
 
@@ -80,10 +81,19 @@ bool LgtSdCard::isDir()
  */
 const char *LgtSdCard::shortFilename()
 {
-    if (m_fileCount == 0 || !m_isSelectFile)
+    if (!m_isSelectFile)
         return nullptr;
-    card.getfilename_sorted(m_currentFile);
     return card.filename;
+}
+
+/**
+ * longfilename for showing
+ */
+const char *LgtSdCard::longFilename()
+{
+    // if (!m_isSelectFile)
+        // return nullptr;
+    return card.longFilename;
 }
 
 /**
@@ -224,11 +234,13 @@ void LgtSdCard::parseComment()
     if (strstr(gComment, "TIME:") != nullptr) {
         SERIAL_ECHOLNPAIR("comment:", gComment);
         parseCura();
+        lgtStore.saveRecovery();
     }
     else if(strstr(gComment,"Print time") != nullptr)
     {
         SERIAL_ECHOLNPAIR("comment:", gComment);
         parseLegacyCura();
+        lgtStore.saveRecovery();
     }
 }
 

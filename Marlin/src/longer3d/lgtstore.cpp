@@ -5,6 +5,7 @@
 #include "lgtsdcard.h"
 #include "lgttftdef.h"
 #include "lgttouch.h"
+#include "lgtsdcard.h"
 
 // #include "../../src/libs/crc16.h"
 #include "../feature/runout.h"
@@ -68,7 +69,7 @@ void LgtStore::save()
     WRITE_VAR(m_settings.listOrder);
     WRITE_VAR(m_settings.enabledRunout);
     WRITE_VAR(m_settings.enabledPowerloss);
-    SERIAL_ECHOPAIR("settings stored to spiflash(", addr - SPIFLASH_ADDR_SETTINGS);
+    SERIAL_ECHOPAIR("settings stored in spiflash(", addr - SPIFLASH_ADDR_SETTINGS);
     SERIAL_ECHOLN(" bytes)");
 
     //  save other settings in internal flash
@@ -419,7 +420,7 @@ void LgtStore::saveTouch()
     // save calibration data in spiflash
     uint32_t addr = SPIFLASH_ADDR_TOUCH;
     WRITE_VAR(touch);
-    SERIAL_ECHOPAIR("touch data stored to spiflash(", addr - SPIFLASH_ADDR_TOUCH);
+    SERIAL_ECHOPAIR("touch data stored in spiflash(", addr - SPIFLASH_ADDR_TOUCH);
     SERIAL_ECHOLN(" bytes)");
 }
 
@@ -452,45 +453,31 @@ bool LgtStore::loadTouch()
     return true;
 }
 
-// void LgtStore::saveRecovery()
-// {
-//     // TouchCalibration &touch = lgtTouch.calibrationData();
-//     // // set version string
-//     // strcpy(touch.version, TOUCH_VERSION);
-//     // // save calibration data in spiflash
-//     // uint32_t addr = SPIFLASH_ADDR_TOUCH;
-//     // WRITE_VAR(touch);
-//     // SERIAL_ECHOPAIR("settings stored to spiflash(", addr - SPIFLASH_ADDR_SETTINGS);
-//     // SERIAL_ECHOLN(" bytes)");
-// }
+void LgtStore::saveRecovery()
+{
 
-// bool LgtStore::loadRecovery()
-// {
-//     // SERIAL_ECHOLN("-- load touch data form spiflash start --");
-//     // uint32_t addr = SPIFLASH_ADDR_TOUCH;
-//     // TouchCalibration &touch = lgtTouch.calibrationData();
-//     // READ_VAR(touch.version);
-//     // SERIAL_ECHOLNPAIR("stored version: ", touch.version);
-//     // SERIAL_ECHOLNPAIR("current version: ", TOUCH_VERSION);
-//     // if (!validate(SETTINGS_VERSION, touch.version)) {
-//     //    SERIAL_ECHOLN("load failed, reset touch data");
-//     //     lgtTouch.resetCalibration();
-//     //    return false;    
-//     // }
-//     // READ_VAR(touch.xCalibration);
-//     // SERIAL_ECHOLNPAIR("xCali: ", touch.xCalibration);
+    // save recovery data in spiflash
+    uint32_t addr = SPIFLASH_ADDR_RECOVERY;
+    // SERIAL_ECHOLNPAIR("save filename: ", card.longFilename);
+    WRITE_VAR(card.longFilename);
+    WRITE_VAR(lgtCard.printTime());
+    SERIAL_ECHOPAIR("recovery data stored in spiflash(", addr - SPIFLASH_ADDR_RECOVERY);
+    SERIAL_ECHOLN(" bytes)");
+}
 
-//     // READ_VAR(touch.yCalibration);
-//     // SERIAL_ECHOLNPAIR("yCali: ", touch.yCalibration);
+bool LgtStore::loadRecovery()
+{
+    SERIAL_ECHOLN("-- load recovery data form spiflash start --");
+    uint32_t addr = SPIFLASH_ADDR_RECOVERY;
 
-//     // READ_VAR(touch.xOffset);
-//     // SERIAL_ECHOLNPAIR("xOffset: ", touch.xOffset);
+    READ_VAR(card.longFilename);
+    SERIAL_ECHOLNPAIR("longfilename: ", card.longFilename);
 
-//     // READ_VAR(touch.yOffset);
-//     // SERIAL_ECHOLNPAIR("yOffset: ", touch.yOffset);
+    READ_VAR(lgtCard.printTime());
+    SERIAL_ECHOLNPAIR("printTime: ", lgtCard.printTime());  
 
-//     // SERIAL_ECHOLN("-- load touch data form spiflash end --");
-//     return true;
-// }
+    SERIAL_ECHOLN("-- load recovery data from spiflash end --");
+    return true;
+}
 
 #endif

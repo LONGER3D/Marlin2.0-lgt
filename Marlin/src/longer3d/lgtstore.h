@@ -136,8 +136,8 @@ public:
     void saveTouch();
     bool loadTouch();
 
-    // void saveRecovery();
-    // bool loadRecovery();
+    void saveRecovery();
+    bool loadRecovery();
 };
 
 extern LgtStore lgtStore;

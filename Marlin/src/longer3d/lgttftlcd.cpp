@@ -1425,7 +1425,7 @@ void display_image::displayWindowPrint(void)
 	bgColor = BG_COLOR_CAPTION_PRINT;
 	color=WHITE;
 	if(recovery_flag==false)
-		LCD_ShowString(10,5,card.longFilename);
+		LCD_ShowString(10,5, lgtCard.longFilename());
 	else
 		;
 	bgColor = WHITE;
@@ -2771,6 +2771,8 @@ void display_image::LGT_Ui_Buttoncmd(void)
 					(lgtCard.selectedPage() != lgtCard.page()))) {
 					break;
 				}
+				if (lgtCard.filename() == nullptr)	// get short and long filename
+					break;
 				const char *fn = lgtCard.shortFilename();
 				DEBUG_ECHOLNPAIR("open shortname: ", fn);
 				if(lgtCard.isDir()) {
@@ -2958,9 +2960,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				sprintf_P(cmd, PSTR("M23 %s"), fn);
 				enqueue_and_echo_commands_P(cmd);
 				enqueue_and_echo_commands_P(PSTR("M24"));
-					// W25QxxFlash.W25QXX_Write((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
-
-				// W25QxxFlash.W25QXX_Read((uint8_t*)card.longFilename,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
+				lgtStore.saveRecovery();
 				next_window_ID = eMENU_PRINT;
 				current_button_id=eBT_BUTTON_NONE;
 			}
@@ -2989,8 +2989,8 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				is_printing=true;
 				is_print_finish=cur_flag=false;
 				cur_ppage=0;cur_pstatus=0;
-				// retrive longfilename
-
+				// retrive filename and printtime
+				lgtStore.loadRecovery();
 				// start recovery
 				DEBUG_ECHOLN("recovery start");
 				queue.inject_P(PSTR("M1000"));	// == recovery.resume()
@@ -3226,9 +3226,10 @@ void LgtLcdTft::init()
 
 void LgtLcdTft::loop()
 {
-    #define TOUCH_DELAY 10u // millsecond
-    #define CHECK_TOUCH_TIME 4u
-    #define TRUELY_TOUCHED() (touchCheck > CHECK_TOUCH_TIME)
+    #define TOUCH_DELAY 		10u // millsecond
+    #define CHECK_TOUCH_TIME 	4u
+    #define TRUELY_TOUCHED() 	(touchCheck > CHECK_TOUCH_TIME)
+	
     static millis_t nextTouchReadTime = 0;
     static uint8_t touchCheck = 0;
 
