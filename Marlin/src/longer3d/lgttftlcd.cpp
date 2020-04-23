@@ -651,8 +651,22 @@ void display_image::displayFileList()
 {
     LCD_Fill(0, 25, 239, 174,White); //clean file list display zone 
     lcd.setColor(BLACK);
-	if(!lgtCard.isReverseList())    //forward
+	if(lgtCard.isReverseList())    // inverse
 	{
+        int16_t start = lgtCard.fileCount() - 1 - lgtCard.page() * LIST_ITEM_MAX;
+		int16_t end = start - LIST_ITEM_MAX;
+		NOLESS(end, -1);
+        DEBUG_ECHOLNPAIR("list start:", start);
+        DEBUG_ECHOLNPAIR("list end: ", end);
+		for (int16_t i = start, j = 0; i > end; --i, ++j) {
+            DEBUG_ECHOLNPAIR("sd filename: ", lgtCard.filename(i));
+            LCD_ShowString(35, 32 + j * 30, lgtCard.filename(i));
+            if(lgtCard.isDir())
+				displayImage(0, 25 + j * 30, IMG_ADDR_INDICATOR_FOLDER);
+			else
+				displayImage(0, 25 + j * 30, IMG_ADDR_INDICATOR_FILE);
+		}
+	} else {        		// forward
         uint16_t start = lgtCard.page() * LIST_ITEM_MAX;
         uint16_t end = start + LIST_ITEM_MAX;
         NOMORE(end, lgtCard.fileCount());
@@ -666,19 +680,7 @@ void display_image::displayFileList()
 			else
 				displayImage(0, 25 + j * 30, IMG_ADDR_INDICATOR_FILE);
 		}
-	} else {        // inverse
-        uint16_t start = lgtCard.fileCount() - 1 - lgtCard.page() * LIST_ITEM_MAX;
-        uint16_t end = start > LIST_ITEM_MAX ? start - LIST_ITEM_MAX : 0;
-        DEBUG_ECHOLNPAIR("list start:", start);
-        DEBUG_ECHOLNPAIR("list end: ", end);
-		for (uint16_t i = start, j = 0; i > end; --i, ++j) {
-            DEBUG_ECHOLNPAIR("sd filename: ", lgtCard.filename(i));
-            LCD_ShowString(35, 32 + j * 30, lgtCard.filename(i));
-            if(lgtCard.isDir())
-				displayImage(0, 25 + j * 30, IMG_ADDR_INDICATOR_FOLDER);
-			else
-				displayImage(0, 25 + j * 30, IMG_ADDR_INDICATOR_FILE);
-		}
+
 	}
 
 }
@@ -704,9 +706,10 @@ void display_image::updateFilelist()
 }
 
 /// highlight selecetd item when return from open file dialog
-void display_image::displayChosenFile()
+void display_image::highlightChosenFile()
 {
-	if (lgtCard.isFileSelected()) {
+	if (lgtCard.isFileSelected() && 
+		(lgtCard.selectedPage() == lgtCard.page())) {
 		uint16_t item = lgtCard.item();
 		lcd.fill(35, 25 + item * 30, 239, 55 - 1 + item * 30, DARKBLUE);
 		// .. reprint filename
@@ -719,7 +722,7 @@ void display_image::displayChosenFile()
 	}
 }
 
-void LgtLcdTft::highlightChosenItem(uint16_t item)
+void LgtLcdTft::chooseFile(uint16_t item)
 {
     uint16_t lastItem = lgtCard.item();
     uint16_t lastIndex = lgtCard.fileIndex();   // save last selected file index
@@ -733,8 +736,11 @@ void LgtLcdTft::highlightChosenItem(uint16_t item)
     //     return;
     if (!lgtCard.selectFile(item)) // fail to select file
 		return;
-	if (lastIndex == lgtCard.fileIndex() && lastIndex != 0) // nothing should change
-		return;
+	if (lastIndex == lgtCard.fileIndex() && 
+		((lastIndex == 0 && isLastSelect) ||
+		lastIndex != 0)) { 
+		return;	// nothing should change
+	}
 
     DEBUG_ECHOLNPAIR("select index: ", lgtCard.fileIndex());
 
@@ -744,15 +750,7 @@ void LgtLcdTft::highlightChosenItem(uint16_t item)
         lcd.print(35, 32 + lastItem*30, lgtCard.filename(lastIndex));
     }
     // highlight selecetd item
-    // .. darkblue background
-    lcd.fill(35, 25 + item * 30, 239, 55 - 1 + item * 30, DARKBLUE);
-    // .. reprint filename
-    lcd.setColor(WHITE);
-    lcd.setBgColor(DARKBLUE);
-    lcd.print(35, 32 + item*30, lgtCard.filename());
-
-    lcd.setColor(BLACK);
-    lcd.setBgColor(WHITE);
+	highlightChosenFile();
 }
 
 void display_image::scanWindowFile( uint16_t rv_x, uint16_t rv_y )
@@ -1248,8 +1246,11 @@ void LgtLcdTft::chooseSetting(uint16_t item)
 
     if (lgtStore.selectSetting(item)) // fail to select file
 		return;
-	if (lastIndex == lgtStore.settingIndex() && lastIndex != 0) // nothing should change
-		return;
+	if (lastIndex == lgtStore.settingIndex() && 
+		((lastIndex == 0 && isLastSelect) ||
+		lastIndex != 0)) { 
+		return;	// nothing should change
+	}
 
     DEBUG_ECHOLNPAIR("select index: ", lgtStore.settingIndex());
 
@@ -1262,20 +1263,6 @@ void LgtLcdTft::chooseSetting(uint16_t item)
     }
     // highlight selecetd item
 	highlightSetting();
-
-
-	// Display_Screen.LCD_Fill(0, 25+page_index_num*30, 239, 55 - 1 + page_index_num*30,White);		//clean file last file display zone 
-	// page_index_num = index;
-	// Display_Screen.displayArgumentList();						
-	// Display_Screen.LCD_Fill(0, 25+page_index_num*30, 239, 55 - 1 + page_index_num*30,DARKBLUE);
-    // //page_index_num=index;
-	// memset(s_argus, 0, sizeof(s_argus));
-	// convertArgu2Str(i, s_argus);
-	// sprintf((char*)s_text, "%-20s%s", c_machine_argument[i], s_argus);
-    // color=WHITE,bgColor=DARKBLUE;
-    // LCD_ShowString(10,32+page_index_num*30,s_text);   //page_index start from 0
-    // color=BLACK,bgColor=WHITE;
-
 
 }
 
@@ -2148,7 +2135,7 @@ bool display_image::LGT_Ui_Update(void)
 				current_window_ID=eMENU_FILE;
 				next_window_ID=eWINDOW_NONE;
 				displayWindowFiles();
-				displayChosenFile();
+				highlightChosenFile();
 			break;
 			case eMENU_EXTRUDE:
 				current_window_ID=eMENU_EXTRUDE;
@@ -2715,8 +2702,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				if (lgtCard.nextPage()) {
 					displayFileList();
 					displayFilePageNumber();
-					if(lgtCard.selectedPage()==lgtCard.page())
-						displayChosenFile();
+					highlightChosenFile();
 				}
 				current_button_id=eBT_BUTTON_NONE;
 			    break;
@@ -2724,42 +2710,41 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				if (lgtCard.previousPage()) {
 					displayFileList();
 					displayFilePageNumber();
-					if(lgtCard.selectedPage()==lgtCard.page())
-						displayChosenFile();
+					highlightChosenFile();
 				}
 				current_button_id=eBT_BUTTON_NONE;
 			    break;
 			case eBT_FILE_LIST1:
 				if(current_window_ID==eMENU_FILE) {
-                    highlightChosenItem(0);
+                    chooseFile(0);
                 } else
 					chooseSetting(0);
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_FILE_LIST2:
 				if(current_window_ID==eMENU_FILE) {
-                    highlightChosenItem(1);
+                    chooseFile(1);
                 } else
 					chooseSetting(1);	
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_FILE_LIST3:
 				if(current_window_ID==eMENU_FILE)
-					highlightChosenItem(2);
+					chooseFile(2);
 				else
 					chooseSetting(2);
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_FILE_LIST4:
 				if(current_window_ID==eMENU_FILE)
-					highlightChosenItem(3);
+					chooseFile(3);
 				else
 					chooseSetting(3);
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_FILE_LIST5:
 				if(current_window_ID==eMENU_FILE)
-					highlightChosenItem(4);
+					chooseFile(4);
 				else
 					chooseSetting(4);
 				current_button_id=eBT_BUTTON_NONE;

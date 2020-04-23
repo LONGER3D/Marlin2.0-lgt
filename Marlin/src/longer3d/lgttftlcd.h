@@ -151,8 +151,8 @@ private:
     void displayFileList();
     void updateFilelist();
     bool updateCard();
-    void highlightChosenItem(uint16_t item);
-    void displayChosenFile();
+    void chooseFile(uint16_t item);
+    void highlightChosenFile();
     void displayPromptSDCardError(void);
     void displayPromptEmptyFolder(void);
     void scanWindowFile( uint16_t rv_x, uint16_t rv_y );
