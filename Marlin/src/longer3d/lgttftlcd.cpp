@@ -468,16 +468,16 @@ void display_image::changeMoveDistance(uint16_t pos_x, uint16_t pos_y)
 					||current_window_ID == eMENU_ADJUST_MORE
 					|| current_window_ID == eMENU_PREHEAT)
 				{
-					default_move_distance = 15;
+					default_move_distance = 0xff;
 					displayImage(pos_x, pos_y, IMG_ADDR_BUTTON_DISTANCE_MAX);
             	}
-				else    /* if not in extrude or adjust menu */
+				else    /* if not in temperature menu */
 				{  
 					default_move_distance = 1;
 					displayImage(pos_x, pos_y, IMG_ADDR_BUTTON_DISTANCE_1);
 				}
 			break;
-			case 15:
+			case 0xff:
 				default_move_distance = 1;
 				displayImage(pos_x, pos_y, IMG_ADDR_BUTTON_DISTANCE_1);
 			break;
@@ -492,7 +492,7 @@ void display_image::initialMoveDistance(uint16_t pos_x, uint16_t pos_y)
 		case 1:    displayImage(pos_x, pos_y, IMG_ADDR_BUTTON_DISTANCE_1); break;
 		case 5:	   displayImage(pos_x, pos_y, IMG_ADDR_BUTTON_DISTANCE_5); break;
 		case 10:   displayImage(pos_x, pos_y, IMG_ADDR_BUTTON_DISTANCE_10); break;
-        case 15:case 0xff: displayImage(pos_x, pos_y, IMG_ADDR_BUTTON_DISTANCE_MAX); break;
+        case 0xff: displayImage(pos_x, pos_y, IMG_ADDR_BUTTON_DISTANCE_MAX); break;
 	}
 }
 
@@ -816,7 +816,7 @@ void display_image::displayWindowExtrude(void)
 	displayImage(167, 44, IMG_ADDR_BUTTON_FEED_IN_0);
 	displayImage(167, 166, IMG_ADDR_BUTTON_FEED_OUT_0);
 	default_move_distance = 10;
-	initialMoveDistance(260, 41);
+	initialMoveDistance(260, 40);
 	#ifndef Chinese
 		displayImage(260, 101, IMG_ADDR_BUTTON_FEED_STOP);
 	#else
@@ -1679,7 +1679,6 @@ void display_image::displayWindowAdjust(void)
 	displayImage(69, 175, IMG_ADDR_BUTTON_SUB);
 	displayImage(133, 175, IMG_ADDR_BUTTON_SUB);
 	displayImage(196, 175, IMG_ADDR_BUTTON_SUB);	
-	//default_move_distance=5;
 	initialMoveDistance(260, 40);	
 	displayImage(260, 101, IMG_ADDR_BUTTON_MORE);	
 	displayImage(260, 175, IMG_ADDR_BUTTON_RETURN);
