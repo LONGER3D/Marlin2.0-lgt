@@ -163,7 +163,7 @@ static void changeFilament(int16_t length)
 	} else {                // fast unload filament
 		DEBUG_ECHOLN("unload start");
 		if (!planner.is_full())
-			planner.buffer_line(current_position, UNLOAD_FILA_FEEDRATE, 0, current_position[E_AXIS]);
+			planner.buffer_line(current_position, UNLOAD_FILA_FEEDRATE, 0);
 		dir_auto_feed = -1;
 	}
 }
@@ -231,7 +231,6 @@ void LgtLcdTft::setPrintCommand(E_PRINT_CMD cmd)
 	current_print_cmd = cmd;
 }
 
-
 void LgtLcdTft::moveOnPause()
 {
 	if (!all_axes_homed()) return;
@@ -243,13 +242,12 @@ void LgtLcdTft::moveOnPause()
 	DEBUG_ECHOLNPAIR_F("save Y:", resume_xyze_position[Y_AXIS]);
 	DEBUG_ECHOLNPAIR_F("save E:", resume_xyze_position[E_AXIS]);
 	DEBUG_ECHOLNPAIR_F("save feedrate", resume_feedrate);
-	current_position[E_AXIS] = current_position[E_AXIS] - 3;
+	current_position[E_AXIS] = current_position[E_AXIS] - 2;
 
-	planner.synchronize();
-	LGT_Line_To_Current_Position(E_AXIS);
+	// retract filament
+	planner.buffer_line(current_position, 120, 0);
 	do_blocking_move_to_xy(FILAMENT_RUNOUT_MOVE_X, FILAMENT_RUNOUT_MOVE_Y, FILAMENT_RUNOUT_MOVE_F);
 	planner.synchronize();
-	// DEBUG_ECHOLNPAIR("queue-length", queue.length);
 }
 
 void LgtLcdTft::actOnPause()
@@ -262,6 +260,27 @@ void LgtLcdTft::actOnPause()
 	displayImage(260, 30, IMG_ADDR_BUTTON_RESUME);	
 	displayPause();
 }
+
+void LgtLcdTft::resumePrint()
+{
+	queue.inject_P(PSTR("M24"));
+	// resume value
+	planner.set_e_position_mm((destination[E_AXIS] = current_position[E_AXIS] = (resume_xyze_position[E_AXIS] - 3)));
+	feedrate_mm_s = resume_feedrate;					
+	// back to break posion, need few time
+	// do_blocking_move_to_xy(resume_xyze_position[X_AXIS], resume_xyze_position[Y_AXIS], FILAMENT_RUNOUT_MOVE_F);
+	#if HAS_FILAMENT_SENSOR
+		runout.reset();
+	#endif						
+	is_printing = true;	// genuine pause state
+	cur_pstatus=1;	
+	current_print_cmd=E_PRINT_CMD_NONE;
+	// show pause button and status
+	LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
+	displayImage(260, 30, IMG_ADDR_BUTTON_PAUSE);
+	displayPrinting();
+}
+
 
 void LgtLcdTft::startAutoFeed(int8_t dir)
 {
@@ -2809,7 +2828,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 						DEBUG_ECHOLN("touch pause");
 						// enqueue_and_echo_commands_P((PSTR("M25")));
 						queue.inject_P(PSTR("M25"));
-						actOnPause();
+						// actOnPause();
 						// is_printing = false;	// genuine pause state
 						// cur_pstatus=2;	
 						// current_print_cmd=E_PRINT_CMD_NONE;
@@ -2820,23 +2839,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 					break;
 					case E_PRINT_RESUME:
 						DEBUG_ECHOLN("touch resume");
-						// show pause button and status
-						LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
-						displayImage(260, 30, IMG_ADDR_BUTTON_PAUSE);
-						displayPrinting();					
-						// back to break posion, need few time
-						do_blocking_move_to_xy(resume_xyze_position[X_AXIS], resume_xyze_position[Y_AXIS], FILAMENT_RUNOUT_MOVE_F);
-						// resume value
-						planner.set_e_position_mm((destination[E_AXIS] = current_position[E_AXIS] = (resume_xyze_position[E_AXIS] - 2)));
-						feedrate_mm_s = resume_feedrate;
-						queue.inject_P(PSTR("M24"));
-						#if HAS_FILAMENT_SENSOR
-    						runout.reset();
-  						#endif						
-						is_printing = true;	// genuine pause state
-						cur_pstatus=1;	
-						current_print_cmd=E_PRINT_CMD_NONE;
-
+						resumePrint();
 					break;
 					default:
 					break;

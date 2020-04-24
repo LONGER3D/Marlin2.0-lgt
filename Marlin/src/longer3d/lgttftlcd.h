@@ -128,6 +128,7 @@ private:
     void LGT_Printer_Data_Update(void);
     void LGT_Ui_Buttoncmd(void);
 
+    void resumePrint();
     void startAutoFeed(int8_t dir);
     bool setTemperatureInWindow(bool is_bed, bool sign);
     // void LGT_Tempabnormal_Warning(const char* info);    //is_printing=false
