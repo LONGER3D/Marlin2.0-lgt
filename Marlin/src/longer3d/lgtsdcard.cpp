@@ -1,8 +1,7 @@
-#include "../inc/MarlinConfigPre.h"
+// #include "../inc/MarlinConfigPre.h"
+#include "lgtsdcard.h"
 
 #if ENABLED(LGT_LCD_TFT)
-#include "lgtsdcard.h"
-#include "../sd/cardreader.h"
 #include "../module/printcounter.h"
 #include "../HAL/STM32F1/sdio.h"
 #include "lgtstore.h"
@@ -36,8 +35,9 @@ static inline uint16_t codeValue2()
 LgtSdCard::LgtSdCard()
 {
     clear();
-    m_isReverseList = false;
+    // m_isReverseList = false;
     m_printTime = 0;
+    ZERO(parentSelectFile);
 }
 
 uint16_t LgtSdCard::count()
@@ -55,9 +55,9 @@ uint16_t LgtSdCard::count()
 }
 
 /**
- * clear file variable when change dir or card
+ * clear part of file variable when init card
  */
-void LgtSdCard::clear()
+void LgtSdCard::_clear()
 {
     m_fileCount = 0;
     m_pageCount = 0;
@@ -66,9 +66,20 @@ void LgtSdCard::clear()
     m_currentItem = 0;
     m_currentFile = 0;
 
-    m_isSelectFile = false;
+    m_isSelectFile = false;   
+}
+
+/**
+ * clear all file variable when init card
+ */
+void LgtSdCard::clear()
+{
+    _clear();
 
     indexGc = 0;
+    
+    m_dirDepth = 0;
+    
 }
 
 bool LgtSdCard::isDir()
@@ -173,10 +184,25 @@ uint16_t LgtSdCard::selectedPage()
     }   
 }
 
-uint8_t LgtSdCard::dirDepth()
+/**
+ * get the page of selected file
+ */
+uint16_t LgtSdCard::selectedItem()
 {
-    return card.getDirDepth();
+    if (!m_isSelectFile)
+        return 0;
+    if (m_isReverseList) {
+        return (m_fileCount - 1 - m_currentFile) % LIST_ITEM_MAX;
+    } else {
+        return m_currentFile % LIST_ITEM_MAX;
+    }   
 }
+
+// uint8_t LgtSdCard::dirDepth()
+// {
+//     // return card.getDirDepth();
+//     return m_dirDepth;
+// }
 
 bool LgtSdCard::isMaxDirDepth()
 {
@@ -185,7 +211,7 @@ bool LgtSdCard::isMaxDirDepth()
 
 bool LgtSdCard::isRootDir()
 {
-    return card.flag.workDirIsRoot;
+    return dirDepth() == 0;/* card.flag.workDirIsRoot */; // 
 }
 
 void LgtSdCard::changeDir(const char *relpath)

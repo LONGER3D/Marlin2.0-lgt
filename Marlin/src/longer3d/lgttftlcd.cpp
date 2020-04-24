@@ -598,10 +598,12 @@ bool LgtLcdTft::updateCard()
 	uint8_t res = lgtCard.update();
 	switch (res) {
 	case CardUpdate::MOUNTED :
+		lgtCard.clear();
 		updateFilelist();
 		break;
 	case CardUpdate::ERROR :
 	case CardUpdate::REMOVED :
+		lgtCard.clear();
 		displayPromptSDCardError();
 		break;
 	default:
@@ -621,7 +623,6 @@ void display_image::displayPromptSDCardError(void)
 	sprintf((char*)s_text,"%s", TXT_MENU_FILE_SD_ERROR);
 	LCD_ShowString(80, 92,s_text);
 	color=Black;
-	lgtCard.clear();
 }
 
 void display_image::displayPromptEmptyFolder(void)
@@ -656,10 +657,10 @@ void display_image::displayFileList()
         int16_t start = lgtCard.fileCount() - 1 - lgtCard.page() * LIST_ITEM_MAX;
 		int16_t end = start - LIST_ITEM_MAX;
 		NOLESS(end, -1);
-        DEBUG_ECHOLNPAIR("list start:", start);
-        DEBUG_ECHOLNPAIR("list end: ", end);
+        // DEBUG_ECHOLNPAIR("list start:", start);
+        // DEBUG_ECHOLNPAIR("list end: ", end);
 		for (int16_t i = start, j = 0; i > end; --i, ++j) {
-            DEBUG_ECHOLNPAIR("sd filename: ", lgtCard.filename(i));
+            // DEBUG_ECHOLNPAIR("sd filename: ", lgtCard.filename(i));
             LCD_ShowString(35, 32 + j * 30, lgtCard.filename(i));
             if(lgtCard.isDir())
 				displayImage(0, 25 + j * 30, IMG_ADDR_INDICATOR_FOLDER);
@@ -692,6 +693,7 @@ void display_image::displayFileList()
 void display_image::updateFilelist()
 {
 	if(!lgtCard.isCardInserted()) {
+		lgtCard.clear();
 		displayPromptSDCardError();
     } else {
         int fCount = lgtCard.count();
@@ -1573,7 +1575,8 @@ void display_image::dispalyCurrentStatus(void)
 			is_print_finish=true;
 			cur_pstatus=10;
 			cur_ppage=3;
-		 	lgtCard.setPrintTime(0);  //Make sure that the remaining time is 0 after printing 
+		 	// lgtCard.setPrintTime(0);  //Make sure that the remaining time is 0 after printing
+			 clearVarPrintEnd(); 
 		break;
 		case 10:
 		default:
@@ -2763,7 +2766,8 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				if(lgtCard.isDir()) {
 					if (!lgtCard.isMaxDirDepth()) {
 						lgtCard.changeDir(fn);
-						lgtCard.clear();
+						DEBUG_ECHOLNPAIR("current depth: ", lgtCard.dirDepth());
+						// file variable has been cleared after changeDir
 						updateFilelist();
 					} else {
 						;// show prompt dialog on max directory
@@ -2783,8 +2787,14 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				current_button_id=eBT_BUTTON_NONE;
 				if (!lgtCard.isRootDir()) {
 					lgtCard.upDir();
-					lgtCard.clear();
-					updateFilelist();
+					// lgtCard.clear();
+					// updateFilelist();
+					lgtCard.count();
+					DEBUG_ECHOLNPAIR("current count: ", lgtCard.fileCount());  
+					lgtCard.reselectFile();
+					displayFileList();
+            		displayFilePageNumber();   
+					highlightChosenFile();
 				}
 				break;
 

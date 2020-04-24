@@ -1,6 +1,7 @@
 #pragma once
-#include <stdint.h>
+#include "../sd/cardreader.h"
 
+#if ENABLED(LGT_LCD_TFT)
 #ifndef LIST_ITEM_MAX
 #define LIST_ITEM_MAX 5
 #endif
@@ -19,6 +20,7 @@ public:
     LgtSdCard();
 
     uint16_t count();
+    void _clear();
     void clear();
 
     inline uint16_t fileCount() { return m_fileCount; }
@@ -70,12 +72,47 @@ public:
 
     inline bool isFileSelected() {return m_isSelectFile;}
     uint16_t selectedPage();
+    uint16_t selectedItem();
 
-    uint8_t dirDepth();
+    inline uint8_t dirDepth() { return m_dirDepth;}
+
     void changeDir(const char *relpath);
     int8_t upDir();
     bool isMaxDirDepth();
     bool isRootDir();
+
+    inline void pushSelectedFile()
+    {
+        if (dirDepth() < MAX_DIR_DEPTH) {
+            SERIAL_ECHOLNPAIR("save file", m_currentFile); 
+            parentSelectFile[m_dirDepth++]  = m_currentFile;
+        }
+    }
+
+    inline bool popSelectedFile()
+    {
+        if (dirDepth() > 0) {
+            m_currentFile =  parentSelectFile[--m_dirDepth];
+            SERIAL_ECHOLNPAIR("current depth:", m_dirDepth); 
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @brief resume file variable after up directory 
+     */
+    inline void reselectFile()
+    {
+        if (popSelectedFile()) {
+            m_isSelectFile = true;
+            m_currentPage = selectedPage();
+            m_currentItem = selectedItem();
+            SERIAL_ECHOLNPAIR("pop file:", m_currentFile);
+            SERIAL_ECHOLNPAIR("pop page:", m_currentPage);
+            SERIAL_ECHOLNPAIR("pop item:", m_currentItem);
+        }
+    }
 
     void downTime(char *);
     void upTime(char *);
@@ -111,7 +148,7 @@ private:
     uint16_t m_currentItem;     // select item index
     uint16_t  m_currentFile;    // select file index
 
-    bool m_isReverseList;   // if reverse list
+    bool m_isReverseList;   // if reverse list, init in settings load
     bool m_isSelectFile;    // if select file
 
     static char gComment[GCOMMENT_SIZE];
@@ -121,6 +158,11 @@ private:
 
     bool m_cardState;
 
+    uint16_t parentSelectFile[MAX_DIR_DEPTH];
+    uint8_t m_dirDepth;
+
 };
 
 extern LgtSdCard lgtCard;
+
+#endif  // LGT_LCD_TFT

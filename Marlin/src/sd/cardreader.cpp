@@ -46,6 +46,10 @@
   #include "../feature/pause.h"
 #endif
 
+#if ENABLED(LGT_LCD_TFT)
+  #include "../longer3d/lgtsdcard.h"
+#endif
+
 // public:
 
 card_flags_t CardReader::flag;
@@ -785,6 +789,10 @@ void CardReader::cd(const char * relpath) {
     #if ENABLED(SDCARD_SORT_ALPHA)
       presort();
     #endif
+    #if ENABLED(LGT_LCD_TFT)
+      lgtCard.pushSelectedFile();
+      lgtCard._clear();
+    #endif
   }
   else {
     SERIAL_ECHO_START();
@@ -808,6 +816,11 @@ void CardReader::cdroot() {
   flag.workDirIsRoot = true;
   #if ENABLED(SDCARD_SORT_ALPHA)
     presort();
+  #endif
+
+  #if ENABLED(LGT_LCD_TFT)
+    // fixed workdirdepth not clean
+    workDirDepth = 0;
   #endif
 }
 
