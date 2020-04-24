@@ -136,6 +136,7 @@ public:
 
     CardUpdate update();
     bool isCardInserted() { return m_cardState; }
+    inline void setCardState(bool state) { m_cardState = state; }
 
 private:
     void parseCura();

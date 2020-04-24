@@ -2131,6 +2131,7 @@ bool display_image::LGT_Ui_Update(void)
 				current_window_ID=eMENU_FILE;
 				next_window_ID=eWINDOW_NONE;
 				lgtCard.clear();
+				lgtCard.setCardState(false);	// enforce init card
 				displayWindowFiles();
 			break;
 			case eMENU_FILE1:	// just return to file page
