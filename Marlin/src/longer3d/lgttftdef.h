@@ -280,7 +280,7 @@
 
 /********************************Language*********************************************/
 
-#define FW_VERSION "V2.0-Marlin2.0.5.2"
+#define FW_VERSION "V3.0T002-Marlin2.0.5.2"
 
 #if defined(LK1) || defined(U20)
 #define MAC_SIZE "300mm x 300mm x 400mm"
