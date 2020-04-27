@@ -120,7 +120,7 @@ public:
     void actOnPause();
     void changeToPageRunout();
     void changeToPageRecovery();
-
+    void changeToPageKilled(const char* error, const char *component);
 
 private:
     bool LGT_MainScanWindow(void);
@@ -128,11 +128,12 @@ private:
     void LGT_Printer_Data_Update(void);
     void LGT_Ui_Buttoncmd(void);
 
+    void changePageAtOnce(E_WINDOW_ID page);
+
     void resumePrint();
     void startAutoFeed(int8_t dir);
     bool setTemperatureInWindow(bool is_bed, bool sign);
     // void LGT_Tempabnormal_Warning(const char* info);    //is_printing=false
-    // void LGT_Printerabnormal_Kill(const char* info);
 
     // /***************************launch page*******************************************/
     void displayStartUpLogo(void);
@@ -238,6 +239,9 @@ private:
     void scanDialogSave(uint16_t rv_x, uint16_t rv_y);
     void scanDialogSaveOk(uint16_t rv_x, uint16_t rv_y);
     // void scanDialogYes(uint16_t rv_x, uint16_t rv_y);
+
+    // /***************************other page*******************************************/
+    void displayWindowKilled(const char* error, const char *component);
 
 private:
     // bool extrude2file = false;

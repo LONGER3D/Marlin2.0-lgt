@@ -244,6 +244,7 @@
 #define BG_COLOR_CAPTION_SETTINGS	 0x0209
 #define BG_COLOR_CAPTION_ABOUT 	     0xEA0A
 #define BG_COLOR_CAPTION_DIALOG 	 0x0233
+#define BG_COLOR_KILL_MENU		     0x2104
 
 #define PT_COLOR_DISABLE 0xBDD7
 
@@ -385,13 +386,39 @@
 // #define TXT_PROMPT_INFO2                 "return to the main home page!"
 
 //Printer killed
-#define TXT_PRINTER_KILLED_INFO1        "Printer halted. Kill()"
-#define TXT_PRINTER_KILLED_INFO2        "called. Please restart"
-#define TXT_PRINTER_KILLED_INFO3        "the printer!"
+#define TXT_PRINTER_KILLED_INFO1        "Printer halted."
+#define TXT_PRINTER_KILLED_INFO2        "Please restart your printer."
 
-#define TXT_PRINTER_TEMPERROR_INFO1      "Abnormal temper-"
-#define TXT_PRINTER_TEMPERROR_INFO2      "ature is detect-"
-#define TXT_PRINTER_TEMPERROR_INFO3      "ed!"
+// killed error message
+#define TXT_ERR_MINTEMP					"E1 MINTEMP"		
+#define TXT_ERR_MIN_TEMP_BED 			"Bed MINTEMP"
+#define TXT_ERR_MAXTEMP					"E1 MAXTEMP"
+#define TXT_ERR_MAX_TEMP_BED			"Bed MAXTEMP"
+#define TXT_ERR_HEATING_FAILED			"E1 Heating Failed"
+#define TXT_ERR_HEATING_FAILED_BED		"Bed Heating Failed"
+#define TXT_ERR_TEMP_RUNAWAY			"E1 Thermal Runaway"
+#define TXT_ERR_TEMP_RUNAWAY_BED		"Bed Thermal Runaway"
+#define TXT_ERR_HOMING_FAILED			"Homing Failed"
+#define TXT_ERR_PROBING_FAILED			"Probing Failed"
+
+// //Printer killed reason
+// #define TXT_E_TEMP_ERROR		"Error 0: abnormal E temp"   //Heating failed
+// #define TXT_B_TEMP_ERROR		"Error 1: abnormal B temp"   //Heating failed
+// #define TXT_M112_ERROR			"Error 2: emergency stop"
+// #define TXT_SDCARD_ERROR		"Error 3: SD card error"
+// #define TXT_HOME_FAILE			"Error 4: homing failed"
+// #define TXT_TIMEOUT_ERROR		"Error 5: timeout error"
+// #define TXT_EXTRUDER_NUM_ERROR  "Error 6: E number error"
+// #define TXT_DRIVER_ERROR		"Error 7: driver error"
+// #define TXT_E_MINTEMP_ERROR     "Error 8: E mintemp triggered"
+// #define TXT_B_MINTEMP_ERROR     "Error 9: B mintemp triggered"
+// #define TXT_E_MAXTEMP_ERROR     "Error 10: E maxtemp triggered"
+// #define TXT_B_MAXTEMP_ERROR     "Error 11: B maxtemp triggered"
+// #define TXT_E_RUNAWAY_ERROR     "Error 12: E thermal runaway"    // Heated, then temperature fell too far
+
+// #define TXT_PRINTER_TEMPERROR_INFO1      "Abnormal temper-"
+// #define TXT_PRINTER_TEMPERROR_INFO2      "ature is detect-"
+// #define TXT_PRINTER_TEMPERROR_INFO3      "ed!"
 
 //Dialog
 #define DIALOG_PROMPT_PRINT_START1		"Are you sure to"//"Are you sure to start printing?"

@@ -317,6 +317,12 @@ void LgtLcdTft::startAutoFeed(int8_t dir)
 	}
 }
 
+void LgtLcdTft::changePageAtOnce(E_WINDOW_ID page)
+{
+	next_window_ID = page;
+	LGT_Ui_Update();
+}
+
 void LgtLcdTft::changeToPageRunout()
 {
 	// check if it in runout state
@@ -2013,6 +2019,100 @@ void display_image::scanDialogRefactory(uint16_t rv_x, uint16_t rv_y)
 	{
 		next_window_ID=eMENU_SETTINGS_RETURN;
 	}
+}
+
+// /************************* other page *******************************/
+
+static int8_t errorIndex(const char *error, const char *component)
+{
+	if (error == nullptr)
+		return -1;
+
+	const char *E1 = "E1";
+	const char *BED = "Bed";
+
+	#define IS_ERROR(e)  	(strcmp(error, GET_TEXT(e)) == 0)
+	#define IS_E1()			(strcmp(component, E1) == 0)
+	#define IS_BED()		(strcmp(component, BED) == 0)
+
+	int8_t index;
+	if (IS_ERROR(MSG_ERR_MINTEMP)) {
+		if (IS_E1())
+			index = 0;
+		else if (IS_BED())
+			index = 1;
+		else
+			index = -1;
+	} else if (IS_ERROR(MSG_ERR_MAXTEMP)) {
+		if (IS_E1())
+			index = 2;
+		else if (IS_BED())
+			index = 3;
+		else
+			index = -1;
+	} else if (IS_ERROR(MSG_HEATING_FAILED_LCD)) {
+		if (IS_E1())
+			index = 4;
+		else if (IS_BED())
+			index = 5;
+		else
+			index = -1;
+	} else if (IS_ERROR(MSG_THERMAL_RUNAWAY)) {
+			if (IS_E1())
+			index = 6;
+		else if (IS_BED())
+			index = 7;
+		else
+			index = -1;
+	} else if (IS_ERROR(MSG_LCD_HOMING_FAILED)) {
+		index = 8;
+	} else if (IS_ERROR(MSG_LCD_PROBING_FAILED)) {
+		index = 9;
+	} else {	// unknown error
+		index = -1;	
+	}
+
+	return index;
+
+}
+
+void display_image::displayWindowKilled(const char* error, const char *component)
+{
+	lcd.clear(BG_COLOR_KILL_MENU);
+	lcd.setBgColor(BG_COLOR_KILL_MENU);
+	lcd.setColor(WHITE);
+	lcd.print(40, 70, TXT_PRINTER_KILLED_INFO1);
+	lcd.print(40, 90, TXT_PRINTER_KILLED_INFO2);
+	lcd.setColor(YELLOW);
+	CLEAN_STRING(s_text);
+
+	const char *errMsgKilled[] = {
+		TXT_ERR_MINTEMP,
+		TXT_ERR_MIN_TEMP_BED,
+		TXT_ERR_MAXTEMP,
+		TXT_ERR_MAX_TEMP_BED,
+		TXT_ERR_HEATING_FAILED,
+		TXT_ERR_HEATING_FAILED_BED,
+		TXT_ERR_TEMP_RUNAWAY,
+		TXT_ERR_TEMP_RUNAWAY_BED,
+		TXT_ERR_HOMING_FAILED,
+		TXT_ERR_PROBING_FAILED
+	};
+
+	int8_t errIndex = errorIndex(error, component);
+	if (errIndex > -1) {
+		sprintf(s_text, "Error %i: %s", errIndex + 1, errMsgKilled[errIndex]);
+		lcd.print(40, 180, s_text);
+	}
+
+	lcd.setBgColor(WHITE);
+	lcd.setColor(BLACK);	
+}
+
+void display_image::changeToPageKilled(const char* error, const char *component)
+{
+	displayWindowKilled(error, component);
+	current_window_ID = eWINDOW_NONE;
 }
 
 /********************************************************
