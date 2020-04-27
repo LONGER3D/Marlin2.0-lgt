@@ -116,9 +116,7 @@ public:
     uint8_t printState();
     bool isPrinting();
     void setPrintCommand(E_PRINT_CMD cmd);
-    void moveOnPause();
-    void actOnPause();
-    void changeToPageRunout();
+    void pausePrint();
     void changeToPageRecovery();
     void changeToPageKilled(const char* error, const char *component);
 
@@ -129,7 +127,8 @@ private:
     void LGT_Ui_Buttoncmd(void);
 
     void changePageAtOnce(E_WINDOW_ID page);
-
+    void moveOnPause();
+    void changeToPageRunout();
     void resumePrint();
     void startAutoFeed(int8_t dir);
     bool setTemperatureInWindow(bool is_bed, bool sign);

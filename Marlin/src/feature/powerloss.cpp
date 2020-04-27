@@ -308,6 +308,7 @@ void PrintJobRecovery::resume() {
     gcode.process_subcommands_now_P(PSTR("M420 S0 Z0"));
   #endif
 
+#if DISABLED(LGT_LCD_TFT)
   // Reset E, raise Z, home XY...
   gcode.process_subcommands_now_P(PSTR("G92.9 E0"
     #if Z_HOME_DIR > 0
@@ -339,6 +340,7 @@ void PrintJobRecovery::resume() {
       #endif
     #endif
   ));
+#endif  // LGT_LCD_TFT
 
   // Pretend that all axes are homed
   axis_homed = axis_known_position = xyz_bits;
@@ -395,6 +397,40 @@ void PrintJobRecovery::resume() {
       }
     }
   #endif
+
+#if ENABLED(LGT_LCD_TFT)
+  // Reset E, raise Z, home XY...
+  gcode.process_subcommands_now_P(PSTR("G92.9 E0"
+    #if Z_HOME_DIR > 0
+
+      // If Z homing goes to max, just reset E and home all
+      "\n"
+      "G28R0"
+      #if ENABLED(MARLIN_DEV_MODE)
+        "S"
+      #endif
+
+    #else // "G92.9 E0 ..."
+
+      // Set Z to 0, raise Z by RECOVERY_ZRAISE, and Home (XY only for Cartesian)
+      // with no raise. (Only do simulated homing in Marlin Dev Mode.)
+      #if ENABLED(BACKUP_POWER_SUPPLY)
+        "Z" STRINGIFY(POWER_LOSS_ZRAISE)    // Z-axis was already raised at outage
+      #else
+        "Z0\n"                              // Set Z=0
+        "G1Z" STRINGIFY(POWER_LOSS_ZRAISE)  // Raise Z
+      #endif
+      "\n"
+
+      "G28R0"
+      #if ENABLED(MARLIN_DEV_MODE)
+        "S"
+      #elif !IS_KINEMATIC
+        "XY"
+      #endif
+    #endif
+  ));
+#endif  // LGT_LCD_TFT
 
   // Restore print cooling fan speeds
   FANS_LOOP(i) {

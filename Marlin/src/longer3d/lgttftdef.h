@@ -2,11 +2,11 @@
 
 // filament UI definition
 #define CHANGE_FILA_LENGTH		500
-#define UNLOAD_FILA_FEEDRATE    600
+#define UNLOAD_FILA_FEEDRATE    600	// mm/s
 
 #define FILAMENT_RUNOUT_MOVE_X 10
 #define FILAMENT_RUNOUT_MOVE_Y 200
-#define FILAMENT_RUNOUT_MOVE_F 50
+#define FILAMENT_RUNOUT_MOVE_F 50	// mm/s
 
 // temperture UI definition
 #define MAX_ADJUST_TEMP_EXTRUDE     (HEATER_0_MAXTEMP-10)//(heater_maxtemp[0]-10)
@@ -41,7 +41,7 @@
 #if defined(MANUAL_FEEDRATE)
 #undef MANUAL_FEEDRATE
 #endif
-#define MANUAL_FEEDRATE { 50*60, 50*60, 4*60, 60 } // Feedrates for manual moves along X, Y, Z, E from panel
+#define MANUAL_FEEDRATE { 50*60, 50*60, 4*60, 60 } // (mm/min)Feedrates for manual moves along X, Y, Z, E from panel
 
 // image UI definiion
 /* image size definition */

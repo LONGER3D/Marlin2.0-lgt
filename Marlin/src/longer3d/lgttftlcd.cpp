@@ -155,16 +155,14 @@ static void changeFilament(int16_t length)
 	int8_t dir = length > 0 ? 1 : -1;
 
 	current_position[E_AXIS] = current_position[E_AXIS] + length;
-	if (dir > 0)      // slowly load filament
-	{
+	if (dir > 0) {      // slowly load filament
 		DEBUG_ECHOLN("load start");
 		LGT_Line_To_Current_Position(E_AXIS);
-
 		dir_auto_feed = 1;
 	} else {                // fast unload filament
 		DEBUG_ECHOLN("unload start");
 		if (!planner.is_full())
-			planner.buffer_line(current_position, UNLOAD_FILA_FEEDRATE, 0);
+			line_to_current_position(UNLOAD_FILA_FEEDRATE);
 		dir_auto_feed = -1;
 	}
 }
@@ -243,15 +241,17 @@ void LgtLcdTft::moveOnPause()
 	DEBUG_ECHOLNPAIR_F("save Y:", resume_xyze_position[Y_AXIS]);
 	DEBUG_ECHOLNPAIR_F("save E:", resume_xyze_position[E_AXIS]);
 	DEBUG_ECHOLNPAIR_F("save feedrate", resume_feedrate);
-	current_position[E_AXIS] = current_position[E_AXIS] - 2;
 
-	// retract filament
-	planner.buffer_line(current_position, 120, 0);
+	// fast retract filament
+	current_position[E_AXIS] = current_position[E_AXIS] - 2;
+	line_to_current_position(120.0);
+	// move to pause position
 	do_blocking_move_to_xy(FILAMENT_RUNOUT_MOVE_X, FILAMENT_RUNOUT_MOVE_Y, FILAMENT_RUNOUT_MOVE_F);
+	// waiting move done
 	planner.synchronize();
 }
 
-void LgtLcdTft::actOnPause()
+void LgtLcdTft::pausePrint()
 {
 	is_printing = false;	// genuine pause state
 	cur_pstatus=2;	
@@ -260,16 +260,26 @@ void LgtLcdTft::actOnPause()
 	LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
 	displayImage(260, 30, IMG_ADDR_BUTTON_RESUME);	
 	displayPause();
+	// move head to specific position
+	moveOnPause();
+    setPrintCommand(E_PRINT_RESUME);
+	changeToPageRunout();
 }
 
 void LgtLcdTft::resumePrint()
 {
 	queue.inject_P(PSTR("M24"));
+	// slow extrude filament
+	current_position[E_AXIS] = current_position[E_AXIS] + 3;
+	line_to_current_position(1.0);
+	// back to break posion, need some time
+	do_blocking_move_to_xy(resume_xyze_position[X_AXIS], resume_xyze_position[Y_AXIS], FILAMENT_RUNOUT_MOVE_F);
+	// waiting move done
+	planner.synchronize();
 	// resume value
-	planner.set_e_position_mm((destination[E_AXIS] = current_position[E_AXIS] = (resume_xyze_position[E_AXIS] - 3)));
-	feedrate_mm_s = resume_feedrate;					
-	// back to break posion, need few time
-	// do_blocking_move_to_xy(resume_xyze_position[X_AXIS], resume_xyze_position[Y_AXIS], FILAMENT_RUNOUT_MOVE_F);
+	planner.set_e_position_mm(destination[E_AXIS] = current_position[E_AXIS] = resume_xyze_position[E_AXIS]);
+	feedrate_mm_s = resume_feedrate;
+
 	#if HAS_FILAMENT_SENSOR
 		runout.reset();
 	#endif						
