@@ -198,12 +198,6 @@ uint16_t LgtSdCard::selectedItem()
     }   
 }
 
-// uint8_t LgtSdCard::dirDepth()
-// {
-//     // return card.getDirDepth();
-//     return m_dirDepth;
-// }
-
 bool LgtSdCard::isMaxDirDepth()
 {
     return (dirDepth() >= MAX_DIR_DEPTH);

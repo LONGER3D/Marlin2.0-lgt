@@ -4,13 +4,14 @@
 
 #if ENABLED(LGT_LCD_TFT)
 #define SPIFLASH_SIZE               0x400000    // 4MB
-#define SPIFLASH_DATA_SIZE          0x1000      // 1KB
-#define SPIFLASH_ADDR_DATA          (SPIFLASH_SIZE - SPIFLASH_DATA_SIZE)
-#define SPIFLASH_ADDR_TOUCH         SPIFLASH_ADDR_DATA      
+#define SPIFLASH_DATA_SIZE          0x1000      // 4KB(4096Bytes)
+#define SPIFLASH_ADDR_DATA_START    (SPIFLASH_SIZE - SPIFLASH_DATA_SIZE)
+
+#define SPIFLASH_ADDR_TOUCH         SPIFLASH_ADDR_DATA_START      
 #define SPIFLASH_ADDR_RECOVERY      (SPIFLASH_ADDR_TOUCH + 16)
 #define SPIFLASH_ADDR_SETTINGS      (SPIFLASH_ADDR_RECOVERY + 64)
 
-#define TOUCH_VERSION       "V01"   // change value when default touch data is changed(change touch screen)
+#define TOUCH_VERSION       "V01"   // change value when default touch data is changed(e.g. touch screen batch is changed)
 #define SETTINGS_VERSION    "V01"   // change value when custom settings is changed
 
 #ifndef LIST_ITEM_MAX

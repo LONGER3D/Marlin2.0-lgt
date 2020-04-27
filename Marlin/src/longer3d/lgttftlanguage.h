@@ -1,11 +1,12 @@
-/********************************Language*********************************************/
+#pragma once
+
 // #define TEST_TAG 		"T002"	// used for test release
 
 #if !defined(TEST_TAG)
 	#define TEST_TAG ""
 #endif
 
-#define FW_VERSION 		"V3.0" TEST_TAG "-Marlin2.0.5.2"
+#define FW_VERSION 		"V3.0" TEST_TAG "-" SHORT_BUILD_VERSION
 
 #define LGT_LANGUAGE    "eng"     // choose language for lcd. Optional: eng, chn
 

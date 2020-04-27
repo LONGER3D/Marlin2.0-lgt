@@ -5,8 +5,9 @@
 #include "lcddrive/lcdapi.h"
 #include "lgttftlanguage.h"
 #include "lgtstore.h"
+#include "../module/temperature.h"
 
-#define DEBUG_LGT_TOUCH
+//#define DEBUG_LGT_TOUCH
 #define DEBUG_OUT ENABLED(DEBUG_LGT_TOUCH)
 #include "../../core/debug_out.h"
 
@@ -80,6 +81,9 @@ uint8_t LgtTouch::readTouchPoint(uint16_t &x, uint16_t &y)
 
 uint8_t LgtTouch::calibrate()
 {
+  // for safety
+  thermalManager.disable_all_heaters();
+
   uint16_t color = YELLOW;
   uint16_t bgColor = BLACK;
   uint16_t length;
@@ -268,7 +272,7 @@ uint8_t LgtTouch::calibrate()
   while (!isTouched()) { /* nada */ }
   lgtlcd.setColor(BLACK);
   lgtlcd.setBgColor(WHITE);
-
+  kill();
  return 1;
 }
 
