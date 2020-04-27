@@ -12,13 +12,13 @@
 #define SPIFLASH_ADDR_SETTINGS      (SPIFLASH_ADDR_RECOVERY + 64)
 
 #define TOUCH_VERSION       "V01"   // change value when default touch data is changed(e.g. touch screen batch is changed)
-#define SETTINGS_VERSION    "V01"   // change value when custom settings is changed
+#define SETTINGS_VERSION    "V01"   // change value when lgt(custom) settings is changed
 
 #ifndef LIST_ITEM_MAX
     #define LIST_ITEM_MAX        5
 #endif
 
-#define SETTINGS_MAX_LEN 22 // ** it must sync with settings struct
+#define SETTINGS_MAX_LEN 23 // ** it must sync with settings struct
 
 #if (SETTINGS_MAX_LEN % 5) == 0
 	#define SETTINGS_MAX_PAGE (SETTINGS_MAX_LEN / 5)
@@ -28,8 +28,8 @@
 
 struct Settings
 {
-	float acceleration; // data start
-	float max_xy_jerk;
+	float max_x_jerk;
+ 	float max_y_jerk;   
 	float max_z_jerk;
 	float max_e_jerk;
 	float max_feedrate[XYZE];
@@ -38,6 +38,7 @@ struct Settings
 	uint32_t max_acceleration_units_per_sq_second[XYZE];
 	float retract_acceleration;
 	float axis_steps_per_unit[XYZE];
+	float acceleration; 
 
     // start to store in spiflash
     char version[4];        // Vxx\0

@@ -17,9 +17,9 @@
 LgtStore lgtStore;
 
 // this coanst text arry must sync with settings struct and settingPointer function
-static const char *txt_menu_setts[SETTINGS_MAX_LEN] = {
-	TXT_MENU_SETTS_ACCL,        // 0
-	TXT_MENU_SETTS_JERK_XY, 
+static const char *txt_menu_setts[SETTINGS_MAX_LEN] = {     
+	TXT_MENU_SETTS_JERK_X,      // 0
+    TXT_MENU_SETTS_JERK_Y,
 	TXT_MENU_SETTS_JERK_Z,
 	TXT_MENU_SETTS_JERK_E,
 	TXT_MENU_SETTS_VMAX_X,
@@ -37,7 +37,7 @@ static const char *txt_menu_setts[SETTINGS_MAX_LEN] = {
 	TXT_MENU_SETTS_STEP_Y,
 	TXT_MENU_SETTS_STEP_Z,	
 	TXT_MENU_SETTS_STEP_E,
-    
+    TXT_MENU_SETTS_ACCL,
     TXT_MENU_SETTS_LIST_ORDER,
 	TXT_MENU_SETTS_CHECK_FILA,  // 20
     TXT_MENU_SETTS_RECOVERY
@@ -171,8 +171,8 @@ void LgtStore::applySettings()
     planner.settings.retract_acceleration = m_settings.retract_acceleration;;
     planner.settings.min_feedrate_mm_s =   m_settings.minimumfeedrate;
     planner.settings.min_travel_feedrate_mm_s = m_settings.mintravelfeedrate;
-    planner.max_jerk[X_AXIS] = m_settings.max_xy_jerk;
-    planner.max_jerk[Y_AXIS] = m_settings.max_xy_jerk;
+    planner.max_jerk[X_AXIS] = m_settings.max_x_jerk;
+    planner.max_jerk[Y_AXIS] = m_settings.max_y_jerk;
     planner.max_jerk[Z_AXIS] =  m_settings.max_z_jerk;
     #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
       planner.max_jerk[E_AXIS] =  m_settings.max_e_jerk;
@@ -198,8 +198,8 @@ void LgtStore::syncSettings()
     m_settings.retract_acceleration = planner.settings.retract_acceleration;
     m_settings.minimumfeedrate = planner.settings.min_feedrate_mm_s;
     m_settings.mintravelfeedrate = planner.settings.min_travel_feedrate_mm_s;
-    m_settings.max_xy_jerk = planner.max_jerk[X_AXIS];
-    m_settings.max_xy_jerk = planner.max_jerk[Y_AXIS];
+    m_settings.max_x_jerk = planner.max_jerk[X_AXIS];
+    m_settings.max_y_jerk = planner.max_jerk[Y_AXIS];
     m_settings.max_z_jerk = planner.max_jerk[Z_AXIS];
     #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
       m_settings.max_e_jerk = planner.max_jerk[E_AXIS];
@@ -217,7 +217,7 @@ void LgtStore::settingString(uint8_t i, char* str)
     char p[10] = {0};
 	if (i >= SETTINGS_MAX_LEN) { /* error index */
 		return;
-	} else if (i >= 20) {  	    /* bool type */				
+	} else if (i > 20) {  	    /* bool type */				
         #ifndef Chinese
             const char * format = "%8s";
         #else
@@ -227,7 +227,7 @@ void LgtStore::settingString(uint8_t i, char* str)
             sprintf(p, format, TXT_MENU_SETTS_VALUE_ON);
         else
             sprintf(p, format, TXT_MENU_SETTS_VALUE_OFF);
-	} else if (i == 19) {       // bool type
+	} else if (i == 20) {       // bool type
         #ifndef Chinese
             const char * format = "%8s";
         #else
@@ -257,51 +257,53 @@ void *LgtStore::settingPointer(uint8_t i)
 	{
         // float type
 		case 0:
-			return &m_settings.acceleration;	
+			return &m_settings.max_x_jerk;	
 		case 1:
-			return &m_settings.max_xy_jerk;		
+			return &m_settings.max_y_jerk;		
 		case 2:
 			return &m_settings.max_z_jerk;			
 		case 3:
 			return &m_settings.max_e_jerk;		
 		case 4:
-			return &m_settings.max_feedrate[0];			
+			return &m_settings.max_feedrate[X_AXIS];			
 		case 5: 
-			return &m_settings.max_feedrate[1];
+			return &m_settings.max_feedrate[Y_AXIS];
 		case 6:
-			return &m_settings.max_feedrate[2];			
+			return &m_settings.max_feedrate[Z_AXIS];			
 		case 7:
-			return &m_settings.max_feedrate[3];
+			return &m_settings.max_feedrate[E_AXIS];
 		case 8: 
 			return &m_settings.minimumfeedrate;
 		case 9:
 			return &m_settings.mintravelfeedrate;
         // uint32 type
 		case 10:
-			return &m_settings.max_acceleration_units_per_sq_second[0];
+			return &m_settings.max_acceleration_units_per_sq_second[X_AXIS];
 		case 11: 
-			return &m_settings.max_acceleration_units_per_sq_second[1];
+			return &m_settings.max_acceleration_units_per_sq_second[Y_AXIS];
 		case 12:
-			return &m_settings.max_acceleration_units_per_sq_second[2];
+			return &m_settings.max_acceleration_units_per_sq_second[Z_AXIS];
 		case 13:
-			return &m_settings.max_acceleration_units_per_sq_second[3];
+			return &m_settings.max_acceleration_units_per_sq_second[E_AXIS];
         // float type
 		case 14: 
 			return &m_settings.retract_acceleration;
 		case 15:
-			return &m_settings.axis_steps_per_unit[0];
+			return &m_settings.axis_steps_per_unit[X_AXIS];
 		case 16:
-			return &m_settings.axis_steps_per_unit[1];
+			return &m_settings.axis_steps_per_unit[Y_AXIS];
 		case 17: 
-			return &m_settings.axis_steps_per_unit[2];
+			return &m_settings.axis_steps_per_unit[Z_AXIS];
 		case 18:
-			return &m_settings.axis_steps_per_unit[3];
-        // bool type
+			return &m_settings.axis_steps_per_unit[E_AXIS];
         case 19:
+            return &m_settings.acceleration;
+        // bool type
+        case 20:
             return &m_settings.listOrder;        
-		case 20:
+		case 21:
 			return &m_settings.enabledRunout;
-        case 21:
+        case 22:
             return &m_settings.enabledPowerloss;
 		default: return 0;
 	}
@@ -310,15 +312,15 @@ void *LgtStore::settingPointer(uint8_t i)
 float LgtStore::distanceMultiplier(uint8_t i)
 {
 	switch(i){
-		default:
-			return 0.0; 
 		case 2: case 15: case 16: case 17: case 18:	
 			return 0.1;
-		case 1:	case 3:case 4: case 5: case 6: case 7:
+		case 0: case 1:	case 3:case 4: case 5: case 6: case 7:
 		case 8: case 9: case 12:
 			return 1.0;
-		case 0: case 10: case 11: case 13: case 14:
+		case 10: case 11: case 13: case 14: case 19:
 			return 100.0;
+        default:
+            return 0.0; 
 	}
 }
 
@@ -333,7 +335,7 @@ void LgtStore::changeSetting(uint8_t i, int8_t distance)
 	if(i >= SETTINGS_MAX_LEN){			/* error index */
 		return;
 	}
-	else if(i >= 19)  	/* bool type */
+	else if(i >= 20)  	/* bool type */
 	{				
 		*(bool *)settingPointer(i) = !(*(bool *)settingPointer(i));
 	}

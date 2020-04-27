@@ -46,8 +46,8 @@
 #define TXT_MENU_ABOUT_MAX_SIZE_LABEL       "Max Buildable Size(LxWxH):"  
 #define TXT_MENU_ABOUT_FW_VER_LABLE         "Firmware Version:"   
 //settings
-#define TXT_MENU_SETTS_ACCL                 "Accel(mm/s^2):"    
-#define TXT_MENU_SETTS_JERK_XY              "Vxy-jerk(mm/s):"    
+#define TXT_MENU_SETTS_JERK_X               "Vx-jerk(mm/s):"
+#define TXT_MENU_SETTS_JERK_Y               "Vy-jerk(mm/s):"
 #define TXT_MENU_SETTS_JERK_Z               "Vz-jerk(mm/s):"     
 #define TXT_MENU_SETTS_JERK_E               "Ve-jerk(mm/s):"    
 #define TXT_MENU_SETTS_VMAX_X               "Vmax x(mm/s):"     
@@ -66,6 +66,7 @@
 #define TXT_MENU_SETTS_STEP_Y               "Y(steps/mm):"			
 #define TXT_MENU_SETTS_STEP_Z               "Z(steps/mm):"		
 #define TXT_MENU_SETTS_STEP_E               "E(steps/mm):"
+#define TXT_MENU_SETTS_ACCL                 "Accel(mm/s^2):"    
 #define TXT_MENU_SETTS_LIST_ORDER           "File list order:"
 #define TXT_MENU_SETTS_CHECK_FILA           "Filament check:"      
 #define TXT_MENU_SETTS_RECOVERY           	"powerloss recovery:"
