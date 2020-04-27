@@ -3,7 +3,7 @@
 #if ENABLED(LGT_LCD_TFT)
 #include "w25qxx.h"
 #include "lgtsdcard.h"
-#include "lgttftdef.h"
+#include "lgttftlanguage.h"
 #include "lgttouch.h"
 #include "lgtsdcard.h"
 

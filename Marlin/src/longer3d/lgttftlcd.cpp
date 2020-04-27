@@ -3,6 +3,7 @@
 #if ENABLED(LGT_LCD_TFT)
 #include "lgttftlcd.h"
 #include "lgttftdef.h"
+#include "lgttftlanguage.h"
 #include "lcddrive/lcdapi.h"
 #include "lgttouch.h"
 #include "w25qxx.h"
@@ -22,7 +23,7 @@
 #define DEBUG_OUT ENABLED(DEBUG_LGTLCDTFT)
 #include "../../core/debug_out.h"
 
-// wrap a new name
+// wrap a new name for being compatible with old codes
 #define lcd                             lgtlcd
 #define displayImage(x, y, addr)        lcd.showImage(x, y, addr)
 #define White                           WHITE

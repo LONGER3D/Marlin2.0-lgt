@@ -3,7 +3,7 @@
 #if ENABLED(LGT_LCD_TFT)
 #include "lgttouch.h"
 #include "lcddrive/lcdapi.h"
-#include "lgttftdef.h"
+#include "lgttftlanguage.h"
 #include "lgtstore.h"
 
 #define DEBUG_LGT_TOUCH

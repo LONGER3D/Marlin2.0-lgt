@@ -793,13 +793,12 @@ void idle(
  */
 void kill(PGM_P const lcd_error/*=nullptr*/, PGM_P const lcd_component/*=nullptr*/, const bool steppers_off/*=false*/) {
   thermalManager.disable_all_heaters();
-  #if DISABLED(LGT_LCD_TFT) // program will get stuck in here if send more than 64 chars in interrput handle(reason not sure)
-    SERIAL_ERROR_MSG(STR_ERR_KILLED);
-  #endif
+  
   #if ENABLED(LGT_LCD_TFT)
     lgtlcdtft.changeToPageKilled(lcd_error ?: GET_TEXT(MSG_KILLED), lcd_component ?: NUL_STR);
-    UNUSED(lcd_component);
   #else
+    // program will get stuck in here if send more than 64 chars in interrput handle(reason unknown)
+    SERIAL_ERROR_MSG(STR_ERR_KILLED);
     #if HAS_DISPLAY
       ui.kill_screen(lcd_error ?: GET_TEXT(MSG_KILLED), lcd_component ?: NUL_STR);
     #else
