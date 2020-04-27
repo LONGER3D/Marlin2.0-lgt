@@ -35,7 +35,6 @@ static inline uint16_t codeValue2()
 LgtSdCard::LgtSdCard()
 {
     clear();
-    // m_isReverseList = false;
     m_printTime = 0;
     ZERO(parentSelectFile);
 }

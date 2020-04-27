@@ -149,8 +149,8 @@ private:
     uint16_t m_currentItem;     // select item index
     uint16_t  m_currentFile;    // select file index
 
-    bool m_isReverseList;   // if reverse list, init in settings load
-    bool m_isSelectFile;    // if select file
+    bool m_isReverseList;   // if is reverse list, init in LgtStore::load()
+    bool m_isSelectFile;    // if file is selected
 
     static char gComment[GCOMMENT_SIZE];
     static uint8_t indexGc;

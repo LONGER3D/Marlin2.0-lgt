@@ -18,27 +18,28 @@ LgtStore lgtStore;
 
 // this coanst text arry must sync with settings struct and settingPointer function
 static const char *txt_menu_setts[SETTINGS_MAX_LEN] = {
-	TXT_MENU_SETTS_ACCL, //"Accel(mm/s^2):",
-	TXT_MENU_SETTS_JERK_XY,//"Vxy-jerk(mm/s):",
-	TXT_MENU_SETTS_JERK_Z,//"Vz-jerk(mm/s):",
-	TXT_MENU_SETTS_JERK_E,//"Ve-jerk(mm/s):",
-	TXT_MENU_SETTS_VMAX_X,//"Vmax x(mm/s):",
-	TXT_MENU_SETTS_VMAX_Y,//"Vmax y(mm/s):",
-	TXT_MENU_SETTS_VMAX_Z,//"Vmax z(mm/s):",
-	TXT_MENU_SETTS_VMAX_E,//"Vmax e(mm/s):",
-	TXT_MENU_SETTS_VMIN,//"Vmin(mm/s):",
-	TXT_MENU_SETTS_VTRAVEL,//"Vtrav min(mm/s):",
-	TXT_MENU_SETTS_AMAX_X,//"Amax x(mm/s^2):",
-	TXT_MENU_SETTS_AMAX_Y,//"Amax y(mm/s^2):",	
-	TXT_MENU_SETTS_AMAX_Z,//"Amax z(mm/s^2):",
-	TXT_MENU_SETTS_AMAX_E,//"Amax e(mm/s^2):",
-	TXT_MENU_SETTS_ARETRACT,//"A-retract(mm/s^2):",
-	TXT_MENU_SETTS_STEP_X,//"X(steps/mm):",	
-	TXT_MENU_SETTS_STEP_Y,//"Y(steps/mm):",	
-	TXT_MENU_SETTS_STEP_Z,//"Z(steps/mm):",	
-	TXT_MENU_SETTS_STEP_E,//"E(steps/mm):",
-    TXT_MENU_SETTS_LIST_ORDER,//"File list order:"
-	TXT_MENU_SETTS_CHECK_FILA,//"Filament check:",
+	TXT_MENU_SETTS_ACCL,        // 0
+	TXT_MENU_SETTS_JERK_XY, 
+	TXT_MENU_SETTS_JERK_Z,
+	TXT_MENU_SETTS_JERK_E,
+	TXT_MENU_SETTS_VMAX_X,
+	TXT_MENU_SETTS_VMAX_Y,      // 5
+	TXT_MENU_SETTS_VMAX_Z,
+	TXT_MENU_SETTS_VMAX_E,
+	TXT_MENU_SETTS_VMIN,
+	TXT_MENU_SETTS_VTRAVEL,
+	TXT_MENU_SETTS_AMAX_X,      // 10
+	TXT_MENU_SETTS_AMAX_Y,	
+	TXT_MENU_SETTS_AMAX_Z,
+	TXT_MENU_SETTS_AMAX_E,
+	TXT_MENU_SETTS_ARETRACT,
+	TXT_MENU_SETTS_STEP_X,      // 15
+	TXT_MENU_SETTS_STEP_Y,
+	TXT_MENU_SETTS_STEP_Z,	
+	TXT_MENU_SETTS_STEP_E,
+    
+    TXT_MENU_SETTS_LIST_ORDER,
+	TXT_MENU_SETTS_CHECK_FILA,  // 20
     TXT_MENU_SETTS_RECOVERY
 };
 
@@ -112,36 +113,6 @@ bool LgtStore::load()
     SERIAL_ECHOLN("-- load settings form spiflash end --");
 
     return true;
-
-    // LOAD_SETTINGS();
-
-    // SERIAL_ECHOLNPAIR("load settings version: ", m_settings.version);
-    // SERIAL_ECHOLNPAIR("load settings crc: ", m_settings.crc);
-    // // calc crc
-    // uint16_t crc = 0;
-    // crc16(&crc, reinterpret_cast<void *>(&m_settings.acceleration), sizeof(m_settings) - 4 - 2);
-    // SERIAL_ECHOLNPAIR("current crc: ", crc);   
-
-    // LOOP_XYZE_N(i) {
-    //     planner.settings.axis_steps_per_mm[i]          = m_settings.axis_steps_per_unit[i];
-    //     planner.settings.max_feedrate_mm_s[i]          = m_settings.max_feedrate[i];
-    //     planner.settings.max_acceleration_mm_per_s2[i] = m_settings.max_acceleration_units_per_sq_second[i];
-    // }
-    // planner.refresh_positioning();
-    // planner.settings.acceleration = m_settings.acceleration;
-    // planner.settings.retract_acceleration = m_settings.retract_acceleration;;
-    // planner.settings.min_feedrate_mm_s =   m_settings.minimumfeedrate;
-    // planner.settings.min_travel_feedrate_mm_s = m_settings.mintravelfeedrate;
-    // planner.max_jerk[X_AXIS] = m_settings.max_xy_jerk;
-    // planner.max_jerk[Y_AXIS] = m_settings.max_xy_jerk;
-    // planner.max_jerk[Z_AXIS] =  m_settings.max_z_jerk;
-    // #if DISABLED(JUNCTION_DEVIATION) || DISABLED(LIN_ADVANCE)
-    //   planner.max_jerk[E_AXIS] =  m_settings.max_e_jerk;
-    // #endif
-
-    // runout.enabled = m_settings.enabledRunout;
-    // lgtCard.setListOrder(m_settings.listOrder);
-    // // recovery.enable(m_settings.enabledPowerloss); 
 }
 
 /**
@@ -149,7 +120,7 @@ bool LgtStore::load()
  */
 void LgtStore::_reset()
 {
-    lgtCard.setListOrder(false);
+    lgtCard.setListOrder(true);
 
 }
 
@@ -183,24 +154,6 @@ void LgtStore::reset()
     recovery.enable(PLR_ENABLED_DEFAULT);
 
     _reset();
-
-// ///////////////////////////
-//     LOOP_XYZE_N(i) {
-//         m_settings.axis_steps_per_unit[i]=tmp1[i];  
-//         m_settings.max_feedrate[i]=tmp2[i];  
-//         m_settings.max_acceleration_units_per_sq_second[i]=tmp3[i];
-//     }
-//     planner.refresh_positioning();
-// 	m_settings.acceleration=DEFAULT_ACCELERATION;
-// 	m_settings.max_xy_jerk=DEFAULT_XJERK;     //DEFAULT_XJERK=DEFAULT_YJERK
-//     m_settings.max_z_jerk=DEFAULT_ZJERK;
-//     m_settings.max_e_jerk=DEFAULT_EJERK;
-//     m_settings.minimumfeedrate=DEFAULT_MINIMUMFEEDRATE;
-// 	m_settings.mintravelfeedrate=DEFAULT_MINTRAVELFEEDRATE;
-// 	m_settings.retract_acceleration=DEFAULT_RETRACT_ACCELERATION;	
-// 	m_settings.enabledRunout = true;
-//     m_settings.listOrder =  false; // default: forward order
-//     // m_settings.enabledPowerloss = PLR_ENABLED_DEFAULT;
 }
 
 /**
@@ -256,6 +209,9 @@ void LgtStore::syncSettings()
     m_settings.enabledPowerloss = recovery.enabled;
 }
 
+/**
+ * @brief  get settting string for lcd
+ */
 void LgtStore::settingString(uint8_t i, char* str)
 {
     char p[10] = {0};
@@ -366,6 +322,12 @@ float LgtStore::distanceMultiplier(uint8_t i)
 	}
 }
 
+/**
+ * @brief  change setting value
+ * @param  i setting index
+ * @param  distance change value
+ * @retval None
+ */
 void LgtStore::changeSetting(uint8_t i, int8_t distance)
 {
 	if(i >= SETTINGS_MAX_LEN){			/* error index */
@@ -389,7 +351,6 @@ void LgtStore::changeSetting(uint8_t i, int8_t distance)
             *(float *)settingPointer(i) = 0.0;	//minimum value
 	}
     setModified(true);
-	// ConfigSettings.calcAccelRates();
 }
 
  bool LgtStore::selectSetting(uint16_t item)
@@ -406,6 +367,9 @@ void LgtStore::changeSetting(uint8_t i, int8_t distance)
     return true;   // fail to set
  }
 
+/**
+ * @brief save touch calibration data into spiflash
+ */
 void LgtStore::saveTouch()
 {
     TouchCalibration &touch = lgtTouch.calibrationData();
@@ -418,6 +382,9 @@ void LgtStore::saveTouch()
     SERIAL_ECHOLN(" bytes)");
 }
 
+/**
+ * @brief load touch calibration data from spiflash
+ */
 bool LgtStore::loadTouch()
 {
     SERIAL_ECHOLN("-- load touch data form spiflash start --");
@@ -447,6 +414,9 @@ bool LgtStore::loadTouch()
     return true;
 }
 
+/**
+ * @brief save data of powerloss into spiflash
+ */
 void LgtStore::saveRecovery()
 {
 
@@ -459,6 +429,9 @@ void LgtStore::saveRecovery()
     SERIAL_ECHOLN(" bytes)");
 }
 
+/**
+ * @brief load data of powerloss into spiflash
+ */
 bool LgtStore::loadRecovery()
 {
     SERIAL_ECHOLN("-- load recovery data form spiflash start --");
