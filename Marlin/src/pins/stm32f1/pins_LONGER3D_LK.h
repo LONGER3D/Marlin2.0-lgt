@@ -174,3 +174,9 @@
 #else
   #define E2END (0x7FFU) // On SD, Limit to 2KB, require this amount of RAM
 #endif
+
+//
+// SD support
+//
+#define SDIO_SUPPORT
+// #define SD_DETECT_PIN                     // reserved

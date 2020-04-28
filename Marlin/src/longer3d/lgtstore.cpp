@@ -38,8 +38,8 @@ static const char *txt_menu_setts[SETTINGS_MAX_LEN] = {
 	TXT_MENU_SETTS_STEP_Z,	
 	TXT_MENU_SETTS_STEP_E,
     TXT_MENU_SETTS_ACCL,
-    TXT_MENU_SETTS_LIST_ORDER,
-	TXT_MENU_SETTS_CHECK_FILA,  // 20
+    TXT_MENU_SETTS_LIST_ORDER,  // 20
+	TXT_MENU_SETTS_CHECK_FILA,
     TXT_MENU_SETTS_RECOVERY
 };
 
@@ -217,7 +217,7 @@ void LgtStore::settingString(uint8_t i, char* str)
     char p[10] = {0};
 	if (i >= SETTINGS_MAX_LEN) { /* error index */
 		return;
-	} else if (i > 20) {  	    /* bool type */				
+	} else if (i > 20) {  	    /* bool type: off/on */				
         #ifndef Chinese
             const char * format = "%8s";
         #else
@@ -227,7 +227,7 @@ void LgtStore::settingString(uint8_t i, char* str)
             sprintf(p, format, TXT_MENU_SETTS_VALUE_ON);
         else
             sprintf(p, format, TXT_MENU_SETTS_VALUE_OFF);
-	} else if (i == 20) {       // bool type
+	} else if (i == 20) {       // bool type: inverse/forward
         #ifndef Chinese
             const char * format = "%8s";
         #else
