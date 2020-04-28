@@ -347,6 +347,7 @@ void LgtLcdTft::changeToPageRunout()
 
 void LgtLcdTft::changeToPageRecovery()
 {
+	ENABLE_AXIS_Z();  // lock z moter prevent from drop down
 	DEBUG_ECHOLN("show recovery dialog");
 	dispalyDialogYesNo(eDIALOG_PRINT_RECOVERY);
 	current_window_ID = eMENU_DIALOG_RECOVERY;
@@ -3109,6 +3110,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				break;
 			case eBT_DIALOG_RECOVERY_NO:
 				recovery.cancel();	// == M1000 C
+				DISABLE_AXIS_Z();  // release Z motor
 				next_window_ID = eMENU_HOME;
 				current_button_id=eBT_BUTTON_NONE;
 				break;					
@@ -3320,18 +3322,18 @@ void LgtLcdTft::init()
 {
     // init tft-lcd
     lcd.init();
-    lcd.clear();
-    // lgtTouch.calibrate();
-    displayStartUpLogo();
-    delay(10);
-    displayWindowHome();
-    #if ENABLED(POWER_LOSS_RECOVERY)
-	recovery.check();
-	#endif
+	lcd.clear();
 	// load touch calibration
 	lgtStore.loadTouch();
-	// load tft settings
+	// load lgt settings
 	lgtStore.load();
+    displayStartUpLogo();
+    delay(1000);
+    displayWindowHome();
+    #if ENABLED(POWER_LOSS_RECOVERY)
+	  recovery.check();
+	#endif
+
 }
 
 void LgtLcdTft::loop()
