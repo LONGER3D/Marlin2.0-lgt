@@ -119,7 +119,7 @@ void PrintJobRecovery::check() {
       check_recovery = true;
     #endif
     #if ENABLED(LGT_LCD_TFT)
-      lgtlcdtft.changeToPageRecovery();
+      lgtlcdtft.setRecoveryStatus(true);
     #endif
   }
 }
@@ -529,6 +529,12 @@ void PrintJobRecovery::resume() {
   gcode.process_subcommands_now(cmd);
   sprintf_P(cmd, PSTR("M24 S%ld T%ld"), resume_sdpos, info.print_job_elapsed);
   gcode.process_subcommands_now(cmd);
+
+#if ENABLED(LGT_LCD_TFT)
+  // resume done, show abort button in lcd print menu
+  lgtlcdtft.actAfterRecovery();
+#endif
+
 }
 
 #if ENABLED(DEBUG_POWER_LOSS_RECOVERY)

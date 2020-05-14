@@ -119,6 +119,8 @@ public:
     void pausePrint();
     void changeToPageRecovery();
     void changeToPageKilled(const char* error, const char *component);
+    void setRecoveryStatus(bool status);
+    void actAfterRecovery();
 
 private:
     bool LGT_MainScanWindow(void);

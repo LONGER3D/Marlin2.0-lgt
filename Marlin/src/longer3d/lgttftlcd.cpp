@@ -74,7 +74,8 @@ LgtLcdTft lgtlcdtft;
 // extern float resume_xyze_position[XYZE];
 // extern float save_feedtate;
 bool recovery_flag;
-bool is_setting_change=false;
+static bool recoveryStatus = false;
+// bool is_setting_change=false;
 
 // extern void disable_all_steppers();
 // extern void LGT_Lcdfsmc_init();
@@ -224,6 +225,18 @@ bool LgtLcdTft::isPrinting()
 	return is_printing;
 }
 
+void LgtLcdTft::setRecoveryStatus(bool status)
+{
+	recoveryStatus = status;
+	DEBUG_ECHOLNPAIR("recovery: ", recoveryStatus);
+}
+
+void LgtLcdTft::actAfterRecovery()
+{
+	setRecoveryStatus(false);
+	if (current_window_ID == eMENU_PRINT)
+		displayImage(260, 180, IMG_ADDR_BUTTON_END);	
+}
 
 void LgtLcdTft::setPrintCommand(E_PRINT_CMD cmd)
 {
@@ -1493,7 +1506,8 @@ void display_image::displayWindowPrint(void)
 		}
 		cur_flag=true;
 	displayImage(260, 105, IMG_ADDR_BUTTON_ADJUST);	
-	displayImage(260, 180, IMG_ADDR_BUTTON_END);        
+	if (!recoveryStatus)
+		displayImage(260, 180, IMG_ADDR_BUTTON_END);        
 	displayPrintInformation();
 	
 }
@@ -1696,8 +1710,9 @@ void display_image::scanWindowPrint( uint16_t rv_x, uint16_t rv_y )
 		current_button_id=eBT_PRINT_ADJUST;
 	}
 	else if(rv_x>260&&rv_x<315&&rv_y>180&&rv_y<235) //end
-	{	
-		current_button_id=eBT_PRINT_END;
+	{
+		if (!recoveryStatus)	
+			current_button_id=eBT_PRINT_END;
 	}
 }
 
@@ -3110,6 +3125,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				break;
 			case eBT_DIALOG_RECOVERY_NO:
 				recovery.cancel();	// == M1000 C
+				setRecoveryStatus(false);
 				DISABLE_AXIS_Z();  // release Z motor
 				next_window_ID = eMENU_HOME;
 				current_button_id=eBT_BUTTON_NONE;
@@ -3328,10 +3344,12 @@ void LgtLcdTft::init()
 	// load lgt settings
 	lgtStore.load();
     displayStartUpLogo();
-    delay(1000);
+    delay(1000);	// delay sometime to show logo
     displayWindowHome();
     #if ENABLED(POWER_LOSS_RECOVERY)
 	  recovery.check();
+	  if (recoveryStatus)
+	  	changeToPageRecovery();
 	#endif
 
 }
