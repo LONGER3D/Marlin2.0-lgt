@@ -309,16 +309,16 @@ void LgtLcdTft::resumePrint()
 void LgtLcdTft::startAutoFeed(int8_t dir)
 {
 	if(dir == dir_auto_feed || abs(dir) != 1) return; 
-	if(thermalManager.temp_hotend[0].target<200)
+
+	if(thermalManager.degTargetHotend(eHeater::H0)<PREHEAT_TEMP_EXTRUDE)
 	{
-		thermalManager.temp_hotend[0].target=200;
-		thermalManager.start_watching_hotend(0);
-		if(thermalManager.temp_hotend[0].celsius>195)
+		thermalManager.setTargetHotend(PREHEAT_TEMP_EXTRUDE, eHeater::H0);
+		if(thermalManager.degHotend(eHeater::H0)>PREHEAT_TEMP_EXTRUDE-5)
 		{  
-				DEBUG_ECHOLN("change filament");
-				if (dir == -dir_auto_feed) // reverse move need stop firstly
-					stopExtrude();
-				changeFilament(CHANGE_FILA_LENGTH * dir);
+			DEBUG_ECHOLN("change filament");
+			if (dir == -dir_auto_feed) // reverse move need stop firstly
+				stopExtrude();
+			changeFilament(CHANGE_FILA_LENGTH * dir);
 		}
 		if(is_bed_select)
 		{
@@ -327,7 +327,7 @@ void LgtLcdTft::startAutoFeed(int8_t dir)
 		}
 		dispalyExtrudeTemp(RED);
 	}
-	else if(thermalManager.temp_hotend[0].celsius>195)
+	else if(thermalManager.degHotend(eHeater::H0)>PREHEAT_TEMP_EXTRUDE-5)
 	{ 
 			DEBUG_ECHOLN("change filament");
 			if (dir == -dir_auto_feed) // reverse move need stop firstly
@@ -894,10 +894,10 @@ void display_image::dispalyExtrudeTemp(void)
 	POINT_COLOR=BLACK;
 	CLEAN_STRING(s_text);
 	if(!is_bed_select)
-		sprintf((char *)s_text,"%d/%d",(int16_t)thermalManager.temp_hotend[0].celsius, thermalManager.temp_hotend[0].target);
+		sprintf((char *)s_text,"%d/%d",(int16_t)thermalManager.degHotend(eHeater::H0), thermalManager.degTargetHotend(eHeater::H0));
 
 	else{
-		sprintf((char *)s_text,"%d/%d", (int16_t)thermalManager.temp_bed.celsius,thermalManager.temp_bed.target);
+		sprintf((char *)s_text,"%d/%d", (int16_t)thermalManager.degBed(),thermalManager.degTargetBed());
 	}
 	LCD_ShowString(8,143,s_text);
 
@@ -912,10 +912,10 @@ void display_image::dispalyExtrudeTemp(uint16_t Color)
 	POINT_COLOR=Color;
 	CLEAN_STRING(s_text);
 	if(!is_bed_select)
-		sprintf((char *)s_text,"%d/%d",(int16_t)thermalManager.temp_hotend[0].celsius, thermalManager.temp_hotend[0].target);
+		sprintf((char *)s_text,"%d/%d",(int16_t)thermalManager.degHotend(eHeater::H0), thermalManager.degTargetHotend(eHeater::H0));
 
 	else{
-		sprintf((char *)s_text,"%d/%d", (int16_t)thermalManager.temp_bed.celsius,thermalManager.temp_bed.target);
+		sprintf((char *)s_text,"%d/%d", (int16_t)thermalManager.degBed(),thermalManager.degTargetBed());
 	}
 	LCD_ShowString(8,143,s_text);
 	POINT_COLOR=BLACK;
@@ -1055,10 +1055,10 @@ void display_image::updatePreheatingTemp(void)
 	LCD_Fill(110,114,170,134,White);		//clean bed temperature display zone
 	POINT_COLOR=BLACK;
 	CLEAN_STRING(s_text);
-	sprintf((char *)s_text,"%d/%d",(int16_t)thermalManager.temp_hotend[0].celsius,thermalManager.temp_hotend[0].target);
+	sprintf((char *)s_text,"%d/%d",(int16_t)thermalManager.degHotend(eHeater::H0),thermalManager.degTargetHotend(eHeater::H0));
 	LCD_ShowString(110,49,s_text);
 	CLEAN_STRING(s_text);
-	sprintf((char *)s_text,"%d/%d",(int16_t)thermalManager.temp_bed.celsius,thermalManager.temp_bed.target);
+	sprintf((char *)s_text,"%d/%d",(int16_t)thermalManager.degBed(),thermalManager.degTargetBed());
 	LCD_ShowString(110,114,s_text);
 }
 
@@ -1556,10 +1556,10 @@ void display_image::displayPrintTemperature(void)
 	LCD_Fill(45,70,130,100,White);		//clean bed display zone
 	color=Black;
 	CLEAN_STRING(s_text);
-	sprintf((char*)s_text,"E: %d/%d",(int16_t)thermalManager.temp_hotend[0].celsius,thermalManager.temp_hotend[0].target);
+	sprintf((char*)s_text,"E: %d/%d",(int16_t)thermalManager.degHotend(eHeater::H0),thermalManager.degTargetHotend(eHeater::H0));
 	LCD_ShowString(45,37,s_text);
 	CLEAN_STRING(s_text);
-	sprintf((char *)s_text,"B: %d/%d",(int16_t)thermalManager.temp_bed.celsius,thermalManager.temp_bed.target);
+	sprintf((char *)s_text,"B: %d/%d",(int16_t)thermalManager.degBed(),thermalManager.degTargetBed());
 	LCD_ShowString(45,77,s_text);
 }
 
@@ -1757,10 +1757,10 @@ void display_image::dispalyAdjustTemp(void)
 	LCD_Fill(74,143,134,163,White);		//clean bed temperature display zone
 	color=BLACK;
 	CLEAN_STRING(s_text);
-	sprintf((char *)s_text,"%d/%d",(int16_t)(thermalManager.temp_hotend[0].celsius),thermalManager.temp_hotend[0].target);
+	sprintf((char *)s_text,"%d/%d",(int16_t)(thermalManager.degHotend(eHeater::H0)),thermalManager.degTargetHotend(eHeater::H0));
 	LCD_ShowString(5,143,s_text);
 	CLEAN_STRING(s_text);
-	sprintf((char *)s_text,"%d/%d",(int16_t)(thermalManager.temp_bed.celsius),thermalManager.temp_bed.target);
+	sprintf((char *)s_text,"%d/%d",(int16_t)(thermalManager.degBed()),thermalManager.degTargetBed());
 	LCD_ShowString(74,143,s_text);
 }
 
@@ -2149,40 +2149,45 @@ void display_image::changeToPageKilled(const char* error, const char *component)
  *********************************************************/
 bool display_image::setTemperatureInWindow(bool is_bed, bool sign)
 {
-	if((is_bed&&thermalManager.temp_bed.celsius<0)||
-	(thermalManager.temp_hotend[0].celsius<0))
+	if((is_bed&&thermalManager.degBed()<0)||
+	(thermalManager.degHotend(eHeater::H0)<0))
 		return false; 
 	int16_t temp_limit;
-    int16_t *p_temp;
+    int16_t p_temp;
     if(!sign)
 	{      /* add */
         if(!is_bed){     /* extruder */
             temp_limit = MAX_ADJUST_TEMP_EXTRUDE;
-            p_temp = &thermalManager.temp_hotend[0].target;
+            p_temp = thermalManager.degTargetHotend(eHeater::H0);
         }
         else{           /* bed */
             temp_limit = MAX_ADJUST_TEMP_BED;
-            p_temp = &thermalManager.temp_bed.target;   
+            p_temp = thermalManager.degTargetBed();   
         }
-        if(*p_temp < temp_limit){ /* within the limit */
+        if(p_temp < temp_limit){ /* within the limit */
             if(default_move_distance == 0xff)
                 if(!is_bed){
-                    if(*p_temp < NORMAL_ADJUST_TEMP_EXTRUDE)
-                        *p_temp = NORMAL_ADJUST_TEMP_EXTRUDE;
+                    if(p_temp < NORMAL_ADJUST_TEMP_EXTRUDE)
+                        p_temp = NORMAL_ADJUST_TEMP_EXTRUDE;
                     else                     
-                        *p_temp = MAX_ADJUST_TEMP_EXTRUDE;
+                        p_temp = MAX_ADJUST_TEMP_EXTRUDE;
                 }
                 else{
-                    if(*p_temp < NORMAL_ADJUST_TEMP_BED)
-                        *p_temp = NORMAL_ADJUST_TEMP_BED;
+                    if(p_temp < NORMAL_ADJUST_TEMP_BED)
+                        p_temp = NORMAL_ADJUST_TEMP_BED;
                     else                     
-                        *p_temp = MAX_ADJUST_TEMP_BED;
+                        p_temp = MAX_ADJUST_TEMP_BED;
                 }
             else{   /* if distance is 1, 5, 10 */
-                *p_temp += default_move_distance;
-                if(*p_temp > temp_limit)
-                    *p_temp= temp_limit; 
+                p_temp += default_move_distance;
+                if(p_temp > temp_limit)
+                    p_temp= temp_limit; 
             }
+			if (!is_bed)
+				thermalManager.setTargetHotend(p_temp, eHeater::H0);
+			else
+				thermalManager.setTargetBed(p_temp);
+
             return true;
         }   
     }
@@ -2190,31 +2195,35 @@ bool display_image::setTemperatureInWindow(bool is_bed, bool sign)
 	 {       /* minus */
         if(!is_bed){    /* extruder */
             temp_limit = MIN_ADJUST_TEMP_EXTRUDE; 
-            p_temp = &thermalManager.temp_hotend[0].target;
+            p_temp = thermalManager.degTargetHotend(eHeater::H0);
         }
         else    {       /* bed */
             temp_limit = MIN_ADJUST_TEMP_BED;
-            p_temp = &thermalManager.temp_bed.target;   
+            p_temp = thermalManager.degTargetBed();   
         }
-        if(*p_temp > temp_limit){ /* within the limit */
+        if(p_temp > temp_limit){ /* within the limit */
             if(default_move_distance == 0xff)
                 if(!is_bed){
-                    if(*p_temp <= NORMAL_ADJUST_TEMP_EXTRUDE)
-                        *p_temp = MIN_ADJUST_TEMP_EXTRUDE;
+                    if(p_temp <= NORMAL_ADJUST_TEMP_EXTRUDE)
+                        p_temp = MIN_ADJUST_TEMP_EXTRUDE;
                     else                     
-                        *p_temp = NORMAL_ADJUST_TEMP_EXTRUDE;
+                        p_temp = NORMAL_ADJUST_TEMP_EXTRUDE;
                 }
                 else{
-                    if(*p_temp <= NORMAL_ADJUST_TEMP_BED)
-                        *p_temp = MIN_ADJUST_TEMP_BED;
+                    if(p_temp <= NORMAL_ADJUST_TEMP_BED)
+                        p_temp = MIN_ADJUST_TEMP_BED;
                     else                     
-                        *p_temp = NORMAL_ADJUST_TEMP_BED;
+                        p_temp = NORMAL_ADJUST_TEMP_BED;
                 }       
             else{
-                *p_temp -= default_move_distance;
-                if(*p_temp < temp_limit)
-                    *p_temp = temp_limit;  
+                p_temp -= default_move_distance;
+                if(p_temp < temp_limit)
+                    p_temp = temp_limit;  
             }
+			if (!is_bed)
+				thermalManager.setTargetHotend(p_temp, eHeater::H0);
+			else
+				thermalManager.setTargetBed(p_temp);
             return true;
 	    }
     }
@@ -2551,8 +2560,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				if(!all_axes_homed())
 				{
 					enqueue_and_echo_commands_P(PSTR("G28"));
-					thermalManager.setTargetHotend(0, 0);
-					thermalManager.setTargetBed(0);
+					thermalManager.disable_all_heaters();
 				}
 				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
 				#if defined(LK1) || defined(U20)
@@ -2569,8 +2577,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				if(!all_axes_homed())
 				{
 					enqueue_and_echo_commands_P(PSTR("G28"));
-					thermalManager.setTargetHotend(0, 0);
-					thermalManager.setTargetBed(0);
+					thermalManager.disable_all_heaters();
 				}
 				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
 				#if defined(LK1) || defined(U20)
@@ -2587,8 +2594,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				if(!all_axes_homed())
 				{
 					enqueue_and_echo_commands_P(PSTR("G28"));
-					thermalManager.setTargetHotend(0, 0);
-					thermalManager.setTargetBed(0);
+					thermalManager.disable_all_heaters();
 				}
 				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
 				#if defined(LK1) || defined(U20)
@@ -2605,8 +2611,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				if(!all_axes_homed())
 				{
 					enqueue_and_echo_commands_P(PSTR("G28"));
-					thermalManager.setTargetHotend(0, 0);
-					thermalManager.setTargetBed(0);
+					thermalManager.disable_all_heaters();
 				}
 				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
 				#if defined(LK1) || defined(U20)
@@ -2623,8 +2628,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				if(!all_axes_homed())
 				{
 					enqueue_and_echo_commands_P(PSTR("G28"));
-					thermalManager.setTargetHotend(0, 0);
-					thermalManager.setTargetBed(0);
+					thermalManager.disable_all_heaters();
 				}
 				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
 				#if defined(LK1) || defined(U20)
@@ -2646,46 +2650,39 @@ void display_image::LGT_Ui_Buttoncmd(void)
 		// menu preheatting buttons
 			case eBT_PR_PLA:
 				current_button_id=eBT_BUTTON_NONE;
-				if(thermalManager.temp_hotend[0].celsius<0||thermalManager.temp_bed.celsius<0)
+				if(thermalManager.degHotend(eHeater::H0)<0||thermalManager.degBed()<0)
 					break;
-				thermalManager.temp_hotend[0].target=PREHEAT_PLA_TEMP_EXTRUDE;
-				thermalManager.start_watching_hotend(0);
-				thermalManager.temp_bed.target=PREHEAT_PLA_TEMP_BED;
-				thermalManager.start_watching_bed();
+				thermalManager.setTargetHotend(PREHEAT_PLA_TEMP_EXTRUDE, eHeater::H0);
+				thermalManager.setTargetBed(PREHEAT_PLA_TEMP_BED);
 				updatePreheatingTemp();
 			break;
 			case eBT_PR_ABS:
 				current_button_id=eBT_BUTTON_NONE;
-				if(thermalManager.temp_hotend[0].celsius<0||thermalManager.temp_bed.celsius<0)
+				if(thermalManager.degHotend(eHeater::H0)<0||thermalManager.degBed()<0)
 					break;
-				thermalManager.temp_hotend[0].target=PREHEAT_ABS_TEMP_EXTRUDE;
-				thermalManager.start_watching_hotend(0);
-				thermalManager.temp_bed.target=PREHEAT_ABS_TEMP_BED;
-				thermalManager.start_watching_bed();
+				thermalManager.setTargetHotend(PREHEAT_ABS_TEMP_EXTRUDE, eHeater::H0);
+				thermalManager.setTargetBed(PREHEAT_ABS_TEMP_BED);
 				updatePreheatingTemp();
 			break;
 			case eBT_PR_PETG:
 				current_button_id=eBT_BUTTON_NONE;
-				if(thermalManager.temp_hotend[0].celsius<0||thermalManager.temp_bed.celsius<0)
+				if(thermalManager.degHotend(eHeater::H0)<0||thermalManager.degBed()<0)
 					break;
-				thermalManager.temp_hotend[0].target=PREHEAT_PETG_TEMP_EXTRUDE;
-				thermalManager.start_watching_hotend(0);
-				thermalManager.temp_bed.target=PREHEAT_PETG_TEMP_BED;
-				thermalManager.start_watching_bed();
+				thermalManager.setTargetHotend(PREHEAT_PETG_TEMP_EXTRUDE, eHeater::H0);
+				thermalManager.setTargetBed(PREHEAT_PETG_TEMP_BED);
 				updatePreheatingTemp();
 			break;
 			case eBT_PR_COOL:
 				current_button_id=eBT_BUTTON_NONE;
-				if(thermalManager.temp_hotend[0].celsius>0)
-					thermalManager.temp_bed.target=MIN_ADJUST_TEMP_BED;
-				if(thermalManager.temp_hotend[0].celsius>0)
-					thermalManager.temp_hotend[0].target=MIN_ADJUST_TEMP_EXTRUDE;
+				if(thermalManager.degHotend(eHeater::H0)>0)
+					thermalManager.setTargetBed(MIN_ADJUST_TEMP_BED);
+				if(thermalManager.degHotend(eHeater::H0)>0)
+					thermalManager.setTargetHotend(MIN_ADJUST_TEMP_EXTRUDE, eHeater::H0);
 				updatePreheatingTemp();
 			break;
 			case eBT_PR_E_PLUS:
 				if(setTemperatureInWindow(false, false))
 				{
-					thermalManager.start_watching_hotend(0);
 					updatePreheatingTemp();
 				}
 				current_button_id=eBT_BUTTON_NONE;
@@ -2693,7 +2690,6 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			case eBT_PR_E_MINUS:
 				if(setTemperatureInWindow(false, true))
 				{
-					thermalManager.start_watching_hotend(0);
 					updatePreheatingTemp();
 				}
 				current_button_id=eBT_BUTTON_NONE;
@@ -2701,7 +2697,6 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			case eBT_PR_B_PLUS:
 				if(setTemperatureInWindow(true, false))
 				{
-					thermalManager.start_watching_bed();
 					updatePreheatingTemp();
 				}
 				current_button_id=eBT_BUTTON_NONE;
@@ -2709,7 +2704,6 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			case EBT_PR_B_MINUS:
 				if(setTemperatureInWindow(true, true))
 				{
-					thermalManager.start_watching_bed();
 					updatePreheatingTemp();
 				}
 				current_button_id=eBT_BUTTON_NONE;
@@ -2719,13 +2713,11 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			case eBT_TEMP_PLUS:
 				if(is_bed_select)   //add bed temperature
 				{
-					if(setTemperatureInWindow(true,false))
-						thermalManager.start_watching_bed();
+					setTemperatureInWindow(true,false);
 				}
 				else            //add extrude  temprature
 				{
-					if(setTemperatureInWindow(false,false))
-						thermalManager.start_watching_hotend(0);
+					setTemperatureInWindow(false,false);
 				}
 				dispalyExtrudeTemp();
 				current_button_id=eBT_BUTTON_NONE;
@@ -2733,24 +2725,21 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			case eBT_TEMP_MINUS:
 				if(is_bed_select)   //subtract bed temperature
 				{
-					if(setTemperatureInWindow(true,true))
-						thermalManager.start_watching_bed();
+					setTemperatureInWindow(true,true);
 				}
 				else                //subtract extrude temprature
 				{
-					if(setTemperatureInWindow(false,true))
-						thermalManager.start_watching_hotend(0);
+					setTemperatureInWindow(false,true);
 				}
 				dispalyExtrudeTemp();
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_JOG_EPLUS:
 				stopExtrude();
-				if(thermalManager.temp_hotend[0].target<200)
+				if(thermalManager.degTargetHotend(eHeater::H0)<PREHEAT_TEMP_EXTRUDE)
 				{
-					thermalManager.temp_hotend[0].target=200;
-					thermalManager.start_watching_hotend(0);
-					if(thermalManager.temp_hotend[0].celsius>195)
+					thermalManager.setTargetHotend(PREHEAT_TEMP_EXTRUDE, eHeater::H0);
+					if(thermalManager.degHotend(eHeater::H0)>PREHEAT_TEMP_EXTRUDE-5)
 					{
 						current_position[E_AXIS] = current_position[E_AXIS]+default_move_distance;
 						LGT_Line_To_Current_Position(E_AXIS);
@@ -2762,7 +2751,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 					}
 					dispalyExtrudeTemp(RED);
 				}
-				else if(thermalManager.temp_hotend[0].celsius>195)
+				else if(thermalManager.degHotend(eHeater::H0)>PREHEAT_TEMP_EXTRUDE-5)
 				{
 					current_position[E_AXIS] = current_position[E_AXIS]+default_move_distance;
 					LGT_Line_To_Current_Position(E_AXIS);
@@ -2776,11 +2765,10 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			break;
 			case eBT_JOG_EMINUS:
 				stopExtrude();
-				if(thermalManager.temp_hotend[0].target<200)
+				if(thermalManager.degTargetHotend(eHeater::H0)<PREHEAT_TEMP_EXTRUDE)
 				{
-					thermalManager.temp_hotend[0].target=200;
-					thermalManager.start_watching_hotend(0);
-					if(thermalManager.temp_hotend[0].celsius>195)
+					thermalManager.setTargetHotend(PREHEAT_TEMP_EXTRUDE, eHeater::H0);
+					if(thermalManager.degHotend(eHeater::H0)>195)
 					{
 						current_position[E_AXIS] = current_position[E_AXIS]-default_move_distance;
 						LGT_Line_To_Current_Position(E_AXIS);
@@ -2792,7 +2780,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 					}
 					dispalyExtrudeTemp(RED);
 				}
-				else if(thermalManager.temp_hotend[0].celsius>195)
+				else if(thermalManager.degHotend(eHeater::H0)>PREHEAT_TEMP_EXTRUDE-5)
 				{
 					current_position[E_AXIS] = current_position[E_AXIS]-default_move_distance;
 					LGT_Line_To_Current_Position(E_AXIS);
@@ -3313,7 +3301,7 @@ void display_image::LGT_Printer_Data_Update(void)
 				// }
 			break;
 		// case eMENU_DIALOG_ERRORTEMPBED:
-		// 	if((thermalManager.temp_bed.celsius>MIN_ADJUST_TEMP_BED)&&(thermalManager.temp_bed.celsius<MAX_ADJUST_TEMP_BED))
+		// 	if((thermalManager.degBed()>MIN_ADJUST_TEMP_BED)&&(thermalManager.degBed()<MAX_ADJUST_TEMP_BED))
 		// 	{
 		// 		displayWindowHome();
 		// 		current_window_ID=eMENU_HOME;
@@ -3321,7 +3309,7 @@ void display_image::LGT_Printer_Data_Update(void)
 		// 	}
 		// break;
 		// case eMENU_DIALOG_ERRORTEMPE:
-		// 	if((thermalManager.temp_hotend[0].celsius>MIN_ADJUST_TEMP_EXTRUDE)&&(thermalManager.temp_hotend[0].celsius<MAX_ADJUST_TEMP_EXTRUDE))
+		// 	if((thermalManager.degHotend(eHeater::H0)>MIN_ADJUST_TEMP_EXTRUDE)&&(thermalManager.degHotend(eHeater::H0)<MAX_ADJUST_TEMP_EXTRUDE))
 		// 	{
 		// 		displayWindowHome();
 		// 		current_window_ID=eMENU_HOME;

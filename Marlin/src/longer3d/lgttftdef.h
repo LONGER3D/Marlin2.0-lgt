@@ -1,5 +1,10 @@
 #pragma once
 
+enum eAxis    : uint8_t { X=0, Y, Z };
+enum eExtruder : uint8_t { E0=0, E1, E2, E3, E4, E5, E6, E7 };
+enum eHeater   : uint8_t { H0=0, H1, H2, H3, H4, H5, BED, CHAMBER };
+enum eFan      : uint8_t { FAN0=0, FAN1, FAN2, FAN3, FAN4, FAN5, FAN6, FAN7 };
+
 // filament UI definition
 #define CHANGE_FILA_LENGTH		500
 #define UNLOAD_FILA_FEEDRATE    600	// mm/s
@@ -13,8 +18,8 @@
 #define MAX_ADJUST_TEMP_BED         (BED_MAXTEMP-10)//(bed_maxtemp-10)//BED_MAXTEMP
 #define MIN_ADJUST_TEMP_EXTRUDE     (0)
 #define MIN_ADJUST_TEMP_BED         (0)
-#define NORMAL_ADJUST_TEMP_EXTRUDE  (200)
-#define NORMAL_ADJUST_TEMP_BED      (60)
+#define NORMAL_ADJUST_TEMP_EXTRUDE  (200)   // used for max distance
+#define NORMAL_ADJUST_TEMP_BED      (60)    // used for max distance
 
 #define PREHEAT_PLA_TEMP_EXTRUDE    (PREHEAT_1_TEMP_HOTEND)
 #define PREHEAT_PLA_TEMP_BED        (PREHEAT_1_TEMP_BED)
@@ -22,6 +27,8 @@
 #define PREHEAT_ABS_TEMP_BED        (PREHEAT_2_TEMP_BED)
 #define PREHEAT_PETG_TEMP_EXTRUDE   (215)
 #define PREHEAT_PETG_TEMP_BED       (70)
+
+#define PREHEAT_TEMP_EXTRUDE        PREHEAT_PLA_TEMP_EXTRUDE 
 
 // other UI definition
 #define POS_MOVE_COL_TXT            (40)
