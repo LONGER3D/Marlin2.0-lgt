@@ -54,7 +54,7 @@
 #define CLEAN_SINGLE_TXT(x, y, w)               CLEAN_ZONE(x, y, w, 16)     /* clean single line text */
 
 #if HAS_FILAMENT_SENSOR
-	#define IS_RUN_OUT()						runout.enabled && READ(FIL_RUNOUT_PIN)
+	#define IS_RUN_OUT()						(runout.enabled && READ(FIL_RUNOUT_PIN))
 #else
 	#define IS_RUN_OUT()						false
 #endif
