@@ -52,7 +52,12 @@
 #define FILL_ZONE(x, y, w, h, bg_color)         LCD_Fill((uint16_t)(x), (uint16_t)(y), (uint16_t)((x)+(w)-1), (uint16_t)((y)+(h)-1), (uint16_t)bg_color)
 #define CLEAN_ZONE(x, y, w, h)                  FILL_ZONE(x, y, w, h, WHITE)
 #define CLEAN_SINGLE_TXT(x, y, w)               CLEAN_ZONE(x, y, w, 16)     /* clean single line text */
-#define IS_RUN_OUT()							READ(FIL_RUNOUT_PIN)	// simply check runout
+
+#if HAS_FILAMENT_SENSOR
+	#define IS_RUN_OUT()						runout.enabled && READ(FIL_RUNOUT_PIN)
+#else
+	#define IS_RUN_OUT()						false
+#endif
 
 LgtLcdTft lgtlcdtft;
 
