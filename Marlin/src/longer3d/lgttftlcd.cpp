@@ -1532,7 +1532,7 @@ void display_image::displayPrintInformation(void)
 
 void display_image::displayRunningFan(uint16_t pos_x, uint16_t pos_y)
 {
-	if(thermalManager.fan_speed[0] == 0) return;
+	if(thermalManager.scaledFanSpeed(eFan::FAN0) == 0) return;
 
 	static bool is_fan0_display = false;
 	if(!is_fan0_display)
@@ -1551,7 +1551,7 @@ void display_image::displayFanSpeed(void)
 	LCD_Fill(170,30,250,60,White);		//clean fan speed display zone
 	color=Black;
 	CLEAN_STRING(s_text);
-	sprintf((char *)s_text,"F: %d", thermalManager.fan_speed[0]);
+	sprintf((char *)s_text,"F: %d", thermalManager.scaledFanSpeed(eFan::FAN0));
 	LCD_ShowString(175,37,s_text);	
 }
 
@@ -1774,7 +1774,7 @@ void display_image::dispalyAdjustFanSpeed(void)
 	LCD_Fill(146,143,196,163,White); 	//clean fan speed display zone
 	color=Black;
 	CLEAN_STRING(s_text);
-	sprintf((char *)s_text,"%03d",thermalManager.fan_speed[0]);
+	sprintf((char *)s_text,"%03d",thermalManager.scaledFanSpeed(eFan::FAN0));
 	LCD_ShowString(146,143,s_text); 
 }
 
@@ -3033,21 +3033,21 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_ADJUSTFAN_PLUS: {
-				int16_t tempFan=thermalManager.fan_speed[0];
+				int16_t tempFan=thermalManager.scaledFanSpeed(eFan::FAN0);
 				tempFan+=default_move_distance;
 				if(tempFan>255)
 					tempFan=255;
-				thermalManager.fan_speed[0]=uint8_t(tempFan);
+				thermalManager.set_fan_speed(eFan::FAN0, uint8_t(tempFan));
 				dispalyAdjustFanSpeed();
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			}
 			case eBT_ADJUSTFAN_MINUS: {
-				int16_t tempFan=thermalManager.fan_speed[0];
+				int16_t tempFan=thermalManager.scaledFanSpeed(eFan::FAN0);
 				tempFan-=default_move_distance;
 				if(tempFan<0)
 					tempFan=0;
-				thermalManager.fan_speed[0]=uint8_t(tempFan);
+				thermalManager.set_fan_speed(eFan::FAN0, uint8_t(tempFan));
 				dispalyAdjustFanSpeed();
 				current_button_id=eBT_BUTTON_NONE;
 			break;
