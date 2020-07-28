@@ -4,7 +4,7 @@
 #include "w25qxx.h"
 #include "../HAL/shared/HAL_SPI.h"
 
-#define DEBUG_SPIFLASH
+// #define DEBUG_SPIFLASH
 #define DEBUG_OUT ENABLED(DEBUG_SPIFLASH)
 #include "../../core/debug_out.h"
 

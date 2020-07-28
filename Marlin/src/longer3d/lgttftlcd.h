@@ -123,8 +123,8 @@ public:
     void actAfterRecovery();
 
 private:
-    bool LGT_MainScanWindow(void);
-    bool LGT_Ui_Update(void);
+    void LGT_MainScanWindow(void);
+    void LGT_Ui_Update(void);
     void LGT_Printer_Data_Update(void);
     void LGT_Ui_Buttoncmd(void);
 

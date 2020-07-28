@@ -19,7 +19,7 @@
 #include "../feature/runout.h"
 #include "../feature/powerloss.h"
 
-#define DEBUG_LGTLCDTFT
+// #define DEBUG_LGTLCDTFT
 #define DEBUG_OUT ENABLED(DEBUG_LGTLCDTFT)
 #include "../../core/debug_out.h"
 
@@ -38,7 +38,6 @@
 #define LCD_DrawLine(x, y, ex, ey)      lcd.drawHVLine(x, y, ex, ey)
 #define LCD_DrawRectangle(x, y, ex, ey) lcd.drawRect(x, y, ex, ey)
 #define Green							GREEN
-// #define temp_hotend[0].current   temp_hotend[0].celsius
 
 #ifndef Chinese
 	#define LCD_ShowString(x,y,txt)          lcd.print(x,y,txt) 
@@ -47,8 +46,6 @@
 #endif
 
 #define CLEAN_STRING(str)				   		memset((void*)str,0,sizeof(str))
-// #define SHOW_SINGLE_TXT(str, x, y, pt_color)    showText((char *)str, pt_color, WHITE, false, (uint16_t)(x), (uint16_t)(y))
-// #define SHOW_BLACK_SINGLE_TXT(str, x, y)        SHOW_SINGLE_TXT(str, x, y, BLACK)
 #define FILL_ZONE(x, y, w, h, bg_color)         LCD_Fill((uint16_t)(x), (uint16_t)(y), (uint16_t)((x)+(w)-1), (uint16_t)((y)+(h)-1), (uint16_t)bg_color)
 #define CLEAN_ZONE(x, y, w, h)                  FILL_ZONE(x, y, w, h, WHITE)
 #define CLEAN_SINGLE_TXT(x, y, w)               CLEAN_ZONE(x, y, w, 16)     /* clean single line text */
@@ -61,57 +58,22 @@
 
 LgtLcdTft lgtlcdtft;
 
-// extern bool check_filament_disable,list_order;
-// extern ARGUMENTS re_settings;
-// config_storedata ConfigSettings;
-// extern Stopwatch print_job_timer;
-// sdfile CardFile;
-// extern uint8_t cp_time_minutes, cp_time_seconds,Remaining_minutes;	
-// extern uint16_t cp_time_hours,Remaining_hours;
-// extern CardReader card;
-// extern uint16_t color,bgColor;
-// extern  W25Qxx W25QxxFlash;
-// extern display_image Display_Screen;
-// extern Planner planner;
-// extern uint16_t lcdId;
-// extern uint16_t color;
-// extern int16_t xCalibration, yCalibration, xOffset, yOffset;
-// extern float resume_xyze_position[XYZE];
-// extern float save_feedtate;
+
 bool recovery_flag;
 static bool recoveryStatus = false;
-// bool is_setting_change=false;
-
-// extern void disable_all_steppers();
-// extern void LGT_Lcdfsmc_init();
-
-// uint16_t POINT_COLOR=0x0000;
-// uint8_t image_buffer[GET_FLASH_SIZE];	//2k
-
-// int16_t cur_fanspeed=0;
 
 // auto feed in/out
 static uint8_t default_move_distance=5;
 static int8_t dir_auto_feed=0;	// filament change status
-// static uint8_t total_out_distance=0;
-
-// uint8_t printpercent=0;
-// uint8_t page_index_num=0;
-// int8_t choose_printfile=-1;
 	
 static uint16_t cur_x=0,cur_y=0;	// save touch point position
-// uint16_t page_index_max=0,page_index=0,file_count=0,choose_file_page=0;
 
 static char s_text[64];
-// char pdata[64];
-// uint32_t print_times=0;
-// const float manual_feedrate_mm_m[] = MANUAL_FEEDRATE;
 
 // for movement
 static bool is_aixs_homed[XYZ]={false};
 
 static bool is_bed_select = false;
-// bool sd_insert=false;
 static bool is_printing=false;	// print status. true on printing, false on not printing(idle, paused, and so on)
 static bool is_print_finish=false;	// true on finish printing
 
@@ -122,8 +84,6 @@ static bool cur_flag=false;
 static int8_t cur_pstatus=10;   //0 is heating ,1 is printing, 2 is pause
 static int8_t cur_ppage=10;   //  0 is heating page , 1 is printing page, 2 is pause page
 
-// bool setting_return_more=false;
-// float default_parameter[4]=DEFAULT_MAX_FEEDRATE;
 
 static E_PRINT_CMD current_print_cmd=E_PRINT_CMD_NONE;
 static E_BUTTON_KEY current_button_id=eBT_BUTTON_NONE;
@@ -135,9 +95,6 @@ static float resume_xyze_position[XYZE]={0.0};
 static float resume_feedrate = 0.0;
 
 // /***************************static function definition****************************************/
-
-// constexpr uint8_t xy_bits = _BV(X_AXIS) | _BV(Y_AXIS);
-// FORCE_INLINE static bool xy_axes_homed() { return (axis_homed & xy_bits) == xyz_bits; }
 
 static void LGT_Line_To_Current_Position(AxisEnum axis) 
 {
@@ -175,24 +132,15 @@ static void changeFilament(int16_t length)
 
 static void clearVarPrintEnd()
 {
-	// print_job_timer.reset();
-	// CardFile.is_gettime=false;
 	lgtCard.setPrintTime(0);
 	lgtCard.clear();
 
-	// checkFilamentReset();
 	recovery_flag=false;
-	// W25QxxFlash.W25QXX_Write((uint8_t*)0xff,SAVE_FILE_ADDR,(uint16_t)sizeof(card.longFilename));
 
 	// reset flow and feedrate
 	planner.flow_percentage[0]=100;
 	feedrate_percentage=100;
 
-	// freejoe
-	// cur_pstatus=10;
-	// cur_ppage=10
-
-	// card.initsd();   //return root directory when printing is completed
 }
 
 static void abortPrintEnd()
@@ -455,7 +403,7 @@ void display_image::scanWindowHome(uint16_t rv_x, uint16_t rv_y)
 	{
 		next_window_ID=eMENU_PREHEAT;
 	}
-	else if(rv_x>133&&rv_x<188&&rv_y>145&&rv_y<195) //recovery  depricated button
+	else if(rv_x>133&&rv_x<188&&rv_y>145&&rv_y<195) //recovery  deprecated button
 	{
 		// if(recovery_flag)
 		// {
@@ -2238,25 +2186,14 @@ return false;
 /**
  * page switching
  */
-bool display_image::LGT_Ui_Update(void)
+void display_image::LGT_Ui_Update(void)
 {
 	if (next_window_ID == eWINDOW_NONE)
-		return false;
-	bool button_type=false;   
+		return;
+
 	switch (next_window_ID)
 		{
 			case eMENU_HOME:
-				// if(current_window_ID==eMENU_DIALOG_END)
-				// {
-				// 	card.flag.abort_sd_printing=true;
-				// 	is_printing=wait_for_user = wait_for_heatup=false;
-				// 	//clearVarPrintEnd();
-				// }
-				// else if(current_window_ID==eMENU_FILE)
-				// {
-				// 	card.returnroot();
-				// 	clearfilevar();
-				// }
 				current_window_ID=eMENU_HOME;
 				next_window_ID=eWINDOW_NONE;
 				displayWindowHome();
@@ -2267,16 +2204,7 @@ bool display_image::LGT_Ui_Update(void)
 				if(current_window_ID == eMENU_SETTINGS && lgtStore.isModified()) {
 					dispalyDialogYesNo(eDIALOG_SETTS_SAVE);
 					current_window_ID=eMENU_DIALOG_SAVE;
-				}
-				else
-				{
-					// if(current_window_ID==eMENU_DIALOG_SAVE)
-					// 	ConfigSettings.settingsLoad();
-					// else if(current_window_ID==eMENU_SETTINGS)
-					// {
-					// 	page_index=0;
-					// 	choose_setting=ARGUMENST_MAX_NUM;
-					// }
+				} else {
 					current_window_ID=eMENU_HOME_MORE;
 					displayWindowHomeMore();
 				}
@@ -2362,20 +2290,16 @@ bool display_image::LGT_Ui_Update(void)
 				displayWindowSettings2();	
 				break;
 			default:    // no page change just button press
-				button_type=true;
 				break;
 		}
-		if(button_type==false)
-			current_button_id=eBT_BUTTON_NONE;
-	return button_type;
+		next_window_ID = eWINDOW_NONE;
 }
 
 /**
  * touch scanning 
  */
-bool LgtLcdTft::LGT_MainScanWindow(void)
+void LgtLcdTft::LGT_MainScanWindow(void)
 {
-		bool window_change=true;
 		switch (current_window_ID)
 		{
 			case eMENU_HOME:
@@ -2461,15 +2385,10 @@ bool LgtLcdTft::LGT_MainScanWindow(void)
 				scanDialogSaveOk(cur_x,cur_y);
 				cur_x=cur_y=0;
 			break;
-			// case eMENU_DIALOG_SAVE_OK:case eMENU_DIALOG_ERRORTEMPE:case eMENU_DIALOG_ERRORTEMPBED:
-			// 	scanDialogYes(cur_x,cur_y);
-			// 	cur_x=cur_y=0;
-			// break;
+
 			default:
-				window_change=false;
 				break;
 		}
-		return window_change;
 }
 
 /**
@@ -2948,14 +2867,6 @@ void display_image::LGT_Ui_Buttoncmd(void)
 						DEBUG_ECHOLN("touch pause");
 						// enqueue_and_echo_commands_P((PSTR("M25")));
 						queue.inject_P(PSTR("M25"));
-						// actOnPause();
-						// is_printing = false;	// genuine pause state
-						// cur_pstatus=2;	
-						// current_print_cmd=E_PRINT_CMD_NONE;
-						// // show resume button and status				
-						// LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
-						// displayImage(260, 30, IMG_ADDR_BUTTON_RESUME);	
-						// displayPause();
 					break;
 					case E_PRINT_RESUME:
 						DEBUG_ECHOLN("touch resume");
@@ -2974,8 +2885,6 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				if(is_print_finish)
 				{
 					clearVarPrintEnd();
-					// displayWindowHome();
-					// current_window_ID=eMENU_HOME;
 					next_window_ID = eMENU_HOME;
 				} else	// abort print
 				{
@@ -3186,11 +3095,11 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				lgtStore.changeSetting(int8_t(default_move_distance) * -1);
 				displayModifyArgument();
 			break;
-			case eBT_BUTTON_NONE:
 			default:
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 		}
+	current_button_id = eBT_BUTTON_NONE;
 }
 
 void display_image::LGT_Printer_Data_Update(void)
@@ -3202,25 +3111,6 @@ void display_image::LGT_Printer_Data_Update(void)
 		next_update_Time = UPDATE_INTERVAL + millis();
 		// checkTemprature();
 		switch (current_window_ID) {
-			// case eMENU_HOME:
-			// 	SDIO_Init();
-			// 	switch(SDIO_GetCardState())	
-			// 	{
-			// 		case SDIO_CARD_ERROR:
-			// 			if(sd_insert)
-			// 			{
-			// 				sd_insert=false;
-			// 			}
-			// 		break;
-			// 		default:
-			// 			if(!sd_insert)
-			// 			{
-			// 				card.initsd();
-			// 				sd_insert=true;
-			// 			}
-			// 		break;
-			// 	}
-			// break;
 			case eMENU_MOVE:
 				displayMoveCoordinate();
 			break;
@@ -3281,46 +3171,8 @@ void display_image::LGT_Printer_Data_Update(void)
 			case eMENU_FILE:
 				// update card state
 				updateCard();
-			
-				// switch(SDIO_GetCardState())	
-				// {
-				// 	case SDIO_CARD_ERROR:
-				// 		if(sd_insert)
-				// 		{
-				// 			sd_insert=false;
-				// 			displayPromptSDCardError();
-				// 		}
-				// 	break;
-				// 	default:
-				// 		if(!sd_insert)
-				// 		{
-				// 			card.initsd();
-				// 			file_count=CardFile.getsdfilecount();
-				// 			page_index_max=CardFile.getsdfilepage();
-				// 			LCD_Fill(0, 25, 239, 174,White);	//clean  
-				// 			displayFileList();
-				// 			displayFilePageNumber();
-				// 			sd_insert=true;
-				// 		}
-				// 	break;
-				// }
 			break;
-		// case eMENU_DIALOG_ERRORTEMPBED:
-		// 	if((thermalManager.degBed()>MIN_ADJUST_TEMP_BED)&&(thermalManager.degBed()<MAX_ADJUST_TEMP_BED))
-		// 	{
-		// 		displayWindowHome();
-		// 		current_window_ID=eMENU_HOME;
-		// 		check_temp_Bed=0;     //checkTemprature();
-		// 	}
-		// break;
-		// case eMENU_DIALOG_ERRORTEMPE:
-		// 	if((thermalManager.degHotend(eHeater::H0)>MIN_ADJUST_TEMP_EXTRUDE)&&(thermalManager.degHotend(eHeater::H0)<MAX_ADJUST_TEMP_EXTRUDE))
-		// 	{
-		// 		displayWindowHome();
-		// 		current_window_ID=eMENU_HOME;
-		// 		check_temp_E=0;    
-		// 	}
-		// break;
+
 			default:
 				break;
 		}
