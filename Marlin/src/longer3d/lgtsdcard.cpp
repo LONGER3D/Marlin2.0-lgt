@@ -6,6 +6,10 @@
 #include "../HAL/STM32F1/sdio.h"
 #include "lgtstore.h"
 
+// #define DEBUG_LGTSDCARD
+#define DEBUG_OUT ENABLED(DEBUG_LGTSDCARD)
+#include "../../core/debug_out.h"
+
 LgtSdCard lgtCard;
 
 // init class static variable
@@ -240,8 +244,8 @@ void LgtSdCard::downTime(char *p)
     remain= uint16(ceil(float(m_printTime) * card.ratioNotDone()));
     h = remain / 60;
     m = remain % 60;
-    // SERIAL_ECHOLNPAIR_F("remain ratio: ", card.ratioNotDone());
-    // SERIAL_ECHOLNPAIR("remain: ", remain);
+    // DEBUG_ECHOLNPAIR_F("remain ratio: ", card.ratioNotDone());
+    // DEBUG_ECHOLNPAIR("remain: ", remain);
     sprintf(p, "%d H %d M", h, m);
 }
 
@@ -251,13 +255,13 @@ void LgtSdCard::downTime(char *p)
 void LgtSdCard::parseComment()
 {
     if (strstr(gComment, "TIME:") != nullptr) {
-        SERIAL_ECHOLNPAIR("comment:", gComment);
+        DEBUG_ECHOLNPAIR("comment:", gComment);
         parseCura();
         lgtStore.saveRecovery();
     }
     else if(strstr(gComment,"Print time") != nullptr)
     {
-        SERIAL_ECHOLNPAIR("comment:", gComment);
+        DEBUG_ECHOLNPAIR("comment:", gComment);
         parseLegacyCura();
         lgtStore.saveRecovery();
     }
@@ -273,7 +277,7 @@ void LgtSdCard::parseCura()
 	if(p != nullptr){
 		second = uint32_t(strtol(p + 1, nullptr, 10));
 		m_printTime = second / 60;
-        SERIAL_ECHOLNPAIR("printTime:", m_printTime);
+        DEBUG_ECHOLNPAIR("printTime:", m_printTime);
 	}    
 }
 
@@ -297,9 +301,9 @@ void LgtSdCard::parseLegacyCura()
         minute = codeValue();
 	}
 	m_printTime = hour * 60 + minute;
-    SERIAL_ECHOLNPAIR("hour:", hour);
-    SERIAL_ECHOLNPAIR("minute:", minute);
-    SERIAL_ECHOLNPAIR("printTime:", m_printTime);
+    DEBUG_ECHOLNPAIR("hour:", hour);
+    DEBUG_ECHOLNPAIR("minute:", minute);
+    DEBUG_ECHOLNPAIR("printTime:", m_printTime);
 }
 
 CardUpdate LgtSdCard::update()
@@ -311,17 +315,17 @@ CardUpdate LgtSdCard::update()
 		if (state) {
 			card.mount();
 			if (card.isMounted()) {
-				SERIAL_ECHOLNPAIR("card mount ok");// ExtUI::onMediaInserted();
+				DEBUG_ECHOLNPAIR("card mount ok");// ExtUI::onMediaInserted();
 				return CardUpdate::MOUNTED;
 			} else {
-				SERIAL_ECHOLNPAIR("card mount error");// ExtUI::onMediaError();
+				DEBUG_ECHOLNPAIR("card mount error");// ExtUI::onMediaError();
 				return CardUpdate::ERROR;
 			}
 		} else {
 			const bool ok = card.isMounted();
 			card.release();
 			if (ok) {
-				SERIAL_ECHOLNPAIR("card removed");// ExtUI::onMediaRemoved();
+				DEBUG_ECHOLNPAIR("card removed");// ExtUI::onMediaRemoved();
                 return CardUpdate::REMOVED;
 			}
 		}
