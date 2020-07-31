@@ -92,7 +92,7 @@
 //#define LCD_READ_ID 0x04 // Read display identification information in reg ID1 0x04 - ST7789V / ILI9328 or others
 // LGT definition
 
-#define LGT // comment to remove all code snippets from LGT(Longer3D technology)
+#define LGT // comment to remove all code snippets from LGT(Longer 3D Technology)
 
 #if ENABLED(LGT)
    #define LGT_LCD_TFT    // LCD 2.8 inch MCU TFT touch screen
@@ -104,7 +104,7 @@
 // @section info
 
 // Author info of this build printed to the host during boot and M115
-#define STRING_CONFIG_H_AUTHOR "Hobi, tpruvot"  // Who made the changes.
+#define STRING_CONFIG_H_AUTHOR "Longer3D, Hobi, tpruvot"  // Who made the changes.
 //#define CUSTOM_VERSION_FILE Version.h // Path from the root directory (no quotes)
 
 /**

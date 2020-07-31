@@ -526,7 +526,11 @@ inline void manage_inactivity(const bool ignore_stepper_queue=false) {
     static bool already_shutdown_steppers; // = false
     if (planner.has_blocks_queued())
       gcode.reset_stepper_timeout();
-    else if (!STAY_TEST && !ignore_stepper_queue && ELAPSED(ms, gcode.previous_move_ms + stepper_inactive_time)) {
+    else if (!STAY_TEST && !ignore_stepper_queue && ELAPSED(ms, gcode.previous_move_ms + stepper_inactive_time)
+      #if ENABLED(LGT_LCD_TFT)
+        && !print_job_timer.isPaused() // prevent from motor unclock when printing is paused
+      #endif
+    ) {
       if (!already_shutdown_steppers) {
         already_shutdown_steppers = true;  // L6470 SPI will consume 99% of free time without this
         if (ENABLED(DISABLE_INACTIVE_X)) DISABLE_AXIS_X();

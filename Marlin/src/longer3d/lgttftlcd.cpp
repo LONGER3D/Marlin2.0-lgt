@@ -222,14 +222,22 @@ void LgtLcdTft::pausePrint()
 	is_printing = false;	// genuine pause state
 	cur_pstatus=2;	
 	current_print_cmd=E_PRINT_CMD_NONE;
-	// show resume button and status				
-	LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
+
+	// show resume button and status in print menu			
+	if (current_window_ID == eMENU_PRINT) {
+		LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
+		displayImage(260, 30, IMG_ADDR_BUTTON_RESUME);	
 	displayImage(260, 30, IMG_ADDR_BUTTON_RESUME);	
-	displayPause();
+		displayImage(260, 30, IMG_ADDR_BUTTON_RESUME);	
+		displayPause();
+	}
+	
 	// move head to specific position
 	moveOnPause();
     setPrintCommand(E_PRINT_RESUME);
-	changeToPageRunout();
+	#if HAS_FILAMENT_SENSOR
+		changeToPageRunout();
+	#endif
 }
 
 void LgtLcdTft::resumePrint()
@@ -2867,6 +2875,11 @@ void display_image::LGT_Ui_Buttoncmd(void)
 						DEBUG_ECHOLN("touch pause");
 						// enqueue_and_echo_commands_P((PSTR("M25")));
 						queue.inject_P(PSTR("M25"));
+
+						// show resume button and status in print menu			
+						LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
+						displayImage(260, 30, IMG_ADDR_BUTTON_RESUME);	
+						displayPause();
 					break;
 					case E_PRINT_RESUME:
 						DEBUG_ECHOLN("touch resume");
@@ -2989,6 +3002,9 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				enqueue_and_echo_commands_P(cmd);
 				enqueue_and_echo_commands_P(PSTR("M24"));
 				lgtStore.saveRecovery();
+				#if HAS_FILAMENT_SENSOR
+					runout.reset();
+				#endif				
 				next_window_ID = eMENU_PRINT;
 				current_button_id=eBT_BUTTON_NONE;
 			}
