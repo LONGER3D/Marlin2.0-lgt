@@ -30,6 +30,7 @@ typedef enum{
 	eMENU_DIALOG_SAVE_OK,
 	eMENU_DIALOG_ERRORTEMPBED,
 	eMENU_DIALOG_ERRORTEMPE,
+    eMENU_DIALOG_WAIT,
 // 	eMENU_PCB_TEST,
 // 	eMENU_SCREEN_CALIBRATION,
 // 	eMENU_AGING_TEST,
@@ -96,6 +97,8 @@ typedef enum{
 	eDIALOG_ERROR_TEMP_HEAD,
 	eDIALOG_FILE_MAX_FOLDER,
 	eDIALOG_START_JOB_NOFILA,
+    eDIALOG_WAIT,
+    
 	eDIALOG_MAX
 	
 }EDIALOG;
@@ -121,6 +124,7 @@ public:
     void changeToPageKilled(const char* error, const char *component);
     void setRecoveryStatus(bool status);
     void actAfterRecovery();
+    void changePageAtOnce(E_WINDOW_ID page);
 
 private:
     void LGT_MainScanWindow(void);
@@ -128,7 +132,6 @@ private:
     void LGT_Printer_Data_Update(void);
     void LGT_Ui_Buttoncmd(void);
 
-    void changePageAtOnce(E_WINDOW_ID page);
     void moveOnPause();
     void changeToPageRunout();
     void resumePrint();
@@ -228,6 +231,7 @@ private:
     void scanWindowAdjustMore(uint16_t rv_x,uint16_t rv_y);
 
     // /***************************dialog page*******************************************/
+    void displayWaitDialog();
     void dispalyDialogYesNo(uint8_t dialog_index);
     void dispalyDialogYes(uint8_t dialog_index);
     void displayDialogText(uint8_t dialog_index);

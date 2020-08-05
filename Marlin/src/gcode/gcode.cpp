@@ -880,6 +880,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       #if ENABLED(LGT_LCD_TFT)
         case 995:  M995();  break;
         case 2100: M2100(); break;
+        case 2101: M2101(); break;
       #endif
 
       default: parser.unknown_command_warning(); break;

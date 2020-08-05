@@ -1880,7 +1880,8 @@ const char* c_dialog_text[eDIALOG_MAX][4]={
 	{TXT_DIALOG_CAPTION_ERROR,       		DIALOG_ERROR_TEMP_BED1,DIALOG_ERROR_TEMP_BED2,DIALOG_ERROR_TEMP_BED3},
 	{TXT_DIALOG_CAPTION_ERROR,       		DIALOG_ERROR_TEMP_HEAD1,DIALOG_ERROR_TEMP_HEAD2,DIALOG_ERROR_TEMP_HEAD3},
 	{TXT_DIALOG_CAPTION_OPEN_FOLER,         DIALOG_PROMPT_MAX_FOLDER1,DIALOG_PROMPT_MAX_FOLDER2,DIALOG_PROMPT_MAX_FOLDER3},
-	{TXT_DIALOG_CAPTION_NO_FIALMENT,         DIALOG_START_PRINT_NOFILA1,DIALOG_START_PRINT_NOFILA2,DIALOG_START_PRINT_NOFILA3}
+	{TXT_DIALOG_CAPTION_NO_FIALMENT,        DIALOG_START_PRINT_NOFILA1,DIALOG_START_PRINT_NOFILA2,DIALOG_START_PRINT_NOFILA3},
+	{TXT_DIALOG_CAPTION_WAIT,				"", DIALOG_PROMPT_WAIT, ""}
 };
 
 void display_image::dispalyDialogYesNo(uint8_t dialog_index)
@@ -1901,6 +1902,14 @@ void display_image::dispalyDialogYes(uint8_t dialog_index)
 	else
 		displayImage(70, 80, IMG_ADDR_PROMPT_ERROR);
 	displayDialogText(dialog_index);
+}
+
+void display_image::displayWaitDialog()
+{
+	displayImage(60, 45, IMG_ADDR_DIALOG_BODY);
+	displayImage(70, 80, IMG_ADDR_PROMPT_PAUSE);
+	displayDialogText(eDIALOG_WAIT);
+	
 }
 
 void display_image::displayDialogText(uint8_t dialog_index)
@@ -2430,7 +2439,11 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_MOVE_X_HOME:
-				enqueue_and_echo_commands_P(PSTR("G28 X0"));
+				// show wait dialog
+				displayWaitDialog();
+				current_window_ID = eMENU_DIALOG_WAIT;
+
+				enqueue_and_echo_commands_P(PSTR("G28 X0\nM2101"));
 				current_button_id=eBT_BUTTON_NONE;
 				is_aixs_homed[X_AXIS]=true;
 			break;
@@ -2454,7 +2467,11 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_MOVE_Y_HOME:
-				enqueue_and_echo_commands_P(PSTR("G28 Y0"));
+				// show wait dialog
+				displayWaitDialog();
+				current_window_ID = eMENU_DIALOG_WAIT;
+
+				enqueue_and_echo_commands_P(PSTR("G28 Y0\nM2101"));
 				current_button_id=eBT_BUTTON_NONE;
 				is_aixs_homed[Y_AXIS]=true;
 			break;
@@ -2478,12 +2495,20 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_MOVE_Z_HOME:
-				enqueue_and_echo_commands_P(PSTR("G28 Z0"));
+				// show wait dialog
+				displayWaitDialog();
+				current_window_ID = eMENU_DIALOG_WAIT;
+
+				enqueue_and_echo_commands_P(PSTR("G28 Z0\nM2101"));
 				current_button_id=eBT_BUTTON_NONE;
 				is_aixs_homed[Z_AXIS]=true;
 			break;
 			case eBT_MOVE_ALL_HOME:
-				enqueue_and_echo_commands_P(PSTR("G28"));
+				// show wait dialog
+				displayWaitDialog();
+				current_window_ID = eMENU_DIALOG_WAIT;
+				
+				enqueue_and_echo_commands_P(PSTR("G28\nM2101"));
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 

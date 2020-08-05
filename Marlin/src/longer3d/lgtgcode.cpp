@@ -4,6 +4,7 @@
 #include "../gcode/gcode.h"
 #include "lgttouch.h"
 #include "lgtstore.h"
+#include "lgttftlcd.h"
 
 /**
  * @brief start touch calibration and save touch data
@@ -26,5 +27,12 @@ void GcodeSuite::M2100()
         lgtStore.clearSettings();
 }
 
+/**
+ * @brief
+ */
+void GcodeSuite::M2101()
+{
+    lgtlcdtft.changePageAtOnce(eMENU_MOVE);
+}
 
 #endif

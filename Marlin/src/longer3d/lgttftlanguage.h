@@ -96,6 +96,7 @@
 #define TXT_DIALOG_CAPTION_SAVE             "Save"           
 #define TXT_DIALOG_CAPTION_NO_FIALMENT      "No Filament"    
 #define TXT_DIALOG_CAPTION_OPEN_FOLER       "Open Folder"  
+#define TXT_DIALOG_CAPTION_WAIT				"Wait"
 
 // touch calibration
 #define TXT_TFT_CONTROLLER_ID            "ControllerID:  %04X" //"ControllerID:"
@@ -118,13 +119,13 @@
 #define TXT_PRINTER_KILLED_INFO2        "Please restart your printer."
 
 // killed error message
-#define TXT_ERR_MINTEMP					"E1 MINTEMP"		
+#define TXT_ERR_MINTEMP					"E0 MINTEMP"		
 #define TXT_ERR_MIN_TEMP_BED 			"Bed MINTEMP"
-#define TXT_ERR_MAXTEMP					"E1 MAXTEMP"
+#define TXT_ERR_MAXTEMP					"E0 MAXTEMP"
 #define TXT_ERR_MAX_TEMP_BED			"Bed MAXTEMP"
-#define TXT_ERR_HEATING_FAILED			"E1 Heating Failed"
+#define TXT_ERR_HEATING_FAILED			"E0 Heating Failed"
 #define TXT_ERR_HEATING_FAILED_BED		"Bed Heating Failed"
-#define TXT_ERR_TEMP_RUNAWAY			"E1 Thermal Runaway"
+#define TXT_ERR_TEMP_RUNAWAY			"E0 Thermal Runaway"
 #define TXT_ERR_TEMP_RUNAWAY_BED		"Bed Thermal Runaway"
 #define TXT_ERR_HOMING_FAILED			"Homing Failed"
 #define TXT_ERR_PROBING_FAILED			"Probing Failed"
@@ -172,6 +173,7 @@
 #define DIALOG_START_PRINT_NOFILA1      "No filament, do"                 //No filament,please change filament and start printing
 #define DIALOG_START_PRINT_NOFILA2		"you want to change"
 #define DIALOG_START_PRINT_NOFILA3		"it?"
+#define DIALOG_PROMPT_WAIT				"Please wait..."
 
 #else
 
