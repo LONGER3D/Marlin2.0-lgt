@@ -173,7 +173,13 @@ void PrintJobRecovery::save(const bool force/*=false*/) {
         || ELAPSED(ms, next_save_ms)
       #endif
       // Save if Z is above the last-saved position by some minimum height
-      || current_position.z > info.current_position.z + POWER_LOSS_MIN_Z_CHANGE
+      || current_position.z
+      #if ENABLED(LGT) 
+        >=
+      #else
+        >
+      #endif 
+      info.current_position.z + POWER_LOSS_MIN_Z_CHANGE
     #endif
   ) {
 
