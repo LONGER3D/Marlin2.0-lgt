@@ -138,6 +138,7 @@ private:
     void startAutoFeed(int8_t dir);
     bool setTemperatureInWindow(bool is_bed, bool sign);
     // void LGT_Tempabnormal_Warning(const char* info);    //is_printing=false
+    void refreshScreen();
 
     // /***************************launch page*******************************************/
     void displayStartUpLogo(void);

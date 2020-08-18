@@ -76,6 +76,7 @@ static bool is_aixs_homed[XYZ]={false};
 static bool is_bed_select = false;
 static bool is_printing=false;	// print status. true on printing, false on not printing(idle, paused, and so on)
 static bool is_print_finish=false;	// true on finish printing
+static bool isPrintStarted = false; // ture on print started(including pause), false on idle
 
 static uint8_t ret_menu_extrude = 0;	// used for extrude page return  0 to home page , 2 to adjust more page, 4 to file page
 
@@ -84,6 +85,10 @@ static bool cur_flag=false;
 static int8_t cur_pstatus=10;   //0 is heating ,1 is printing, 2 is pause
 static int8_t cur_ppage=10;   //  0 is heating page , 1 is printing page, 2 is pause page
 
+#if defined(LK1_PLUS) || defined(U20_PLUS)
+	constexpr millis_t REFRESH_INTERVAL = 10000;//120000;
+	static millis_t nextTimeRefresh = 0;
+#endif
 
 static E_PRINT_CMD current_print_cmd=E_PRINT_CMD_NONE;
 static E_BUTTON_KEY current_button_id=eBT_BUTTON_NONE;
@@ -149,6 +154,7 @@ static void abortPrintEnd()
       is_printing = wait_for_heatup = false;
       card.flag.abort_sd_printing = true;
     #endif
+	isPrintStarted = false;
     print_job_timer.stop();
 	clearVarPrintEnd();
 }
@@ -227,8 +233,6 @@ void LgtLcdTft::pausePrint()
 	if (current_window_ID == eMENU_PRINT) {
 		LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
 		displayImage(260, 30, IMG_ADDR_BUTTON_RESUME);	
-	displayImage(260, 30, IMG_ADDR_BUTTON_RESUME);	
-		displayImage(260, 30, IMG_ADDR_BUTTON_RESUME);	
 		displayPause();
 	}
 	
@@ -260,10 +264,18 @@ void LgtLcdTft::resumePrint()
 	is_printing = true;	// genuine pause state
 	cur_pstatus=1;	
 	current_print_cmd=E_PRINT_CMD_NONE;
+
 	// show pause button and status
-	LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
-	displayImage(260, 30, IMG_ADDR_BUTTON_PAUSE);
-	displayPrinting();
+	if (current_window_ID == eMENU_PRINT) {
+		LCD_Fill(260,30,320,90,White);		//clean pause/resume icon display zone
+		displayImage(260, 30, IMG_ADDR_BUTTON_PAUSE);
+		displayPrinting();
+	}
+
+	#if defined(LK1_PLUS) || defined(U20_PLUS)
+		nextTimeRefresh = millis() + REFRESH_INTERVAL; // delay refresh for preventing from showing error
+	#endif
+
 }
 
 
@@ -334,7 +346,7 @@ void LgtLcdTft::displayStartUpLogo(void)
     lcdClear(White);
   #if defined(U30) || defined(U20) || defined(U20_PLUS) 
   	displayImage(60, 95, IMG_ADDR_STARTUP_LOGO_0);
-  #elif defined(LK1_PLUS) ||  defined(LK1) || defined(LK2) || defined(LK4)  
+  #elif defined(LK1) || defined(LK1_PLUS) || defined(LK2) || defined(LK4)  
 	displayImage(45, 100, IMG_ADDR_STARTUP_LOGO_2);
   #endif
 }
@@ -1585,6 +1597,7 @@ void display_image::dispalyCurrentStatus(void)
 			LCD_ShowString(45,202,s_text);
 			is_printing=false;
 			is_print_finish=true;
+			isPrintStarted = false;
 			cur_pstatus=10;
 			cur_ppage=3;
 		 	// lgtCard.setPrintTime(0);  //Make sure that the remaining time is 0 after printing
@@ -3018,6 +3031,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			case eBT_DIALOG_PRINT_START: {
 				is_printing=true;
 				is_print_finish=cur_flag=false;
+				isPrintStarted = true;
 				cur_ppage=0;cur_pstatus=0;
 
 				const char *fn = lgtCard.shortFilename();
@@ -3057,6 +3071,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				// clear some variables
 				is_printing=true;
 				is_print_finish=cur_flag=false;
+				isPrintStarted = true;
 				cur_ppage=0;cur_pstatus=0;
 				// retrive filename and printtime
 				lgtStore.loadRecovery();
@@ -3220,6 +3235,21 @@ void display_image::LGT_Printer_Data_Update(void)
 	}
 }
 
+void LgtLcdTft::refreshScreen()
+{
+#if defined(LK1_PLUS) || defined(U20_PLUS)
+	if (isPrintStarted) {		// refresh screen  only when printing is started
+		const millis_t now = millis();
+		if (ELAPSED(now, nextTimeRefresh)) {
+			next_window_ID = current_window_ID;
+			LGT_Ui_Update();
+			nextTimeRefresh = now + REFRESH_INTERVAL;
+		}
+	}
+#endif
+	
+}
+
 void LgtLcdTft::init()
 {
     // init tft-lcd
@@ -3271,6 +3301,7 @@ void LgtLcdTft::loop()
     } else {    // idle
         touchCheck = 0;	// reset touch checker
 		LGT_Printer_Data_Update();
+		refreshScreen();
     }
 }
 

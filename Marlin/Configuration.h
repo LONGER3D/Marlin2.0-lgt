@@ -80,7 +80,7 @@
 //     These defines are set in platformio.ini build parameters, sample for U20 -DU20 -DTS_V12
 //     U20_PLUS was not tested, as we do not have a printer to test. Print bed PID settings MUST be tuned for it.
 
-// Valid platformio.ini submodel values are U20_PLUS U20 U30 LK1 LK2 LK4
+// Valid platformio.ini submodel values are U20_PLUS U20 U30 LK1 LK1_PLUS LK2 LK4
 
 // Valid platformio.ini touchscreens are TS_V11 TS_V12 TS_V19
 
@@ -175,6 +175,8 @@
 #define CUSTOM_MACHINE_NAME "Alfawise U20+"
 #elif defined(LK1)
 #define CUSTOM_MACHINE_NAME "Longer3D LK1"
+#elif defined(LK1_PLUS)
+#define CUSTOM_MACHINE_NAME "Longer3D LK1 Plus"
 #elif defined(LK2)
 #define CUSTOM_MACHINE_NAME "Longer3D LK2"
 #elif defined(LK4)
@@ -610,7 +612,7 @@
   #define DEFAULT_bedKd 1164.25
 #endif
 
-#ifdef U20_PLUS
+#if defined(U20_PLUS) || defined(LK1_PLUS)
   // These PID setting MUST be updated.
   // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
   #define DEFAULT_bedKp 841.68
@@ -1174,7 +1176,7 @@
 #define Z_MACHINE_MAX 400
 #endif
 
-#ifdef U20_PLUS
+#if defined(U20_PLUS) || defined(LK1_PLUS)
 #define X_BED_SIZE 400
 #define Y_BED_SIZE 400
 #define Z_MACHINE_MAX 500
