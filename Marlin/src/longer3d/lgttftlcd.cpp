@@ -86,7 +86,7 @@ static int8_t cur_pstatus=10;   //0 is heating ,1 is printing, 2 is pause
 static int8_t cur_ppage=10;   //  0 is heating page , 1 is printing page, 2 is pause page
 
 #if defined(LK1_PLUS) || defined(U20_PLUS)
-	constexpr millis_t REFRESH_INTERVAL = 10000;//120000;
+	constexpr millis_t REFRESH_INTERVAL = 120000;	// 2 minutes
 	static millis_t nextTimeRefresh = 0;
 #endif
 
@@ -457,7 +457,7 @@ void display_image::displayWindowMove(void)
 	displayImage(115, 118, IMG_ADDR_BUTTON_PLUS_X);
 	displayImage(65, 55, IMG_ADDR_BUTTON_PLUS_Y);
 	displayImage(193, 55, IMG_ADDR_BUTTON_PLUS_Z);
-    default_move_distance = 5;		//default distance
+    // default_move_distance = 5;		//default distance
 	initialMoveDistance(260, 55);	
 	displayImage(260, 110, IMG_ADDR_BUTTON_UNLOCK);
 	displayImage(260, 180, IMG_ADDR_BUTTON_RETURN);
@@ -2456,7 +2456,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				displayWaitDialog();
 				current_window_ID = eMENU_DIALOG_WAIT;
 
-				enqueue_and_echo_commands_P(PSTR("G28 X0\nM2101"));
+				enqueue_and_echo_commands_P(PSTR("G28 X0\nM2101\n"));
 				current_button_id=eBT_BUTTON_NONE;
 				is_aixs_homed[X_AXIS]=true;
 			break;
@@ -2484,7 +2484,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				displayWaitDialog();
 				current_window_ID = eMENU_DIALOG_WAIT;
 
-				enqueue_and_echo_commands_P(PSTR("G28 Y0\nM2101"));
+				enqueue_and_echo_commands_P(PSTR("G28 Y0\nM2101\n"));
 				current_button_id=eBT_BUTTON_NONE;
 				is_aixs_homed[Y_AXIS]=true;
 			break;
@@ -2512,7 +2512,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				displayWaitDialog();
 				current_window_ID = eMENU_DIALOG_WAIT;
 
-				enqueue_and_echo_commands_P(PSTR("G28 Z0\nM2101"));
+				enqueue_and_echo_commands_P(PSTR("G28 Z0\nM2101\n"));
 				current_button_id=eBT_BUTTON_NONE;
 				is_aixs_homed[Z_AXIS]=true;
 			break;
@@ -2521,7 +2521,7 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				displayWaitDialog();
 				current_window_ID = eMENU_DIALOG_WAIT;
 				
-				enqueue_and_echo_commands_P(PSTR("G28\nM2101"));
+				enqueue_and_echo_commands_P(PSTR("G28\nM2101\n"));
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 
