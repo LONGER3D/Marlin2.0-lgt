@@ -1,6 +1,6 @@
 #pragma once
 
-#define TEST_TAG 		"T006D"	// used for test release, formal release should be remarked
+#define TEST_TAG 		"T007"	// used for test release, formal release should be remarked
 
 #if !defined(TEST_TAG)
 	#define TEST_TAG ""
