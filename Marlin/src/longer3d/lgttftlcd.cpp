@@ -1110,6 +1110,7 @@ void display_image::scanWindowMoreHome(uint16_t rv_x, uint16_t rv_y)
 {
 	if(rv_x>50&&rv_x<105&&rv_y>45&&rv_y<95)
 	{
+		set_all_unhomed();
 		next_window_ID=eMENU_LEVELING;
 	}
 	else if(rv_x>133&&rv_x<188&&rv_y>45&&rv_y<95)
@@ -2272,7 +2273,7 @@ void display_image::LGT_Ui_Update(void)
 			case eMENU_LEVELING:
 				current_window_ID=eMENU_LEVELING;
 				next_window_ID=eWINDOW_NONE;
-				set_all_unhomed();
+				// set_all_unhomed();
 				displayWindowLeveling();
 			break;
 			case eMENU_ABOUT:
@@ -2433,50 +2434,60 @@ void display_image::LGT_Ui_Buttoncmd(void)
 		{
             // menu move buttons
 			case eBT_MOVE_X_MINUS:
-				current_position[X_AXIS]-=default_move_distance;
-				if(is_aixs_homed[X_AXIS]||all_axes_homed())
-				{
-					if(current_position[X_AXIS]<0)
-					current_position[X_AXIS]=0;
+				if (!planner.is_full()) {
+					current_position[X_AXIS]-=default_move_distance;
+					if(is_aixs_homed[X_AXIS]||all_axes_homed())
+					{
+						if(current_position[X_AXIS]<0)
+						current_position[X_AXIS]=0;
+					}
+					LGT_Line_To_Current_Position(X_AXIS);
+					displayMoveCoordinate();
 				}
-				LGT_Line_To_Current_Position(X_AXIS);
-				displayMoveCoordinate();
 				current_button_id=eBT_BUTTON_NONE;
-			break;
+				break;
 			case eBT_MOVE_X_PLUS:
-				current_position[X_AXIS]+=default_move_distance;
-				if(current_position[X_AXIS]>X_BED_SIZE)
-					current_position[X_AXIS]=X_BED_SIZE;
-				LGT_Line_To_Current_Position(X_AXIS);
-				displayMoveCoordinate();
+				if (!planner.is_full()) {
+					current_position[X_AXIS]+=default_move_distance;
+					if(current_position[X_AXIS]>X_BED_SIZE)
+						current_position[X_AXIS]=X_BED_SIZE;
+					LGT_Line_To_Current_Position(X_AXIS);
+					displayMoveCoordinate();
+				}
 				current_button_id=eBT_BUTTON_NONE;
-			break;
+				break;
 			case eBT_MOVE_X_HOME:
 				// show wait dialog
 				displayWaitDialog();
 				current_window_ID = eMENU_DIALOG_WAIT;
 
-				enqueue_and_echo_commands_P(PSTR("G28 X0\nM2101\n"));
+				enqueue_and_echo_commands_P(PSTR("G28 X0"));
+				enqueue_and_echo_commands_P("M2101 P0");
+
 				current_button_id=eBT_BUTTON_NONE;
 				is_aixs_homed[X_AXIS]=true;
 			break;
 			case eBT_MOVE_Y_MINUS:
-				current_position[Y_AXIS]-=default_move_distance;
-				if(is_aixs_homed[Y_AXIS]||all_axes_homed())
-				{
-					if(current_position[Y_AXIS]<0)
-						current_position[Y_AXIS]=0;
+				if (!planner.is_full()) {
+					current_position[Y_AXIS]-=default_move_distance;
+					if(is_aixs_homed[Y_AXIS]||all_axes_homed())
+					{
+						if(current_position[Y_AXIS]<0)
+							current_position[Y_AXIS]=0;
+					}
+					LGT_Line_To_Current_Position(Y_AXIS);
+					displayMoveCoordinate();
 				}
-				LGT_Line_To_Current_Position(Y_AXIS);
-				displayMoveCoordinate();
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_MOVE_Y_PLUS:
-				current_position[Y_AXIS]+=default_move_distance;
-				if(current_position[Y_AXIS]>Y_BED_SIZE)
-					current_position[Y_AXIS]=Y_BED_SIZE;
-				LGT_Line_To_Current_Position(Y_AXIS);
-				displayMoveCoordinate();
+				if (!planner.is_full()) {
+					current_position[Y_AXIS]+=default_move_distance;
+					if(current_position[Y_AXIS]>Y_BED_SIZE)
+						current_position[Y_AXIS]=Y_BED_SIZE;
+					LGT_Line_To_Current_Position(Y_AXIS);
+					displayMoveCoordinate();
+				}
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_MOVE_Y_HOME:
@@ -2484,27 +2495,33 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				displayWaitDialog();
 				current_window_ID = eMENU_DIALOG_WAIT;
 
-				enqueue_and_echo_commands_P(PSTR("G28 Y0\nM2101\n"));
+				enqueue_and_echo_commands_P(PSTR("G28 Y0"));
+				enqueue_and_echo_commands_P("M2101 P0");
+
 				current_button_id=eBT_BUTTON_NONE;
 				is_aixs_homed[Y_AXIS]=true;
 			break;
 			case eBT_MOVE_Z_MINUS:
-				current_position[Z_AXIS]-=default_move_distance;
-				if(is_aixs_homed[Z_AXIS]||all_axes_homed())
-				{
-					if(current_position[Z_AXIS]<0)
-						current_position[Z_AXIS]=0;
+				if (!planner.is_full()) {
+					current_position[Z_AXIS]-=default_move_distance;
+					if(is_aixs_homed[Z_AXIS]||all_axes_homed())
+					{
+						if(current_position[Z_AXIS]<0)
+							current_position[Z_AXIS]=0;
+					}
+					LGT_Line_To_Current_Position(Z_AXIS);
+					displayMoveCoordinate();
 				}
-				LGT_Line_To_Current_Position(Z_AXIS);
-				displayMoveCoordinate();
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_MOVE_Z_PLUS:
-				current_position[Z_AXIS]+=default_move_distance;
-				if(current_position[Z_AXIS]>Z_MACHINE_MAX)
-					current_position[Z_AXIS]=Z_MACHINE_MAX;
-				LGT_Line_To_Current_Position(Z_AXIS);
-				displayMoveCoordinate();
+				if (!planner.is_full()) {
+					current_position[Z_AXIS]+=default_move_distance;
+					if(current_position[Z_AXIS]>Z_MACHINE_MAX)
+						current_position[Z_AXIS]=Z_MACHINE_MAX;
+					LGT_Line_To_Current_Position(Z_AXIS);
+					displayMoveCoordinate();
+				}
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 			case eBT_MOVE_Z_HOME:
@@ -2512,7 +2529,9 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				displayWaitDialog();
 				current_window_ID = eMENU_DIALOG_WAIT;
 
-				enqueue_and_echo_commands_P(PSTR("G28 Z0\nM2101\n"));
+				enqueue_and_echo_commands_P(PSTR("G28 Z0"));
+				enqueue_and_echo_commands_P("M2101 P0");
+
 				current_button_id=eBT_BUTTON_NONE;
 				is_aixs_homed[Z_AXIS]=true;
 			break;
@@ -2521,7 +2540,9 @@ void display_image::LGT_Ui_Buttoncmd(void)
 				displayWaitDialog();
 				current_window_ID = eMENU_DIALOG_WAIT;
 				
-				enqueue_and_echo_commands_P(PSTR("G28\nM2101\n"));
+				enqueue_and_echo_commands_P(PSTR("G28"));
+				enqueue_and_echo_commands_P("M2101 P0");
+
 				current_button_id=eBT_BUTTON_NONE;
 			break;
 
@@ -2529,7 +2550,13 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			case eBT_MOVE_L0:
 				if(!all_axes_homed())
 				{
+					// show wait dialog
+					displayWaitDialog();
+					current_window_ID = eMENU_DIALOG_WAIT;
+
 					enqueue_and_echo_commands_P(PSTR("G28"));
+					enqueue_and_echo_commands_P("M2101 P1");
+
 					thermalManager.disable_all_heaters();
 				}
 				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
@@ -2546,7 +2573,13 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			case eBT_MOVE_L1:
 				if(!all_axes_homed())
 				{
+					// show wait dialog
+					displayWaitDialog();
+					current_window_ID = eMENU_DIALOG_WAIT;
+
 					enqueue_and_echo_commands_P(PSTR("G28"));
+					enqueue_and_echo_commands_P("M2101 P1");
+
 					thermalManager.disable_all_heaters();
 				}
 				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
@@ -2563,7 +2596,13 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			case eBT_MOVE_L2:
 				if(!all_axes_homed())
 				{
+						// show wait dialog
+					displayWaitDialog();
+					current_window_ID = eMENU_DIALOG_WAIT;
+
 					enqueue_and_echo_commands_P(PSTR("G28"));
+					enqueue_and_echo_commands_P("M2101 P1");
+
 					thermalManager.disable_all_heaters();
 				}
 				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
@@ -2580,7 +2619,13 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			case eBT_MOVE_L3:
 				if(!all_axes_homed())
 				{
+					// show wait dialog
+					displayWaitDialog();
+					current_window_ID = eMENU_DIALOG_WAIT;
+
 					enqueue_and_echo_commands_P(PSTR("G28"));
+					enqueue_and_echo_commands_P("M2101 P1");
+
 					thermalManager.disable_all_heaters();
 				}
 				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
@@ -2597,7 +2642,13 @@ void display_image::LGT_Ui_Buttoncmd(void)
 			case eBT_MOVE_L4:
 				if(!all_axes_homed())
 				{
+					// show wait dialog
+					displayWaitDialog();
+					current_window_ID = eMENU_DIALOG_WAIT;
+
 					enqueue_and_echo_commands_P(PSTR("G28"));
+					enqueue_and_echo_commands_P("M2101 P1");
+
 					thermalManager.disable_all_heaters();
 				}
 				enqueue_and_echo_commands_P(PSTR("G0 Z10 F500"));
