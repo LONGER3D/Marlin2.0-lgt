@@ -69,7 +69,7 @@
 //
 
 //===========================================================================
-//============================= Alfawise Printer ============================
+//============================= Longer 3D/Alfawise Printer ============================
 //===========================================================================
 
 // Forum link to help with a tutorial, in French! :
@@ -82,7 +82,7 @@
 
 // Valid platformio.ini submodel values are U20_PLUS U20 U30 LK1 LK1_PLUS LK2 LK4
 
-// Valid platformio.ini touchscreens are TS_V11 TS_V12 TS_V19
+// Valid platformio.ini touchscreens are TS_V11 TS_V12 TS_V19 TS_V20
 
 // 2 - Select the screen controller type. Most common is ILI9341 - First option. If your screen remains white,
 //     Try the alternate setting - this should enable ST7789V or ILI9328. For other LCDs... code is needed
@@ -90,8 +90,8 @@
 
 #define LCD_READ_ID   0xD3 // Read display identification information in reg ID4 0xD3, for ILI9341 screens
 //#define LCD_READ_ID 0x04 // Read display identification information in reg ID1 0x04 - ST7789V / ILI9328 or others
-// LGT definition
 
+// LGT(longer 3D Technology) definition
 #define LGT // comment to remove all code snippets from LGT(Longer 3D Technology)
 
 #if ENABLED(LGT)
@@ -155,7 +155,7 @@
  *
  * :[2400, 9600, 19200, 38400, 57600, 115200, 250000, 500000, 1000000]
  */
-#define BAUDRATE 250000
+#define BAUDRATE 115200
 
 // Enable the Bluetooth serial interface on AT90USB devices
 //#define BLUETOOTH

@@ -44,7 +44,7 @@ uint8_t LgtLcdApi::init()
   uint32_t getdata;
 	if (m_lcdID == 0) 
 	{
-		// read ID1 register to get LCD controller ID, MOST of the time located in register 0x04
+		// read ID1 register to get LCD controller ID, MOST of the time located in register 0x04, like ST7789V
 		getdata = LCD_IO_ReadData(0x04, 3);
 		m_lcdID = (uint16_t)(getdata & 0xFFFF);
   	} 
@@ -60,19 +60,32 @@ uint8_t LgtLcdApi::init()
     }
   }
 
-  SERIAL_ECHOLNPAIR("LCD ID:", m_lcdID); // 0x9341 == 37697
+    const char *lcdControllerName = "unknown";
+
     switch (m_lcdID) {
-    case 0x1505: break; // R61505U
-    case ST7789V_ID: ST7789V_Init(); break; // ST7789V
-    case 0x8989: break; // SSD1289
-    case 0x9325: break; // ILI9325
-    case 0x9328: break; // ILI9328
-    case ILI9341_ID: ILI9341_Init(); break; // ILI9341
-    case 0x0404: break; // No LCD Controller detected
-    default: break; // Unknown LCD Controller
+    case ILI9341_ID: // ILI9341
+        ILI9341_Init(); 
+        lcdControllerName = "ILI9341";
+        break; 
+    case ST7789V_ID: // ST7789V
+        ST7789V_Init(); 
+        lcdControllerName = "ST7789V";
+        break; 
+    // case 0x1505: // R61505U
+    //     break;     
+    // case 0x8989: // SSD1289
+    //     break; 
+    // case 0x9325: // ILI9325
+    //     break; 
+    // case 0x9328: // ILI9328
+    //     break; 
+    // case 0x0404: // No LCD Controller detected
+    //     break; 
+    default: 
+        break; // Unknown LCD Controller
     }
 
-    // clear(WHITE);
+    SERIAL_ECHOLNPAIR("LCD Controller: ", lcdControllerName);
 
   return 1;
 }

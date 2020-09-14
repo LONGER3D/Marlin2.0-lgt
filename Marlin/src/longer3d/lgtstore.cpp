@@ -396,9 +396,10 @@ bool LgtStore::loadTouch()
     SERIAL_ECHOLNPAIR("stored version: ", touch.version);
     SERIAL_ECHOLNPAIR("current version: ", TOUCH_VERSION);
     if (!validate(TOUCH_VERSION, touch.version)) {
-       SERIAL_ECHOLN("load failed, reset touch data");
-        lgtTouch.resetCalibration();
-       return false;    
+        SERIAL_ECHOLN("load failed. calibrate touch screen");
+        // lgtTouch.resetCalibration();
+        lgtTouch.calibrate(false);
+        return false;    
     }
     READ_VAR(touch.xCalibration);
     SERIAL_ECHOLNPAIR("xCali: ", touch.xCalibration);

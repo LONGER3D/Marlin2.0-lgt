@@ -24,7 +24,7 @@ public:
     inline void waitForRelease() { touch.waitForRelease();}
     // inline void waitForTouch(uint16_t &x, uint16_t &y) { touch.waitForTouch(x, y); }
     uint8_t readTouchPoint(uint16_t &x, uint16_t &y);
-    uint8_t calibrate();
+    uint8_t calibrate(bool needKill=true);
     TouchCalibration &calibrationData() { return calib; }
     void resetCalibration();
 };

@@ -79,7 +79,7 @@ uint8_t LgtTouch::readTouchPoint(uint16_t &x, uint16_t &y)
   return 1;
 }
 
-uint8_t LgtTouch::calibrate()
+uint8_t LgtTouch::calibrate(bool needKill/* =true */)
 {
   // for safety
   thermalManager.disable_all_heaters();
@@ -268,12 +268,16 @@ uint8_t LgtTouch::calibrate()
  
   // save data
   lgtStore.saveTouch();
-  // wait for touch
-  while (!isTouched()) { /* nada */ }
+
   lgtlcd.setColor(BLACK);
   lgtlcd.setBgColor(WHITE);
-  kill();
- return 1;
+  if (needKill) {
+    // wait for touch then killed
+    while (!isTouched()) { /* nada */ }
+    kill();
+  }
+
+  return 1;
 }
 
 void LgtTouch::resetCalibration()
