@@ -1029,8 +1029,7 @@
  *
  * Specify a Probe position as { X, Y, Z }
  */
-#define NOZZLE_TO_PROBE_OFFSET { -34.5, -6.5, 0 }  // BL-TOUCH
-// #define NOZZLE_TO_PROBE_OFFSET { -30.5, -7.4, 0 }  // 3D-TOUCH
+#define NOZZLE_TO_PROBE_OFFSET { -36, -10, 0 }  // BL-TOUCH
 
 // Most probes should stay away from the edges of the bed, but
 // with NOZZLE_AS_PROBE this can be negative for a wider probing area.
