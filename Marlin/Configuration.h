@@ -92,7 +92,7 @@
 //#define LCD_READ_ID 0x04 // Read display identification information in reg ID1 0x04 - ST7789V / ILI9328 or others
 
 // LGT(longer 3D Technology) definition
-#define LGT // comment to remove all code snippets from LGT(Longer 3D Technology)
+// #define LGT // comment to remove all code snippets from LGT(Longer 3D Technology)
 
 #if ENABLED(LGT)
    #define LGT_LCD_TFT    // LCD 2.8 inch MCU TFT touch screen
@@ -137,7 +137,7 @@
  *
  * :[-1, 0, 1, 2, 3, 4, 5, 6, 7]
  */
-#define SERIAL_PORT 1
+#define SERIAL_PORT 0
 
 /**
  * Select a secondary serial port on the board to use for communication with the host.
@@ -162,8 +162,17 @@
 
 // Choose the name from boards.h that matches your setup
 #ifndef MOTHERBOARD
-  #define MOTHERBOARD BOARD_LONGER3D_LK
+  // #define MOTHERBOARD BOARD_LONGER3D_LK
+  #define MOTHERBOARD BOARD_LONGER_LGT_KIT_V1
 #endif
+
+#if MOTHERBOARD == BOARD_LONGER3D_LK
+  #define LONGER_LKX
+#elif MOTHERBOARD == BOARD_LONGER_LGT_KIT_V1
+  #define LONGER_LKX_PRO
+#endif
+
+#define LK4_PRO
 
 // Name displayed in the LCD "Ready" message and Info menu
 //#define CUSTOM_MACHINE_NAME "3D Printer"
@@ -177,10 +186,14 @@
 #define CUSTOM_MACHINE_NAME "Longer3D LK1"
 #elif defined(LK1_PLUS)
 #define CUSTOM_MACHINE_NAME "Longer3D LK1 Plus"
+#elif defined(LK1_PRO)
+#define CUSTOM_MACHINE_NAME "Longer3D LK1 Pro"
 #elif defined(LK2)
 #define CUSTOM_MACHINE_NAME "Longer3D LK2"
 #elif defined(LK4)
 #define CUSTOM_MACHINE_NAME "Longer3D LK4"
+#elif defined(LK4_PRO)
+#define CUSTOM_MACHINE_NAME "Longer3D LK4 Pro"
 #endif
 
 // Printer's unique ID, used by some programs to differentiate between machines.
@@ -598,14 +611,14 @@
   //#define DEFAULT_bedKi 1.41
   //#define DEFAULT_bedKd 1675.16
 
-#if defined(U30) || defined(LK2) || defined(LK4)
+#if defined(U30) || defined(LK2) || defined(LK4) || defined(LK4_PRO)
   //From M303 command for Alfawise U30 :
   #define DEFAULT_bedKp 338.46
   #define DEFAULT_bedKi 63.96
   #define DEFAULT_bedKd 447.78
 #endif
 
-#if defined(U20) || defined(LK1)
+#if defined(U20) || defined(LK1) || defined(LK1_PRO)
   //From M303 command for Alfawise U20 :
   #define DEFAULT_bedKp 841.68
   #define DEFAULT_bedKi 152.12
@@ -694,7 +707,7 @@
 //#define USE_ZMAX_PLUG
 
 // Enable pullup for all endstops to prevent a floating state
-//#define ENDSTOPPULLUPS
+#define ENDSTOPPULLUPS
 #if DISABLED(ENDSTOPPULLUPS)
   // Disable ENDSTOPPULLUPS to set pullups individually
   //#define ENDSTOPPULLUP_XMAX
@@ -763,7 +776,9 @@
 
 // Enable this feature if all enabled endstop pins are interrupt-capable.
 // This will remove the need to poll the interrupt pins, saving many CPU cycles.
-#define ENDSTOP_INTERRUPTS_FEATURE
+#ifdef LONGER_LKX
+ #define ENDSTOP_INTERRUPTS_FEATURE
+#endif
 
 /**
  * Endstop Noise Threshold
@@ -932,8 +947,8 @@
  * Use G29 repeatedly, adjusting the Z height at each point with movement commands
  * or (with LCD_BED_LEVELING) the LCD controller.
  */
-#define PROBE_MANUALLY
-#define MANUAL_PROBE_START_Z 0.2
+// #define PROBE_MANUALLY
+// #define MANUAL_PROBE_START_Z 0.2
 
 /**
  * A Fix-Mounted Probe either doesn't deploy or needs manual deployment.
@@ -1164,13 +1179,13 @@
 
 // @section machine
 
-#if defined(U30) || defined(LK2) || defined(LK4)
+#if defined(U30) || defined(LK2) || defined(LK4) || defined(LK4_PRO)
 #define X_BED_SIZE 220
 #define Y_BED_SIZE 220
 #define Z_MACHINE_MAX 250
 #endif
 
-#if defined(U20) || defined(LK1)
+#if defined(U20) || defined(LK1) || defined(LK1_RRO)
 #define X_BED_SIZE 300
 #define Y_BED_SIZE 300
 #define Z_MACHINE_MAX 400
@@ -1294,7 +1309,7 @@
  */
 //#define AUTO_BED_LEVELING_3POINT
 //#define AUTO_BED_LEVELING_LINEAR
-#define AUTO_BED_LEVELING_BILINEAR
+// #define AUTO_BED_LEVELING_BILINEAR
 //#define AUTO_BED_LEVELING_UBL
 //#define MESH_BED_LEVELING
 
@@ -2183,7 +2198,7 @@
 //
 // FSMC display (MKS Robin, Alfawise U20, JGAurora A5S, REXYZ A1, etc.)
 //
-#define FSMC_GRAPHICAL_TFT
+// #define FSMC_GRAPHICAL_TFT
 
 //=============================================================================
 //============================  Other Controllers  ============================
@@ -2192,7 +2207,7 @@
 //
 // ADS7843/XPT2046 ADC Touchscreen such as ILI9341 2.8
 //
-#define TOUCH_BUTTONS
+// #define TOUCH_BUTTONS
 #if ENABLED(TOUCH_BUTTONS)
   #define TOUCH_CALIBRATION // Include user calibration widget in menus (Alfawise)
 

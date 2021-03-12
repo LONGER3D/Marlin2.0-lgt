@@ -1,4 +1,4 @@
-#include "../../inc/MarlinConfig.h"
+#include "../inc/MarlinConfig.h"
 #include "../gcode/gcode.h"
 
 #if ENABLED(LGT_LCD_DW)
