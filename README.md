@@ -1,13 +1,16 @@
 # Marlin 3D Printer Firmware
-Marlin 2.x firmware. Support LKx(Ux0) series and LKx(Ux0) Pro series 3D printer modified by LONGER 3D. Build tool: Microsoft VS Code, Platform IO extension
+Marlin 2.x firmware. Support LKx(Ux0) series and LKx(Ux0) Pro series 3D printer modified by LONGER 3D. 
+Build tool: Microsoft VS Code + Platform IO extension
 ## Develpment Status
 ### LKx(Ux0) series(git master branch)
-- [x] basic printing function(by SD card and serial port)
-- [x] 2.8 inch TFT-LCD touch screen function
+- [x] basic printing function(by SD card and serial port).
+- [x] 2.8 inch TFT-LCD touch screen function.
 ### LKx(Ux0) Pro series(git LKx Pro branch)
-- [x] baisc printing function(by SD card and serial port)
-- [ ] 4.3 inch serial touch screen function
+- [x] baisc printing function(by SD card and serial port).
+- [ ] 4.3 inch serial touch screen function.
 
+### Ask to us if you have any question via [Github issues](https://github.com/LONGER3D/Marlin2.0-lgt/issues) or [LONGER Offical Suppor E-mail](mailto:support@longer3d.com).
+---
 ![GitHub](https://img.shields.io/github/license/marlinfirmware/marlin.svg)
 ![GitHub contributors](https://img.shields.io/github/contributors/marlinfirmware/marlin.svg)
 ![GitHub Release Date](https://img.shields.io/github/release-date/marlinfirmware/marlin.svg)
