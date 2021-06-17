@@ -230,7 +230,9 @@ bool MarlinUI::detected() { return true; }
     #if ENABLED(SHOW_CUSTOM_BOOTSCREEN)
       show_custom_bootscreen();
     #endif
-    show_marlin_bootscreen();
+    #if DISABLED(LK5)
+      show_marlin_bootscreen();
+    #endif
   }
 
 #endif // SHOW_BOOTSCREEN
