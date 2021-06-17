@@ -66,20 +66,12 @@
   #define BTN_ENC              15
 #endif
 
-// #define LK1_PRO
-#define LK4_PRO
-
-#if defined(LK1_PRO)
-
-#elif defined(LK4_PRO)
-
-#endif
 //
 // Servos
 //
 #if defined(LK1_PRO)
   #define SERVO0_PIN          11
-#elif defined(LK4_PRO)
+#elif defined(LK4_PRO) || defined(LK5)
   #define SERVO0_PIN          7
 #endif
 
@@ -88,7 +80,7 @@
 //
 #if defined(LK1_PRO)
   #define Z_MIN_PIN          11
-#elif defined(LK4_PRO)
+#elif defined(LK4_PRO) || defined(LK5)
   #define Z_MIN_PIN          35
 #endif
 

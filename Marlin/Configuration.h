@@ -122,10 +122,10 @@
 #define SHOW_BOOTSCREEN
 
 // Show the bitmap in Marlin/_Bootscreen.h on startup.
-//#define SHOW_CUSTOM_BOOTSCREEN
+#define SHOW_CUSTOM_BOOTSCREEN
 
 // Show the bitmap in Marlin/_Statusscreen.h on the status screen.
-// #define CUSTOM_STATUS_SCREEN_IMAGE
+#define CUSTOM_STATUS_SCREEN_IMAGE
 
 // @section machine
 
@@ -162,8 +162,8 @@
 
 // Choose the name from boards.h that matches your setup
 #ifndef MOTHERBOARD
-  // #define MOTHERBOARD BOARD_LONGER3D_LK
-  #define MOTHERBOARD BOARD_LONGER_LGT_KIT_V1
+  // #define MOTHERBOARD BOARD_LONGER3D_LK          // motherboard for LKx(except for LK5), CUBE2
+  #define MOTHERBOARD BOARD_LONGER_LGT_KIT_V1       // motherboard for LKxPro and LK5
 #endif
 
 #if MOTHERBOARD == BOARD_LONGER3D_LK
@@ -172,7 +172,7 @@
   #define LONGER_LKX_PRO
 #endif
 
-#define LK4_PRO
+#define LK5
 
 // Name displayed in the LCD "Ready" message and Info menu
 //#define CUSTOM_MACHINE_NAME "3D Printer"
@@ -194,6 +194,10 @@
 #define CUSTOM_MACHINE_NAME "Longer3D LK4"
 #elif defined(LK4_PRO)
 #define CUSTOM_MACHINE_NAME "Longer3D LK4 Pro"
+#elif defined(LK5_PRO)
+#define CUSTOM_MACHINE_NAME "Longer3D LK5 Pro"
+#elif defined(LK5)
+#define CUSTOM_MACHINE_NAME "Longer3D LK5"
 #endif
 
 // Printer's unique ID, used by some programs to differentiate between machines.
@@ -618,7 +622,7 @@
   #define DEFAULT_bedKd 447.78
 #endif
 
-#if defined(U20) || defined(LK1) || defined(LK1_PRO)
+#if defined(U20) || defined(LK1) || defined(LK1_PRO) || defined(LK5_PRO) || defined(LK5)
   //From M303 command for Alfawise U20 :
   #define DEFAULT_bedKp 841.68
   #define DEFAULT_bedKi 152.12
@@ -1185,7 +1189,7 @@
 #define Z_MACHINE_MAX 250
 #endif
 
-#if defined(U20) || defined(LK1) || defined(LK1_RRO)
+#if defined(U20) || defined(LK1) || defined(LK1_RRO) || defined(LK5)
 #define X_BED_SIZE 300
 #define Y_BED_SIZE 300
 #define Z_MACHINE_MAX 400
