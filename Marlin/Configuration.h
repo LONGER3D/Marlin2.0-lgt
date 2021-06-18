@@ -1280,11 +1280,13 @@
 
   // Set one or more commands to execute on filament runout.
   // (After 'M412 H' Marlin will ask the host to handle the process.)
- #if ENABLED(LGT_LCD_DW)
-  #define FILAMENT_RUNOUT_SCRIPT "M25\nM2003"
- #else
-  #define FILAMENT_RUNOUT_SCRIPT "M25"
- #endif
+  #if ENABLED(LGT_LCD_DW)
+    #define FILAMENT_RUNOUT_SCRIPT "M25\nM2003"
+  #elif ENABLED(LK5)
+    #define FILAMENT_RUNOUT_SCRIPT "M25 P\nM24"
+  #else
+    #define FILAMENT_RUNOUT_SCRIPT "M25"
+  #endif
   // After a runout is detected, continue printing this length of filament
   // before executing the runout script. Useful for a sensor at the end of
   // a feed tube. Requires 4 bytes SRAM per sensor, plus 4 bytes overhead.
@@ -1633,7 +1635,7 @@
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
   // Specify a park position as { X, Y, Z_raise }
-  #define NOZZLE_PARK_POINT { (X_MIN_POS + 10), (Y_MAX_POS - 10), 20 }
+  #define NOZZLE_PARK_POINT { (X_MIN_POS + 10), (Y_MAX_POS - 10), 0 }
   #define NOZZLE_PARK_XY_FEEDRATE 100   // (mm/s) X and Y axes feedrate (also used for delta Z axis)
   #define NOZZLE_PARK_Z_FEEDRATE 5      // (mm/s) Z axis feedrate (not used for delta printers)
 #endif
