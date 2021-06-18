@@ -87,7 +87,7 @@
 #define SD_DETECT_PIN   49
 #define FIL_RUNOUT_PIN  2
 
-
-
-
-
+// init SD CARD early
+#ifndef SDCARD_CONNECTION
+  #define SDCARD_CONNECTION              ONBOARD
+#endif
