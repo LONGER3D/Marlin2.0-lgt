@@ -26,7 +26,8 @@
   #error " LONGER LKx Pro board (mega2560) only supports 1 hotend / E-stepper. Comment out this line to continue."
 #endif
 
-#define BOARD_INFO_NAME "LONGER LGT KIT V1.0"
+#define BOARD_INFO_NAME       "LONGER LGT KIT V1.0"
+#define BOARD_WEBSITE_URL     "github.com/LONGER3D"   // full url: https://github.com/LONGER3D
 
 #include "pins_RAMPS.h"
 

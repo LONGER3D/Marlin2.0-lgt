@@ -265,7 +265,11 @@ void menu_info_board() {
   void menu_info_printer() {
     if (ui.use_click()) return ui.go_back();
     START_SCREEN();
-    STATIC_ITEM(MSG_MARLIN, SS_CENTER|SS_INVERT);               // Marlin
+    #if ENABLED(LK5)
+      STATIC_ITEM_P(PSTR(DEFAULT_MACHINE_NAME));
+    #else
+      STATIC_ITEM(MSG_MARLIN, SS_CENTER|SS_INVERT);               // Marlin
+    #endif
     STATIC_ITEM_P(PSTR(SHORT_BUILD_VERSION));                   // x.x.x-Branch
     STATIC_ITEM_P(PSTR(STRING_DISTRIBUTION_DATE));              // YYYY-MM-DD HH:MM
     STATIC_ITEM_P(PSTR(MACHINE_NAME));                          // My3DPrinter
