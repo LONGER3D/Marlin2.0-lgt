@@ -314,7 +314,7 @@ void PrintJobRecovery::resume() {
     gcode.process_subcommands_now_P(PSTR("M420 S0 Z0"));
   #endif
 
-#if DISABLED(LGT_LCD_TFT)
+#if DISABLED(LGT_LCD_TFT) && DISABLED(LK5)
   // Reset E, raise Z, home XY...
   gcode.process_subcommands_now_P(PSTR("G92.9 E0"
     #if Z_HOME_DIR > 0
@@ -404,7 +404,7 @@ void PrintJobRecovery::resume() {
     }
   #endif
 
-#if ENABLED(LGT_LCD_TFT)
+#if ENABLED(LGT_LCD_TFT) || ENABLED(LK5)
   // Reset E, raise Z, home XY...
   gcode.process_subcommands_now_P(PSTR("G92.9 E0"
     #if Z_HOME_DIR > 0
