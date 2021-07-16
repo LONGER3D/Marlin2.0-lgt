@@ -983,8 +983,11 @@ void setup() {
   if (mcu & 32) SERIAL_ECHOLNPGM(STR_SOFTWARE_RESET);
   HAL_clear_reset_source();
 
-  serialprintPGM(GET_TEXT(MSG_MARLIN));
-  SERIAL_CHAR(' ');
+  #if DISABLED(LK5)
+    serialprintPGM(GET_TEXT(MSG_MARLIN));  
+    SERIAL_CHAR(' ');
+  #endif
+
   SERIAL_ECHOLNPGM(SHORT_BUILD_VERSION);
   SERIAL_EOL();
 
