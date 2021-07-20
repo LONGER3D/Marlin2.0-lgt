@@ -54,7 +54,7 @@
   #define Z_STOP_PIN          35
 #endif
 
-#define SD_DETECT_PIN   49
+// #define SD_DETECT_PIN   49
 #define FIL_RUNOUT_PIN  2
 
 #include "pins_RAMPS.h"

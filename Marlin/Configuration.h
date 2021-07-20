@@ -92,11 +92,11 @@
 //#define LCD_READ_ID 0x04 // Read display identification information in reg ID1 0x04 - ST7789V / ILI9328 or others
 
 // LGT(longer 3D Technology) definition
-// #define LGT // comment to remove all code snippets from LGT(Longer 3D Technology)
+#define LGT // comment to remove all code snippets from LGT(Longer 3D Technology)
 
 #if ENABLED(LGT)
-   #define LGT_LCD_TFT    // LCD 2.8 inch MCU TFT touch screen
-  //#define LGT_LCD_DW    // DWIN 4.3 inch LCD serial touch screen
+  //  #define LGT_LCD_TFT    // LCD 2.8 inch MCU TFT touch screen
+  #define LGT_LCD_DW    // DWIN 4.3 inch LCD serial touch screen
 #endif
 
 //===========================================================================
@@ -144,7 +144,7 @@
  *
  * :[-1, 0, 1, 2, 3, 4, 5, 6, 7]
  */
-//#define SERIAL_PORT_2 2
+#define SERIAL_PORT_2 1
 
 /**
  * This setting determines the communication speed of the printer.

@@ -69,7 +69,7 @@ unsigned int filament_temp = 200;
 bool check_recovery = false; // for recovery dialog
 char leveling_sta = 0; // for leveling menu
 
-#define MYSERIAL1 MSerial2
+// #define MYSERIAL1 customizedSerial2//MSerial2
 
 static void LGT_Line_To_Current(AxisEnum axis) 
 {
@@ -1416,7 +1416,7 @@ FUNCTION:	Checking sdcard and updating file list on screen
 void LGT_SCR_DW::LGT_SDCard_Status_Update()
 {
 #if  ENABLED(SDSUPPORT) && PIN_EXISTS(SD_DETECT)
-    const uint8_t sd_status = (uint8_t)IS_SD_INSERTED;
+    const uint8_t sd_status = (uint8_t)IS_SD_INSERTED();
 	if (!sd_status)
 	{
 		if (sd_init_flag ==true)
@@ -1424,9 +1424,9 @@ void LGT_SCR_DW::LGT_SDCard_Status_Update()
 			sd_init_flag = false;
 			if (!card.isMounted())
 			{
-				card.initsd();
+				card.mount();
 				delay(2);
-				if (card.cardOK)
+				if (card.isMounted())
 				{
 					check_print_job_recovery();
 					if (!check_recovery)
