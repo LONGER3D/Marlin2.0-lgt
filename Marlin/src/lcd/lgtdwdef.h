@@ -28,6 +28,7 @@
 #define E_MAXTEMP_ERROR     "Error 10: E maxtemp triggered"
 #define B_MAXTEMP_ERROR     "Error 11: B maxtemp triggered"
 #define E_RUNAWAY_ERROR     "Error 12: E thermal runaway"    // Heated, then temperature fell too far
+#define B_RUNAWAY_ERROR     "Error 13: B thermal runaway"
 
 // DWIN serial transfer protocol
 #define DW_FH_0 0x5A
@@ -50,36 +51,28 @@
 #define	MAC_WIDTH	    Y_BED_SIZE
 #define	MAC_HEIGHT		Z_MAX_POS
 
-#if ANY(U20_PRO, LK1_PRO)
-    #if ENABLED(U20_PRO)
-	    #define MAC_MODEL       "U20 Pro"
-	#else
-	    #define MAC_MODEL       "LK4 Pro"
-    #endif
-    #define MAC_SIZE		"300*300*400(mm)"
-    //#define FILAMENT_RUNOUT_MOVE "G1 X10 Y260 F3000"
+#ifdef LK1_PRO
+	#define MAC_MODEL       "LK1 Pro"
+	#define MAC_SIZE		"300*300*400(mm)"
+	//#define FILAMENT_RUNOUT_MOVE "G1 X10 Y260 F3000"
 	#define FILAMENT_RUNOUT_MOVE_X 10
 	#define FILAMENT_RUNOUT_MOVE_Y 260
 	#define FILAMENT_RUNOUT_MOVE_F 50
-#elif ANY(U30_PRO, LK4_PRO)
-    #if ENABLED(U30_PRO)
-	    #define MAC_MODEL       "U30 Pro"
-    #else
-	    #define MAC_MODEL       "LK4 Pro"
-    #endif
+#elif defined(LK5_PRO)
+	#define MAC_MODEL       "LK5 Pro"
+	#define MAC_SIZE		"300*300*400(mm)"
+	//#define FILAMENT_RUNOUT_MOVE "G1 X10 Y260 F3000"
+	#define FILAMENT_RUNOUT_MOVE_X 10
+	#define FILAMENT_RUNOUT_MOVE_Y 260
+	#define FILAMENT_RUNOUT_MOVE_F 50
+#else // LK4 PRO
+	#define MAC_MODEL       "LK4 Pro"
 	#define MAC_SIZE "220*220*250(mm)"
 	//#define FILAMENT_RUNOUT_MOVE "G1 X10 Y200 F3000"
 	#define FILAMENT_RUNOUT_MOVE_X 10
 	#define FILAMENT_RUNOUT_MOVE_Y 200
 	#define FILAMENT_RUNOUT_MOVE_F 50
-#elif ENABLED(LK4)
-	#define MAC_MODEL       "LK4"
-	#define MAC_SIZE "220*220*250(mm)"
-	//#define FILAMENT_RUNOUT_MOVE "G1 X10 Y200 F3000"
-	#define FILAMENT_RUNOUT_MOVE_X 10
-	#define FILAMENT_RUNOUT_MOVE_Y 200
-	#define FILAMENT_RUNOUT_MOVE_F 50
-#endif
+#endif // LK1_Pro
 
 #if defined(MANUAL_FEEDRATE)
 	#undef MANUAL_FEEDRATE
