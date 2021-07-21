@@ -20,6 +20,7 @@
 #define U30_Pro	// for debug
 
 LGT_SCR_DW lgtLcdDw;
+static int ii_setup = 0;
 DATA Rec_Data;
 DATA Send_Data;
 duration_t Duration_Time;
@@ -146,7 +147,7 @@ void LGT_SCR_DW::begin()
 
 void LGT_SCR_DW::LGT_LCD_startup_settings()
 {
-    static int ii_setup = 0;
+
     if (ii_setup < STARTUP_COUNTER)
     {
         if (ii_setup >= (STARTUP_COUNTER-1000))
@@ -206,7 +207,7 @@ void LGT_SCR_DW::LGT_Main_Function()
 		if (led_on == true)
 			LGT_Printer_Light_Update();
 	#endif // U20_PRO
-	//LGT_SDCard_Status_Update();
+	LGT_SDCard_Status_Update();
 }
 
 /*************************************
@@ -1428,7 +1429,9 @@ void LGT_SCR_DW::LGT_SDCard_Status_Update()
 				delay(2);
 				if (card.isMounted())
 				{
-					check_print_job_recovery();
+					#if ENABLED(POWER_LOSS_RECOVERY)
+						recovery.check();
+					#endif
 					if (!check_recovery)
 					{
 						if (menu_type == eMENU_FILE)
@@ -1443,7 +1446,7 @@ void LGT_SCR_DW::LGT_SDCard_Status_Update()
 					{
 						return_home = true;
 						check_recovery = false;
-						enable_Z();
+						ENABLE_AXIS_Z();  // lock z moter prevent from drop down
 						LGT_Change_Page(ID_DIALOG_PRINT_RECOVERY);
 					}
 					LGT_Display_Filename();
