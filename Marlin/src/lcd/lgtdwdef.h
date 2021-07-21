@@ -31,10 +31,14 @@
 #define B_RUNAWAY_ERROR     "Error 13: B thermal runaway"
 
 // DWIN serial transfer protocol
-#define DW_FH_0 0x5A
-#define DW_FH_1 0xA5
-#define DW_CMD_VAR_W 0x82
-#define DW_CMD_VAR_R 0x83
+#define DW_FH_0 		  0x5A
+#define DW_FH_1 		  0xA5
+#define DW_CMD_VAR_W 	  0x82
+#define DW_CMD_VAR_R      0x83
+#define JX_CMD_REG_W      0x80
+#define JX_CMD_REG_R	  0x81
+#define JX_ADDR_REG_PAGE  0x03
+
 #define LEN_FILE_NAME 32
 #define LEN_WORD 2
 #define LEN_DWORD 4
@@ -79,10 +83,13 @@
 #endif
 #define MANUAL_FEEDRATE { 50*60, 50*60, 4*60, 60 } // Feedrates for manual moves along X, Y, Z, E from panel
 
+#define FW_TEST_TAG "T001"
+#ifndef FW_TEST_TAG
+	#define FW_TEST_TAG ""
+#endif
+#define	BOARD_FW_VER    "0.3.5" FW_TEST_TAG "-Marlin" 
 
 
-
-#define	BOARD_FW_VER    "Marlin2.0.5 LGT0.3.1" 
 // DWIN system variable address
 #define DW_ADDR_CHANGE_PAGE 0x0084
 #define DW_PAGE_VAR_BASE 0x5A010000UL 
@@ -260,7 +267,10 @@ enum E_BUTTON_KEY {
 	eBT_PRINT_FILA_CHANGE_YES,
 	eBT_PRINT_FILA_HEAT_NO,
 	eBT_PRINT_FILA_UNLOAD_OK,		//65 0041
-	eBT_PRINT_FILA_LOAD_OK
+	eBT_PRINT_FILA_LOAD_OK,
+
+	eBT_PRINT_HOME_FILAMENT,		// added for JX scrren
+	eBT_PRINT_TUNE_FILAMENT			// added for JX scrren
 };
 
 enum E_MENU_TYPE {
@@ -319,10 +329,12 @@ enum E_MENU_TYPE {
 #define ID_MENU_MEASU_S3            (116)
 #define ID_MENU_MEASU_FINISH        (123)
 
+#define ID_DIALOG_CHANGE_FILA_0     (130) // added for JX screen
+#define ID_DIALOG_CHANGE_FILA_1     (131) // added for JX screen
 
-  enum eAxis    : uint8_t { X=0, Y, Z };
-  enum eExtruder : uint8_t { E0=0, E1, E2, E3, E4, E5, E6, E7 };
-  enum eHeater   : uint8_t { H0=0, H1, H2, H3, H4, H5, BED, CHAMBER };
-  enum eFan      : uint8_t { FAN0=0, FAN1, FAN2, FAN3, FAN4, FAN5, FAN6, FAN7 };
+enum eAxis    : uint8_t { X=0, Y, Z };
+enum eExtruder : uint8_t { E0=0, E1, E2, E3, E4, E5, E6, E7 };
+enum eHeater   : uint8_t { H0=0, H1, H2, H3, H4, H5, BED, CHAMBER };
+enum eFan      : uint8_t { FAN0=0, FAN1, FAN2, FAN3, FAN4, FAN5, FAN6, FAN7 };
 
 #endif      // LGT_LCD_DW

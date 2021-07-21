@@ -1227,7 +1227,8 @@ void setup() {
   #endif
 
   #if ENABLED(LGT_LCD_DW)
-   lgtLcdDw.begin();
+    WRITE(FAN_PIN, LOW);  // turn off fan
+    lgtLcdDw.begin();
   #endif
 
   #if ENABLED(LGT_LCD_TFT)

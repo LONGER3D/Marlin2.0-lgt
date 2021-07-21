@@ -1726,7 +1726,11 @@ void Temperature::init() {
   #endif
 
   #if HAS_FAN0
-    INIT_FAN_PIN(FAN_PIN);
+    #if ENABLED(LGT_LCD_DW)
+      OUT_WRITE(FAN_PIN, HIGH); // turn on fan
+    #else
+      INIT_FAN_PIN(FAN_PIN);
+    #endif
   #endif
   #if HAS_FAN1
     INIT_FAN_PIN(FAN1_PIN);

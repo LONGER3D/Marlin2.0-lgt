@@ -130,6 +130,10 @@ LGT_SCR_DW::LGT_SCR_DW()
 	Rec_Data.head[1]  = DW_FH_1;
 	Send_Data.head[0] = DW_FH_0;
 	Send_Data.head[1] = DW_FH_1;
+
+	_btnPauseEnabled = true;
+	_btnFilamentEnabled1 = true;
+	_btnFilamentEnabled2 = true;
 }
 
 void LGT_SCR_DW::begin()
@@ -142,7 +146,8 @@ void LGT_SCR_DW::begin()
 		recovery.check();
     #endif
     DEBUG_PRINT_P("dw: begin\n");
-
+	lgtLcdDw.readScreenModel();
+	delay(1000); // wait for showing logo
 }
 
 void LGT_SCR_DW::LGT_LCD_startup_settings()
@@ -265,19 +270,29 @@ void LGT_SCR_DW::LGT_Get_MYSERIAL1_Cmd()
 void LGT_SCR_DW::LGT_Change_Page(unsigned int pageid)
 {
 	memset(data_storage, 0, sizeof(data_storage));
-    // unsigned char data_storage[10];
 	data_storage[0] = DW_FH_0;
 	data_storage[1] = DW_FH_1;
-	data_storage[2] = 0x07;
-	data_storage[3] = DW_CMD_VAR_W;
-	data_storage[4] = 0x00;
-	data_storage[5] = 0x84;
-	data_storage[6] = 0x5A;
-	data_storage[7] = 0x01;
-	data_storage[8] = (unsigned char)(pageid >> 8) & 0xFF;
-	data_storage[9] = (unsigned char)(pageid & 0x00FF);
-	for (int i = 0; i < 10; i++)
-		MYSERIAL1.write(data_storage[i]);
+
+	if (hasDwScreen()) {
+		data_storage[2] = 0x07;
+		data_storage[3] = DW_CMD_VAR_W;
+		data_storage[4] = 0x00;
+		data_storage[5] = 0x84;
+		data_storage[6] = 0x5A;
+		data_storage[7] = 0x01;
+		data_storage[8] = (unsigned char)(pageid >> 8) & 0xFF;
+		data_storage[9] = (unsigned char)(pageid & 0x00FF);
+		for (int i = 0; i < 10; i++)
+			MYSERIAL1.write(data_storage[i]);
+	} else if (hasJxScreen()) {
+		data_storage[2] = 0x04;
+		data_storage[3] = JX_CMD_REG_W;
+		data_storage[4] = JX_ADDR_REG_PAGE;
+		data_storage[5] = (unsigned char)(pageid >> 8) & 0xFF;
+		data_storage[6] = (unsigned char)(pageid & 0x00FF);
+		for (int i = 0; i < 7; i++)
+			MYSERIAL1.write(data_storage[i]);		
+	}
 }
 
 void LGT_SCR_DW::LGT_Send_Data_To_Screen(uint16_t Addr, int16_t Num)
@@ -302,36 +317,43 @@ void LGT_SCR_DW::LGT_Send_Data_To_Screen(uint16_t Addr, int16_t Num)
 void LGT_SCR_DW::LGT_Send_Data_To_Screen(unsigned int addr, char* buf)
 {
 	memset(data_storage, 0, sizeof(data_storage));
+	int len = strlen(buf);
 	data_storage[0] = Send_Data.head[0];
 	data_storage[1] = Send_Data.head[1];
-	data_storage[2] = 0x0A;
+	data_storage[2] = (unsigned char)(3 + len + 2)/* 0x0A */;
 	data_storage[3] = DW_CMD_VAR_W;
 	data_storage[4] = (unsigned char)(addr >> 8);
 	data_storage[5] = (unsigned char)(addr & 0x00FF);
-	for (int i = 0; i < 7; i++)
+	for (int i = 0; i < len /* 7 */; i++)
 	{
 		data_storage[6 + i] = buf[i];
 	}
-	for (int i = 0; i < 13; i++)
+	data_storage[6 + len] = 0xFF;
+	data_storage[6+ len + 1] = 0xFF; 
+	for (int i = 0; i < 6 + len + 2/* 13 */; i++)
 	{
 		MYSERIAL1.write(data_storage[i]);
 		delayMicroseconds(1);
 	}
+
 }
 void LGT_SCR_DW::LGT_Send_Data_To_Screen1(unsigned int addr,const char* buf)
 {
 	memset(data_storage, 0, sizeof(data_storage));
+	int len = strlen(buf);
 	data_storage[0] = Send_Data.head[0];
 	data_storage[1] = Send_Data.head[1];
-	data_storage[2] = 0x22;
+	data_storage[2] = (unsigned char)(3+ len + 2)/* 0x22 */;
 	data_storage[3] = DW_CMD_VAR_W;
 	data_storage[4] = (unsigned char)(addr >> 8);
 	data_storage[5] = (unsigned char)(addr & 0x00FF);
-	for (int i = 0; i < 31; i++)
+	for (int i = 0; i < len/* 31 */; i++)
 	{
 		data_storage[6 + i] = buf[i];
 	}
-	for (int i = 0; i < 37; i++)
+	data_storage[6 + len] = 0xFF;
+	data_storage[6+ len + 1] = 0xFF;
+	for (int i = 0; i < 6 + len + 2/* 37 */; i++)
 
 	{
 		MYSERIAL1.write(data_storage[i]);
@@ -953,20 +975,26 @@ void LGT_SCR_DW::processButton()
 
 	// ----- print home menu -----
 		case eBT_PRINT_HOME_PAUSE:
-			DEBUG_ECHOLNPAIR_P("pause");
-			LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
-			status_type = PRINTER_PAUSE;
-			LGT_is_printing = false;
-			card.pauseSDPrint();
-			print_job_timer.pause();
-			queue.inject_P(PSTR("M2001"));
+			if (_btnPauseEnabled) {
+				DEBUG_ECHOLNPAIR_P("pause");
+				LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
+				status_type = PRINTER_PAUSE;
+				LGT_is_printing = false;
+				card.pauseSDPrint();
+				print_job_timer.pause();
+				queue.inject_P(PSTR("M2001"));
+			}
 			break;
+
 		case eBT_PRINT_HOME_RESUME:
 			DEBUG_ECHOLNPAIR_P("resume");
+				LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
+				// go to park posion
+			    do_blocking_move_to_xy(resume_x_position,resume_y_position,50); 
+				planner.synchronize();	// wait move done
+
 				LGT_Change_Page(ID_MENU_PRINT_HOME);
 				DEBUG_ECHOLNPAIR_F("cur feedrate", feedrate_mm_s);
-				// back to break posion
-				do_blocking_move_to_xy(resume_x_position,resume_y_position,50); 
 				feedrate_mm_s = resume_feedrate;
 				card.startFileprint();
 				print_job_timer.start();
@@ -997,6 +1025,7 @@ void LGT_SCR_DW::processButton()
 			thermalManager.setTargetHotend(PLA_E_TEMP, eExtruder::E0);
 			status_type = PRINTER_HEAT;
 			thermalManager.setTargetBed(PLA_B_TEMP);
+			filament_temp = PLA_E_TEMP;
 			LGT_Send_Data_To_Screen(ADDR_VAL_TAR_E, thermalManager.degTargetHotend(eExtruder::E0));
 			delayMicroseconds(1);
 			LGT_Send_Data_To_Screen(ADDR_VAL_TAR_B, thermalManager.degTargetBed());
@@ -1008,6 +1037,7 @@ void LGT_SCR_DW::processButton()
 			thermalManager.setTargetHotend(ABS_E_TEMP, eExtruder::E0);
 			status_type = PRINTER_HEAT;
 			thermalManager.setTargetBed(ABS_B_TEMP);
+			filament_temp = ABS_E_TEMP;
 			LGT_Send_Data_To_Screen(ADDR_VAL_TAR_E, thermalManager.degTargetHotend(eExtruder::E0));
 			delayMicroseconds(1);
 			LGT_Send_Data_To_Screen(ADDR_VAL_TAR_B, thermalManager.degTargetBed());
@@ -1408,6 +1438,18 @@ void LGT_SCR_DW::processButton()
 			}
 			break;
 	#endif //LK1_PRO
+		// added for JX screen
+		case eBT_PRINT_HOME_FILAMENT:
+			if (_btnFilamentEnabled1) {
+				LGT_Change_Page(ID_DIALOG_CHANGE_FILA_0);
+			}
+			break;
+		case eBT_PRINT_TUNE_FILAMENT:
+			if (_btnFilamentEnabled2) {
+				LGT_Change_Page(ID_DIALOG_CHANGE_FILA_1);
+			}
+			break;
+
 		default: break;
 	}
 #endif // 0		
@@ -1420,7 +1462,7 @@ void LGT_SCR_DW::LGT_Change_Filament(int fila_len)
 	{
 		if (menu_type == eMENU_UTILI_FILA)
 		{
-			LGT_Change_Page(ID_DIALOG_PRINT_FILA_LOAD);
+			LGT_Change_Page(ID_DIALOG_UTILI_FILA_LOAD);
 		}
 		else if (menu_type == eMENU_HOME_FILA)
 		{
@@ -1497,23 +1539,26 @@ FUNCTION:	Printing SD card files to DWIN_Screen
 **************************************/
 void LGT_SCR_DW::LGT_MAC_Send_Filename(uint16_t Addr, uint16_t Serial_Num)
 {
-	memset(data_storage, 0, sizeof(data_storage));
+  	card.getfilename_sorted(Serial_Num);
+	int len = strlen(card.longFilename);
 	data_storage[0] = DW_FH_0;
 	data_storage[1] = DW_FH_1;
-	data_storage[2] = 0x22;
+	data_storage[2] = len+3+2; /* 0x22 */;
 	data_storage[3] = DW_CMD_VAR_W;
 	data_storage[4] = (Addr & 0xFF00) >> 8;
 	data_storage[5] = Addr;
-	card.getfilename_sorted(Serial_Num);
-	for (int i = 0; i < 31; i++)
+	for (int i = 0; i < len/* 31 */; i++)
 	{
 		data_storage[6 + i] = card.longFilename[i];
 	}
-	for (int i = 0; i <37; i++)
+	data_storage[6 + len] = 0XFF;
+	data_storage[6 + len + 1] = 0xFF;
+	for (int i = 0; i < len + 6 + 2/* 37 */; i++)
 	{
 		MYSERIAL1.write(data_storage[i]);
 		delayMicroseconds(1);
 	}
+
 }
 
 void LGT_SCR_DW::LGT_Print_Cause_Of_Kill()
@@ -1733,25 +1778,44 @@ sta:disable or enable  (0000:disable  0001:enable)
 **************************************/
 void LGT_SCR_DW::LGT_Disable_Enable_Screen_Button(unsigned int pageid, unsigned int buttonid, unsigned int sta) 
 {
-	memset(data_storage, 0, sizeof(data_storage));
-	data_storage[0] = Send_Data.head[0];
-	data_storage[1] = Send_Data.head[1];
-	data_storage[2] = 0x0B;
-	data_storage[3] = DW_CMD_VAR_W;
-	data_storage[4] = 0x00;
-	data_storage[5] = 0xB0;
-	data_storage[6] = 0x5A;
-	data_storage[7] = 0xA5;
-	data_storage[8] = (unsigned char)(pageid>>8);
-	data_storage[9] = (unsigned char)(pageid&0x00FF);
-	data_storage[10] = (unsigned char)(buttonid>>8);
-	data_storage[11] = (unsigned char)(buttonid & 0x00FF);
-	data_storage[12] = (unsigned char)(sta >> 8);
-	data_storage[13] = (unsigned char)(sta & 0x00FF);
-	for (int i = 0; i < 14; i++)
-	{
-		MYSERIAL1.write(data_storage[i]);
-		delayMicroseconds(1);
+	if (hasDwScreen()) {	
+		memset(data_storage, 0, sizeof(data_storage));
+		data_storage[0] = Send_Data.head[0];
+		data_storage[1] = Send_Data.head[1];
+		data_storage[2] = 0x0B;
+		data_storage[3] = DW_CMD_VAR_W;
+		data_storage[4] = 0x00;
+		data_storage[5] = 0xB0;
+		data_storage[6] = 0x5A;
+		data_storage[7] = 0xA5;
+		data_storage[8] = (unsigned char)(pageid>>8);
+		data_storage[9] = (unsigned char)(pageid&0x00FF);
+		data_storage[10] = (unsigned char)(buttonid>>8);
+		data_storage[11] = (unsigned char)(buttonid & 0x00FF);
+		data_storage[12] = (unsigned char)(sta >> 8);
+		data_storage[13] = (unsigned char)(sta & 0x00FF);
+		for (int i = 0; i < 14; i++)
+		{
+			MYSERIAL1.write(data_storage[i]);
+			delayMicroseconds(1);
+		}
+	} else if (hasJxScreen()) {
+		bool state = sta != 0 ? true : false;
+		if (pageid == ID_MENU_PRINT_HOME) {
+			if (buttonid == 5) {	// pause button
+				_btnPauseEnabled = state;
+			} else if (buttonid == 517) {	// filament1 button
+				// MYSERIAL0.print("fila1: ");
+				// MYSERIAL0.println(int(state));
+				_btnFilamentEnabled1 = state;
+			}
+		} else if (pageid == ID_MENU_PRINT_TUNE) {
+			if (buttonid == 1541 || buttonid == 1797) {		// filament2 button  LK4 Pro: 1541, LK1 Pro: 1797
+				// MYSERIAL0.print("fila2: ");
+				// MYSERIAL0.println(int(state));
+				_btnFilamentEnabled2 = state;
+			}
+		}		
 	}
 }
 
@@ -1812,6 +1876,141 @@ void LGT_SCR_DW::showButtonsAfterHeating()
 		delay(50);
 		LGT_Disable_Enable_Screen_Button(ID_MENU_PRINT_HOME, 517, 1);
 	}
+}
+
+void LGT_SCR_DW::writeData(uint16_t addr, const uint8_t *data, uint8_t size, bool isRead/* =false */)
+{
+	// frame header
+	data_storage[0] = DW_FH_0;
+	data_storage[1] = DW_FH_1;
+	data_storage[2] = 3 + size;
+	data_storage[3] = isRead? DW_CMD_VAR_R : DW_CMD_VAR_W;
+	// address data store in Big-endian(high byte in low address)
+	data_storage[4] = (uint8_t)(addr >> 8);		// get high byte
+	data_storage[5] = (uint8_t)(addr & 0x00FF);	// get low byte
+
+	// write header to screen
+	for (uint8_t i = 0; i < 6; i++) {
+		MYSERIAL1.write(data_storage[i]);
+		// MYSERIAL0.print(data_storage[i]);
+		delayMicroseconds(1);
+	}
+	// write data to screen
+	for (uint8_t i = 0; i < size; i++) {
+		MYSERIAL1.write(data[i]);
+		// MYSERIAL0.print(data[i]);
+		delayMicroseconds(1);
+	}	
+}
+
+/**
+ * @brief read user variable data from serial screen 
+ * 
+ * @param size number of word(2 byte) 
+ */
+void LGT_SCR_DW::readData(uint16_t addr, uint8_t *data, uint8_t size)
+{
+	constexpr uint8_t BUFFSIZE = 32;
+	uint16_t byteLength = size * 2 + 7; // wordSize * 2 + headSize
+	if (byteLength > BUFFSIZE)
+		return;
+
+	lgtLcdDw.writeData(addr, size, true);
+	// delay(1000);	// wait sometime for serial screen response
+
+	bool finish = false;
+	uint8_t buff[BUFFSIZE];
+
+	uint8_t i = 0;
+	millis_t next = millis() + 2000;
+	while (!finish && PENDING(millis(), next)) {
+		
+		while (i < BUFFSIZE && MYSERIAL1.available() > 0) {
+			uint8_t b = MYSERIAL1.read();
+			// MYSERIAL0.println(b, 16);
+			if (i == 0) { // found head 1
+				if (b == DW_FH_0)
+					buff[i++] = b;
+			} else if(i == 1) { // found head 2
+				if (b == DW_FH_1)
+					buff[i++] = b;
+				else
+					i = 0;	// reset buffer
+			} else {
+				buff[i++] = b;
+			}
+			delayMicroseconds(10);
+		}
+		if (i == byteLength) {	// check byte length at last
+			uint16_t readAddr = (uint16_t)buff[4] * 256 + buff[5];	// 2 byte >> 16
+			if (readAddr == addr && buff[6] == size) {
+				finish = true;
+				// MYSERIAL0.write((const uint8_t*)buff, (size_t)byteLength);
+			}
+		}
+	}
+
+	if (finish) {
+		for (uint8_t i = 0; i < size * 2; i++)
+			data[i] = buff[7+i];
+	}
+	// MYSERIAL0.print("i: ");
+	// MYSERIAL0.print((uint16_t)i);
+
+	// MYSERIAL0.write((const uint8_t*)buff, (size_t)byteLength);
+}
+
+void LGT_SCR_DW::readScreenModel()
+{
+	uint8_t temp[8] = {0};	// screen firmware: #.#.#-XX
+	lgtLcdDw.readData(ADDR_TXT_ABOUT_FW_SCREEN, temp, 4);
+	// MYSERIAL0.print("fw: ");
+	// MYSERIAL0.println((char *)temp);
+
+	MYSERIAL0.print("Touch Screen: ");
+	if (temp[6] == 'D' && temp[7] == 'W') {	// DWIN T5 screen
+		MYSERIAL0.println("DWIN T5");
+		_screenModel = SCREEN_DWIN_T5;
+	} else if (temp[6] == 'J' && temp[7] == 'X') { // JX screen
+		MYSERIAL0.println("JX");
+		_screenModel = SCREEN_JX;
+	} else if (temp[6] == 'D' && temp[7] == 'L') {// DWIN T5L screen
+		MYSERIAL0.println("DWIN T5L");
+		_screenModel = SCREEN_DWIN_T5L;
+	} else {
+		MYSERIAL0.print("unknown");
+		MYSERIAL0.println(", use default DWIN T5");
+		_screenModel = SCREEN_DWIN_T5;
+	}
+}
+
+void LGT_SCR_DW::test(){
+	// delay(1000);
+	// uint8_t temp[8] = {0};
+	// lgtLcdDw.readData(ADDR_TXT_ABOUT_FW_SCREEN, temp, 4);
+	// MYSERIAL0.print("fw: ");
+	// MYSERIAL0.println((char *)temp);
+
+	// MYSERIAL0.print("Touch Screen: ");
+	// if (temp[6] == 'D' && temp[7] == 'W') {	// DWIN T5 screen
+	// 	MYSERIAL0.println("DWIN T5");
+	// } else if (temp[6] == 'J' && temp[7] == 'X') { // JX screen
+	// 	MYSERIAL0.println("JX");
+	// } else if (temp[6] == 'D' && temp[7] == 'L') {// DWIN T5L screen
+	// 	MYSERIAL0.println("DWIN T5L");
+	// } else {
+	// 	MYSERIAL0.println("unknown");
+	// }
+
+	// uint8_t str[] = "abcd";
+	// lgtLcdDw.writeData(0x1234, str, sizeof(str));
+
+	// uint16_t num16 = 0x5678;
+	// lgtLcdDw.writeData(0x1234, num16);
+
+	// uint8_t num1 = 0xab;
+	// lgtLcdDw.writeData(0x1234, num1);
+
 }
 
 #endif // LGT_LCD_DW
