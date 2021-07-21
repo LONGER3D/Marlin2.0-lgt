@@ -109,6 +109,14 @@ typedef int8_t pin_t;
   #endif
 #endif
 
+  #ifdef LGT_LCD_DW
+    #ifdef NUM_SERIAL
+      #undef NUM_SERIAL
+    #endif
+    #define NUM_SERIAL 1
+  #endif
+
+
 #ifdef DGUS_SERIAL_PORT
   #if !WITHIN(DGUS_SERIAL_PORT, -1, 3)
     #error "DGUS_SERIAL_PORT must be from -1 to 3. Please update your configuration."

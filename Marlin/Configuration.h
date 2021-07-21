@@ -144,7 +144,14 @@
  *
  * :[-1, 0, 1, 2, 3, 4, 5, 6, 7]
  */
-#define SERIAL_PORT_2 1
+// #define SERIAL_PORT_2 2
+
+#ifdef LGT_LCD_DW
+  #ifdef SERIAL_PORT_2
+    #undef SERIAL_PORT_2
+  #endif
+  #define SERIAL_PORT_2 1
+#endif
 
 /**
  * This setting determines the communication speed of the printer.
