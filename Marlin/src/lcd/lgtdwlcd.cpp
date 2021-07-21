@@ -408,12 +408,14 @@ void LGT_SCR_DW::LGT_Printer_Data_Updata()
 
 void LGT_SCR_DW::LGT_DW_Setup()
 {
-	// if (eeprom_read_byte((const uint8_t*)(EEPROM_INDEX + 5)) != 0)
-	// {
-	// 	eeprom_write_dword((uint32_t*)EEPROM_INDEX, 0);
-	// 	eeprom_write_byte((uint8_t *)(EEPROM_INDEX + 5), 0);
-	// }
-	// total_print_time = eeprom_read_dword((const uint32_t*)EEPROM_INDEX);
+	#if 1
+		if (eeprom_read_byte((const uint8_t*)(EEPROM_INDEX + 5)) != 0)
+		{
+			eeprom_write_dword((uint32_t*)EEPROM_INDEX, 0);
+			eeprom_write_byte((uint8_t *)(EEPROM_INDEX + 5), 0);
+		}
+		total_print_time = eeprom_read_dword((const uint32_t*)EEPROM_INDEX);
+	#endif
 
 	LGT_Send_Data_To_Screen1(ADDR_TXT_ABOUT_MODEL, MAC_MODEL);
 	LGT_Send_Data_To_Screen1(ADDR_TXT_ABOUT_SIZE, MAC_SIZE);
@@ -452,7 +454,7 @@ void LGT_SCR_DW::LGT_Analysis_DWIN_Screen_Cmd()
 			filament_temp = Rec_Data.data[0];
 			break;	
 		case ADDR_TXT_ABOUT_MAC_TIME:
-			// total_print_time = eeprom_read_dword((const uint32_t*)EEPROM_INDEX);
+			total_print_time = eeprom_read_dword((const uint32_t*)EEPROM_INDEX);
 			LGT_Total_Time_To_String(printer_work_time, total_print_time);
 			LGT_Send_Data_To_Screen1(ADDR_TXT_ABOUT_WORK_TIME_MAC, printer_work_time);
 			break;
