@@ -138,14 +138,13 @@ LGT_SCR_DW::LGT_SCR_DW()
 
 void LGT_SCR_DW::begin()
 {
-
     MYSERIAL1.begin(115200);
     delay(600); 
     status_type = PRINTER_SETUP;
     #if ENABLED(POWER_LOSS_RECOVERY)
 		recovery.check();
     #endif
-    DEBUG_PRINT_P("dw: begin\n");
+    DEBUG_PRINT_P(PSTR("dw: begin\n"));
 	lgtLcdDw.readScreenModel();
 	delay(1000); // wait for showing logo
 }
@@ -159,18 +158,18 @@ void LGT_SCR_DW::LGT_LCD_startup_settings()
         {
             tartemp_flag = true;
             if (card.isMounted()) {
-                DEBUG_PRINT_P("dw: sd ok");
+                DEBUG_PRINT_P(PSTR("dw: sd ok"));
 				lgtLcdDw.LGT_Display_Filename();
 			}
             if (check_recovery == false)
             {
-                DEBUG_PRINT_P("dw: go home");
+                DEBUG_PRINT_P(PSTR("dw: go home page"));
                 menu_type = eMENU_HOME;
                 lgtLcdDw.LGT_Change_Page(ID_MENU_HOME);
             }
             else	// goto recovery page
             {
-				DEBUG_PRINT_P("dw: go recovery");
+				DEBUG_PRINT_P(PSTR("dw: go recovery"));
                 return_home = true;
                 check_recovery = false;
 				ENABLE_AXIS_Z();
@@ -242,7 +241,7 @@ void LGT_SCR_DW::LGT_Get_MYSERIAL1_Cmd()
 			Rec_Data.addr = data_storage[4];
 			Rec_Data.addr = (Rec_Data.addr << 8) | data_storage[5];
 			Rec_Data.datalen = data_storage[6];
-			for (int i = 0; i < Rec_Data.datalen; i = i + 2)
+			for (unsigned int i = 0; i < Rec_Data.datalen; i = i + 2)
 			{
 				Rec_Data.data[i / 2] = data_storage[7 + i];
 				Rec_Data.data[i / 2] = (Rec_Data.data[i / 2] << 8) | data_storage[8 + i];
@@ -451,7 +450,7 @@ FUNCTION:	Analysising the commands of DWIN_Screen
 void LGT_SCR_DW::LGT_Analysis_DWIN_Screen_Cmd()
 {
 	DEBUG_ECHOPAIR("ADDR: ", Rec_Data.addr);
-	DEBUG_ECHOPAIR("VALUE:", Rec_Data.data[0]);
+	DEBUG_ECHOPAIR(" VALUE:", Rec_Data.data[0]);
 	uint16_t LGT_feedrate = 0;
 	switch (Rec_Data.addr) {
 		case ADDR_VAL_PRINT_FILE_SELECT:   //Selecting gocede file and displaying on screen
