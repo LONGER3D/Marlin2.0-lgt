@@ -104,7 +104,7 @@ public:
 	void LGT_Clean_DW_Display_Data(unsigned int addr);
 	void LGT_SDCard_Status_Update();
 	void LGT_Change_Page(unsigned int pageid);
-	// void LGT_Power_Loss_Recovery_Resume();
+	void LGT_Power_Loss_Recovery_Resume();
 	void LGT_Disable_Enable_Screen_Button(unsigned int pageid, unsigned int buttonid, unsigned int sta);
 	void LGT_Screen_System_Reset();
 	void LGT_Stop_Printing();

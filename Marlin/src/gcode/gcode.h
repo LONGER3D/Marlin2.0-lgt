@@ -987,6 +987,7 @@ private:
     static void M2005();
     static void M2006();    
     static void M2007();
+    static void M2008();
   #endif
 
   #if ENABLED(LGT_LCD_TFT)

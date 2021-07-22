@@ -79,7 +79,6 @@ static void LGT_Line_To_Current(AxisEnum axis)
 		planner.buffer_line(current_position, MMM_TO_MMS(manual_feedrate_mm_m[(int8_t)axis]), active_extruder);
 }
 
-
 static inline void LGT_Total_Time_To_String(char* buf, uint32_t time)
 {
 	uint32_t h = time / 60;
@@ -87,6 +86,12 @@ static inline void LGT_Total_Time_To_String(char* buf, uint32_t time)
 	sprintf_P(buf, PSTR("%lu h %lu m"), h, m);
 }
 
+void LGT_SCR_DW::LGT_Power_Loss_Recovery_Resume() {
+
+	// recovery_time = recovery.info.print_job_elapsed;
+	// recovery_percent = recovery.info.have_percentdone;
+	// recovery_z_height = recovery.info.current_position.z;
+}
 
 void LGT_SCR_DW::LGT_Pause_Move()
 {
@@ -117,7 +122,7 @@ void LGT_SCR_DW::saveFinishTime()
 {
 	Duration_Time = (print_job_timer.duration()) + recovery_time;
 	total_print_time = Duration_Time.minute()+ total_print_time;
-	// eeprom_write_dword((uint32_t*)EEPROM_INDEX, total_print_time);	
+	eeprom_write_dword((uint32_t*)EEPROM_INDEX, total_print_time);	
 }
 
 LGT_SCR_DW::LGT_SCR_DW()
@@ -885,17 +890,19 @@ void LGT_SCR_DW::processButton()
 			break;
 			//Axis Homing
 		case eBT_MOVE_XY_HOME:
+			LGT_Change_Page(ID_DIALOG_MOVE_WAIT);
 			delay(5);
-			queue.enqueue_now_P(PSTR("G28 X0 Y0"));
+			queue.enqueue_now_P(PSTR("G28 X0 Y0\nM2008"));
 			xy_home = true;
 			break;
 		case eBT_MOVE_Z_HOME:
+			LGT_Change_Page(ID_DIALOG_MOVE_WAIT);
 			delay(5);
 			#ifdef LK1_PRO
 				queue.enqueue_now_P(PSTR("G28"));
 				xy_home = true;
 			#else
-				queue.enqueue_now_P(PSTR("G28 Z0")); //LK4_PRO
+				queue.enqueue_now_P(PSTR("G28 Z0\nM2008")); //LK4_PRO
 				z_home = true;
 			#endif
 			break;
@@ -1053,13 +1060,15 @@ void LGT_SCR_DW::processButton()
 				else
 				{
 					memset(cmd_E, 0, sizeof(cmd_E));
-					sprintf_P(cmd_E, PSTR("M109 S%i\nM2004"), filament_temp);
+					sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
 					if (menu_type == eMENU_UTILI_FILA) {
 						LGT_Change_Page(ID_DIALOG_UTILI_FILA_WAIT);
-						queue.enqueue_now_P(cmd_E);
+						queue.enqueue_one_now(cmd_E);
+						queue.enqueue_one_P(PSTR("M2004"));
 					} else if (menu_type == eMENU_HOME_FILA) {
 						LGT_Change_Page(ID_DIALOG_PRINT_FILA_WAIT);
-						queue.inject_P(cmd_E);
+						queue.enqueue_one_now(cmd_E);
+						queue.enqueue_one_P(PSTR("M2004"));
 					}
 				}
 			break;
@@ -1076,11 +1085,14 @@ void LGT_SCR_DW::processButton()
 			{
 				memset(cmd_E, 0, sizeof(cmd_E));
 				LGT_Change_Page(ID_DIALOG_UTILI_FILA_WAIT);
-				sprintf_P(cmd_E, PSTR("M109 S%i\nM2005"), filament_temp);
-				if (menu_type == eMENU_UTILI_FILA)
-					queue.enqueue_now_P(cmd_E);
-				else if (menu_type == eMENU_HOME_FILA)
-					queue.inject_P(cmd_E);	
+				sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
+				if (menu_type == eMENU_UTILI_FILA) {
+					queue.enqueue_one_now(cmd_E);
+					queue.enqueue_one_P(PSTR("M2005"));
+				} else if (menu_type == eMENU_HOME_FILA) {
+					queue.enqueue_one_now(cmd_E);
+					queue.enqueue_one_P(PSTR("M2005"));
+				}	
 			}
 			break;
 
@@ -1159,15 +1171,16 @@ void LGT_SCR_DW::processButton()
 		#if ENABLED(POWER_LOSS_RECOVERY)
 			LGT_is_printing = true;
 			LGT_Save_Recovery_Filename(DW_CMD_VAR_W, DW_FH_0, ADDR_TXT_HOME_FILE_NAME, 32);
-			queue.inject_P(PSTR("M1000"));	// == recovery.resume()
+			queue.inject_P(PSTR("M1000"));		// == recovery.resume()
+			// LGT_Power_Loss_Recovery_Resume();	// recovery data write to UI
 			menu_type = eMENU_PRINT_HOME;
 			LGT_Printer_Data_Updata();
 			LGT_Change_Page(ID_MENU_PRINT_HOME);
 		#endif
 			break;
 		case eBT_HOME_RECOVERY_NO:
-			// total_print_time = total_print_time+job_recovery_info.print_job_elapsed/60;
-			// eeprom_write_dword((uint32_t*)EEPROM_INDEX, total_print_time);
+			total_print_time = total_print_time+ recovery.info.print_job_elapsed/60;
+			eeprom_write_dword((uint32_t*)EEPROM_INDEX, total_print_time);
 			#if ENABLED(POWER_LOSS_RECOVERY)
 				recovery.cancel();	// == M1000 C
 			#endif

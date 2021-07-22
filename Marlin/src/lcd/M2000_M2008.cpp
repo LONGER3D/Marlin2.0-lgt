@@ -8,6 +8,7 @@
   #include "../feature/runout.h"
   extern E_MENU_TYPE menu_type;
   extern PRINTER_STATUS status_type;
+  extern char menu_move_dis_chk;
   // #include "../../module/stepper.h"
   // #include "../../module/endstops.h"
 
@@ -95,6 +96,17 @@
 			//   planner.set_e_position_mm((destination[E_AXIS] = current_position[E_AXIS] = 0));
 		  // }
   }
+
+// wait for homing in MOVE menu
+  void GcodeSuite::M2008()
+  {
+		if(menu_move_dis_chk==0)
+			lgtLcdDw.LGT_Change_Page(ID_MENU_MOVE_0);
+		else if(menu_move_dis_chk==1)
+			lgtLcdDw.LGT_Change_Page(ID_MENU_MOVE_1);
+		else
+			lgtLcdDw.LGT_Change_Page(ID_MENU_MOVE_1+1);
+  } 
 
 #endif // LGT_LCD_DW
 

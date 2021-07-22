@@ -178,7 +178,7 @@ void PrintJobRecovery::save(const bool force/*=false*/) {
         >=
       #else
         >
-      #endif 
+      #endif // LGT
       info.current_position.z + POWER_LOSS_MIN_Z_CHANGE
     #endif
   ) {
@@ -314,7 +314,7 @@ void PrintJobRecovery::resume() {
     gcode.process_subcommands_now_P(PSTR("M420 S0 Z0"));
   #endif
 
-#if DISABLED(LGT_LCD_TFT)
+#if DISABLED(LGT)
   // Reset E, raise Z, home XY...
   gcode.process_subcommands_now_P(PSTR("G92.9 E0"
     #if Z_HOME_DIR > 0
@@ -346,7 +346,7 @@ void PrintJobRecovery::resume() {
       #endif
     #endif
   ));
-#endif  // LGT_LCD_TFT
+#endif  // LGT
 
   // Pretend that all axes are homed
   axis_homed = axis_known_position = xyz_bits;
@@ -404,7 +404,7 @@ void PrintJobRecovery::resume() {
     }
   #endif
 
-#if ENABLED(LGT_LCD_TFT)
+#if ENABLED(LGT)
   // Reset E, raise Z, home XY...
   gcode.process_subcommands_now_P(PSTR("G92.9 E0"
     #if Z_HOME_DIR > 0
@@ -436,7 +436,7 @@ void PrintJobRecovery::resume() {
       #endif
     #endif
   ));
-#endif  // LGT_LCD_TFT
+#endif  // LGT
 
   // Restore print cooling fan speeds
   FANS_LOOP(i) {

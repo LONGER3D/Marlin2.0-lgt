@@ -875,6 +875,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 2005: M2005(); break;
         case 2006: M2006(); break;    
         case 2007: M2007(); break;
+        case 2008: M2008(); break;
       #endif
 
       #if ENABLED(LGT_LCD_TFT)

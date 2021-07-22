@@ -50,6 +50,10 @@
   #include "../longer3d/lgtsdcard.h"
 #endif
 
+#if ENABLED(LGT_LCD_DW)
+  #include "../lcd/lgtdwlcd.h"
+#endif
+
 // public:
 
 card_flags_t CardReader::flag;
@@ -1100,6 +1104,10 @@ void CardReader::fileHasFinished() {
 
     #if ENABLED(SDCARD_SORT_ALPHA)
       presort();
+    #endif
+
+    #if ENABLED(LGT_LCD_DW)
+      lgtLcdDw.saveFinishTime();
     #endif
 
     sdprinting_done_state = 1;
