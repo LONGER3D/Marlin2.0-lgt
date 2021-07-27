@@ -1361,15 +1361,25 @@ void MarlinSettings::postprocess() {
 
     // Version has to match or defaults are used
     if (strncmp(version, stored_ver, 3) != 0) {
+      #if ENABLED(LK5)
+        unsigned char buffer[4] = {0xff, 0xff, 0xff, 0xff};
+        bool isNew = memcmp(stored_ver, buffer, sizeof(buffer)) != 0 ? false : true;
+      #endif
+
       if (stored_ver[3] != '\0') {
         stored_ver[0] = '?';
         stored_ver[1] = '\0';
       }
       DEBUG_ECHO_START();
       DEBUG_ECHOLNPAIR("EEPROM version mismatch (EEPROM=", stored_ver, " Marlin=" EEPROM_VERSION ")");
+
       #if HAS_LCD_MENU && DISABLED(EEPROM_AUTO_INIT)
-        ui.set_status_P(GET_TEXT(MSG_ERR_EEPROM_VERSION));
+        #if ENABLED(LK5)
+          if (!isNew)
+        #endif
+            ui.set_status_P(GET_TEXT(MSG_ERR_EEPROM_VERSION));
       #endif
+
       eeprom_error = true;
     }
     else {
