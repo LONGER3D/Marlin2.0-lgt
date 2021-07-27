@@ -988,6 +988,10 @@ void setup() {
     SERIAL_CHAR(' ');
   #endif
 
+  #if ENABLED(LK5)
+    SERIAL_ECHOLNPGM(CUSTOM_MACHINE_NAME);
+  #endif
+
   SERIAL_ECHOLNPGM(SHORT_BUILD_VERSION);
   SERIAL_EOL();
 

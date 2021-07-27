@@ -102,7 +102,7 @@
 // LONGER Printer model selection(option: U20, U30, U20_PLUS, CUBE2, LK1, LK1_PLUS, LK2, LK4, LK1_PRO, LK4_PRO, LK5_PRO, LK5)
 #define LK5     
 
-#define SHORT_BUILD_VERSION       "LONGER LK5\nV1.0-Marlin2.x"
+#define SHORT_BUILD_VERSION       "V1.0-Marlin2.x"
 #define DEFAULT_MACHINE_NAME      "LONGER 3D Printer"   // override by  CUSTOM_MACHINE_NAME if any
 #define SOURCE_CODE_URL           "https://github.com/LONGER3D"
 #define STRING_DISTRIBUTION_DATE  "2021-07-27"
