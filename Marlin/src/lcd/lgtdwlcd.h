@@ -91,7 +91,7 @@ public:
 	// void LED_Bright_State(uint8_t LED, uint16_t per, uint8_t mod);
 
 	void LGT_MAC_Send_Filename(uint16_t Addr, uint16_t i);
-	void LGT_Print_Cause_Of_Kill();
+	void LGT_Print_Cause_Of_Kill(const char* error, const char *component);
 	void LGT_Get_MYSERIAL1_Cmd();
 	void LGT_Analysis_DWIN_Screen_Cmd();
 	void LGT_Send_Data_To_Screen(uint16_t Addr, int16_t Num);

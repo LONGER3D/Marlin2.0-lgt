@@ -800,6 +800,8 @@ void kill(PGM_P const lcd_error/*=nullptr*/, PGM_P const lcd_component/*=nullptr
   
   #if ENABLED(LGT_LCD_TFT)
     lgtlcdtft.changeToPageKilled(lcd_error ?: GET_TEXT(MSG_KILLED), lcd_component ?: NUL_STR);
+  #elif ENABLED(LGT_LCD_DW)
+    lgtLcdDw.LGT_Print_Cause_Of_Kill(lcd_error ?: GET_TEXT(MSG_KILLED), lcd_component ?: NUL_STR);
   #else
     // program will get stuck in here if send more than 64 chars in interrput handle(reason unknown)
     SERIAL_ERROR_MSG(STR_ERR_KILLED);

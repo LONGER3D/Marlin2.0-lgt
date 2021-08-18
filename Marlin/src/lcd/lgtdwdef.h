@@ -30,6 +30,18 @@
 #define E_RUNAWAY_ERROR     "Error 12: E thermal runaway"    // Heated, then temperature fell too far
 #define B_RUNAWAY_ERROR     "Error 13: B thermal runaway"
 
+// new killed error message
+#define TXT_ERR_MINTEMP					"E1 MINTEMP"		
+#define TXT_ERR_MIN_TEMP_BED 			"Bed MINTEMP"
+#define TXT_ERR_MAXTEMP					"E1 MAXTEMP"
+#define TXT_ERR_MAX_TEMP_BED			"Bed MAXTEMP"
+#define TXT_ERR_HEATING_FAILED			"E1 Heating Failed"
+#define TXT_ERR_HEATING_FAILED_BED		"Bed Heating Failed"
+#define TXT_ERR_TEMP_RUNAWAY			"E1 Thermal Runaway"
+#define TXT_ERR_TEMP_RUNAWAY_BED		"Bed Thermal Runaway"
+#define TXT_ERR_HOMING_FAILED			"Homing Failed"
+#define TXT_ERR_PROBING_FAILED			"Probing Failed"
+
 // DWIN serial transfer protocol
 #define DW_FH_0 		  0x5A
 #define DW_FH_1 		  0xA5

@@ -1571,56 +1571,7 @@ void LGT_SCR_DW::LGT_MAC_Send_Filename(uint16_t Addr, uint16_t Serial_Num)
 
 }
 
-void LGT_SCR_DW::LGT_Print_Cause_Of_Kill()
-{
-	switch (kill_type)
-	{
-	case E_TEMP_KILL:
-		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON,E_TEMP_ERROR);
-		break;
-	case B_TEMP_KILL:
-		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, B_TEMP_ERROR);
-		break;
-	case M112_KILL:
-		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, M112_ERROR);
-		break;
-	case SDCARD_KILL:
-		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON,SDCARD_ERROR);
-		break;
-	case HOME_KILL:
-		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON,HOME_FAILE);
-		break;
-	case TIMEOUT_KILL:
-		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON,TIMEOUT_ERROR);
-		break;
-	case EXTRUDER_KILL:
-		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON,EXTRUDER_NUM_ERROR);
-		break;
-	case DRIVER_KILL:
-		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON,DRIVER_ERROR);
-		break;
-	case E_MINTEMP_KILL:
-		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, E_MINTEMP_ERROR);
-		break;
-	case B_MINTEMP_KILL:
-		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, B_MINTEMP_ERROR);
-		break;
-	case E_MAXTEMP_KILL:
-		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, E_MAXTEMP_ERROR);
-		break;
-	case B_MAXTEMP_KILL:
-		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, B_MAXTEMP_ERROR);
-		break;
-	case E_RUNAWAY_KILL:
-		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, E_RUNAWAY_ERROR);
-		break;
-	case B_RUNAWAY_KILL:
-		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, B_RUNAWAY_ERROR);
-		break;		
-	default:
-		break;
-	}
-}
+
 
 /*************************************
 FUNCTION:	Checking sdcard and updating file list on screen
@@ -2023,4 +1974,159 @@ void LGT_SCR_DW::test(){
 
 }
 
+static bool isEqual_PP(PGM_P s1, PGM_P s2)
+{
+	size_t len = strlen_P(s1);
+	if (len != strlen_P(s2))
+		return false;
+
+	byte b1, b2;
+	while(len--) {
+		b1 = pgm_read_byte(s1++);
+		b2 = pgm_read_byte(s2++);
+		if (b1 != b2)
+			return false;
+	}
+	return true;
+
+}
+
+
+static int8_t errorIndex(const char *error, const char *component)
+{
+	if (error == nullptr)
+		return -1;
+
+	#define IS_ERROR(e)  	(isEqual_PP(error, GET_TEXT(e)))
+	#define IS_E1()			(isEqual_PP(component, PSTR(LCD_STR_E0)))
+	#define IS_BED()		(isEqual_PP(component, GET_TEXT(MSG_BED)))
+
+	int8_t index;
+	if (IS_ERROR(MSG_ERR_MINTEMP)) {
+		if (IS_E1())
+			index = 0;
+		else if (IS_BED())
+			index = 1;
+		else
+			index = -1;
+	} else if (IS_ERROR(MSG_ERR_MAXTEMP)) {
+		if (IS_E1())
+			index = 2;
+		else if (IS_BED())
+			index = 3;
+		else
+			index = -1;
+	} else if (IS_ERROR(MSG_HEATING_FAILED_LCD)) {
+		if (IS_E1())
+			index = 4;
+		else if (IS_BED())
+			index = 5;
+		else
+			index = -1;
+	} else if (IS_ERROR(MSG_THERMAL_RUNAWAY)) {
+			if (IS_E1())
+			index = 6;
+		else if (IS_BED())
+			index = 7;
+		else
+			index = -1;
+	} else if (IS_ERROR(MSG_LCD_HOMING_FAILED)) {
+		index = 8;
+	} else if (IS_ERROR(MSG_LCD_PROBING_FAILED)) {
+		index = 9;
+	} else {	// unknown error
+		index = -1;	
+	}
+
+	return index;
+
+}
+
+void LGT_SCR_DW::LGT_Print_Cause_Of_Kill(const char* error, const char *component)
+{
+
+	const char *errMsgKilled[] = {
+		TXT_ERR_MINTEMP,
+		TXT_ERR_MIN_TEMP_BED,
+		TXT_ERR_MAXTEMP,
+		TXT_ERR_MAX_TEMP_BED,
+		TXT_ERR_HEATING_FAILED,
+		TXT_ERR_HEATING_FAILED_BED,
+		TXT_ERR_TEMP_RUNAWAY,
+		TXT_ERR_TEMP_RUNAWAY_BED,
+		TXT_ERR_HOMING_FAILED,
+		TXT_ERR_PROBING_FAILED
+	};
+
+	DEBUG_PRINT_P(error);
+	DEBUG_ECHO(" ");
+	DEBUG_PRINT_P(component);
+	DEBUG_EOL();
+
+	int8_t errIndex = errorIndex(error, component);
+
+	char msg[32] = "";
+	if (errIndex > -1) {
+		sprintf_P(msg, PSTR("Error %i: %s"), errIndex + 1, errMsgKilled[errIndex]);
+
+	}
+
+	DEBUG_ECHOLN(msg);
+
+	LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, msg);
+	LGT_Change_Page(ID_CRASH_KILLED);
+}
+
+/*
+void LGT_SCR_DW::LGT_Print_Cause_Of_Kill()
+{
+	switch (kill_type)
+	{
+	case E_TEMP_KILL:
+		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON,E_TEMP_ERROR);
+		break;
+	case B_TEMP_KILL:
+		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, B_TEMP_ERROR);
+		break;
+	case M112_KILL:
+		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, M112_ERROR);
+		break;
+	case SDCARD_KILL:
+		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON,SDCARD_ERROR);
+		break;
+	case HOME_KILL:
+		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON,HOME_FAILE);
+		break;
+	case TIMEOUT_KILL:
+		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON,TIMEOUT_ERROR);
+		break;
+	case EXTRUDER_KILL:
+		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON,EXTRUDER_NUM_ERROR);
+		break;
+	case DRIVER_KILL:
+		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON,DRIVER_ERROR);
+		break;
+	case E_MINTEMP_KILL:
+		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, E_MINTEMP_ERROR);
+		break;
+	case B_MINTEMP_KILL:
+		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, B_MINTEMP_ERROR);
+		break;
+	case E_MAXTEMP_KILL:
+		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, E_MAXTEMP_ERROR);
+		break;
+	case B_MAXTEMP_KILL:
+		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, B_MAXTEMP_ERROR);
+		break;
+	case E_RUNAWAY_KILL:
+		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, E_RUNAWAY_ERROR);
+		break;
+	case B_RUNAWAY_KILL:
+		LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, B_RUNAWAY_ERROR);
+		break;		
+	default:
+		break;
+	}
+}
+*/
 #endif // LGT_LCD_DW
