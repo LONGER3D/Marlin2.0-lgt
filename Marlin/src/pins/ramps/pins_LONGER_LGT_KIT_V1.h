@@ -28,20 +28,12 @@
 
 #define BOARD_INFO_NAME "LONGER LGT KIT V1.0"
 
-// #define LK1_PRO
-#define LK4_PRO
-
-#if defined(LK1_PRO)
-
-#elif defined(LK4_PRO)
-
-#endif
 //
 // Servos
 //
 #if defined(LK1_PRO)
 #define SERVO0_PIN          11
-#elif defined(LK4_PRO)
+#elif defined(LK4_PRO) || defined(LK5_PRO)
 #define SERVO0_PIN          7
 #endif
 
@@ -50,7 +42,7 @@
 //
 #if defined(LK1_PRO)
   #define Z_STOP_PIN          11
-#elif defined(LK4_PRO)
+#elif defined(LK4_PRO) || defined(LK5_PRO)
   #define Z_STOP_PIN          35
 #endif
 

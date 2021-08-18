@@ -17,8 +17,6 @@
 #define DEBUG_OUT ENABLED(DEBUG_LGTDWLCD)
 #include "../core/debug_out.h"
 
-#define LK4_PRO	// for debug
-
 LGT_SCR_DW lgtLcdDw;
 static int ii_setup = 0;
 DATA Rec_Data;
@@ -44,7 +42,7 @@ bool return_home = false;
 	bool led_on = true;
 #endif // LK1_PRO
 bool xy_home = false;
-#ifdef LK4_PRO
+#if ANY(LK4_PRO, LK5_PRO)
 	bool xyz_home = false,z_home=false;
 #endif
 bool leveling_wait = false;
@@ -547,7 +545,7 @@ void LGT_SCR_DW::processButton()
 				current_position[X_AXIS] = current_position[X_AXIS] - 10;
 	#ifdef LK1_PRO
 				if (xy_home == true)
-	#else  //LK4_PRO
+	#else  //LK4_PRO or LK5 PRO
 				if (xyz_home == true || xy_home == true)
 	#endif
 				{
@@ -572,7 +570,7 @@ void LGT_SCR_DW::processButton()
 				current_position[X_AXIS] = current_position[X_AXIS] - 1;
 	#ifdef LK1_PRO
 				if (xy_home == true)
-	#else  //LK4_PRO
+	#else  ////LK4_PRO or LK5 PRO
 				if (xyz_home == true || xy_home == true)
 	#endif
 				{
@@ -597,7 +595,7 @@ void LGT_SCR_DW::processButton()
 				current_position[X_AXIS] = current_position[X_AXIS] - 0.1;
 	#ifdef LK1_PRO
 				if (xy_home == true)
-	#else  //LK4_PRO
+	#else  //LK4_PRO//LK4_PRO or LK5 PRO
 				if (xyz_home == true || xy_home == true)
 	#endif
 				{
@@ -623,7 +621,7 @@ void LGT_SCR_DW::processButton()
 				current_position[Y_AXIS] = current_position[Y_AXIS] - 10;
 	#ifdef LK1_PRO
 				if (xy_home == true)
-	#else  //LK4_PRO
+	#else  ////LK4_PRO or LK5 PRO
 				if (xyz_home == true || xy_home == true)
 	#endif
 				{
@@ -648,7 +646,7 @@ void LGT_SCR_DW::processButton()
 				current_position[Y_AXIS] = current_position[Y_AXIS] - 1;
 		#ifdef LK1_PRO
 				if (xy_home == true)
-		#else  //LK4_PRO
+		#else  ////LK4_PRO or LK5 PRO
 				if (xyz_home == true || xy_home == true)
 		#endif
 				{
@@ -673,7 +671,7 @@ void LGT_SCR_DW::processButton()
 				current_position[Y_AXIS] = current_position[Y_AXIS] - 0.1;
 	#ifdef LK1_PRO
 				if (xy_home == true)
-	#else  //LK4_PRO
+	#else  ////LK4_PRO or LK5 PRO
 				if (xyz_home == true || xy_home == true)
 	#endif
 				{
@@ -704,13 +702,13 @@ void LGT_SCR_DW::processButton()
 				if (planner.is_full())
 					break;
 				current_position[Z_AXIS] = current_position[Z_AXIS] - 10;
-	#ifdef LK4_PRO
+	#if ANY(LK4_PRO, LK5_PRO)
 				if (xyz_home == true || z_home == true)
 				{
 					if (current_position[Z_AXIS] < Z_MIN_POS)
 						current_position[Z_AXIS] = Z_MIN_POS;
 				}
-	#endif // LK4_PRO
+	#endif // LK4_PRO, LK5_PRO
 				LGT_Line_To_Current(Z_AXIS);
 
 	#ifdef LK1_PRO
@@ -742,13 +740,13 @@ void LGT_SCR_DW::processButton()
 				if (planner.is_full())
 					break;
 				current_position[Z_AXIS] = current_position[Z_AXIS] - 1;
-	#ifdef LK4_PRO
+	#if ANY(LK4_PRO, LK5_PRO)
 				if (xyz_home == true || z_home == true)
 				{
 					if (current_position[Z_AXIS] < Z_MIN_POS)
 						current_position[Z_AXIS] = Z_MIN_POS;
 				}
-	#endif // LK4_PRO
+	#endif // LK4_PRO, LK5_PRO
 				LGT_Line_To_Current(Z_AXIS);
 	#ifdef LK1_PRO
 				if (menu_type != eMENU_MOVE)
@@ -780,13 +778,13 @@ void LGT_SCR_DW::processButton()
 				if (planner.is_full())
 					break;
 				current_position[Z_AXIS] = current_position[Z_AXIS] - 0.1;
-	#ifdef LK4_PRO
+	#if ANY(LK4_PRO, LK5_PRO)
 				if (xyz_home == true || z_home == true)
 				{
 					if (current_position[Z_AXIS] < Z_MIN_POS)
 						current_position[Z_AXIS] = Z_MIN_POS;
 				}
-	#endif // LK4_PRO
+	#endif // LK4_PRO, LK5_PRO
 				LGT_Line_To_Current(Z_AXIS);
 
 	#ifdef LK1_PRO
@@ -901,8 +899,8 @@ void LGT_SCR_DW::processButton()
 			#ifdef LK1_PRO
 				queue.enqueue_now_P(PSTR("G28"));
 				xy_home = true;
-			#else
-				queue.enqueue_now_P(PSTR("G28 Z0\nM2008")); //LK4_PRO
+			#else // ANY(LK4_PRO, LK5_PRO)
+				queue.enqueue_now_P(PSTR("G28 Z0\nM2008")); 
 				z_home = true;
 			#endif
 			break;

@@ -99,6 +99,16 @@
   #define LGT_LCD_DW    // DWIN 4.3 inch LCD serial touch screen
 #endif
 
+// #define LK4_PRO
+#define LK5_PRO
+
+#define SHORT_BUILD_VERSION       "V1.0-Marlin2.x"
+#define DEFAULT_MACHINE_NAME      "LONGER 3D Printer"   // override by  CUSTOM_MACHINE_NAME if any
+#define SOURCE_CODE_URL           "https://github.com/LONGER3D"
+#define STRING_DISTRIBUTION_DATE  "2021-06-18"
+#define WEBSITE_URL               "www.longer3d.com"    // full url: https://www.longer3d.com
+
+
 //===========================================================================
 
 // @section info
@@ -119,7 +129,7 @@
  */
 
 // Show the Marlin bootscreen on startup. ** ENABLE FOR PRODUCTION **
-#define SHOW_BOOTSCREEN
+// #define SHOW_BOOTSCREEN
 
 // Show the bitmap in Marlin/_Bootscreen.h on startup.
 //#define SHOW_CUSTOM_BOOTSCREEN
@@ -169,8 +179,12 @@
 
 // Choose the name from boards.h that matches your setup
 #ifndef MOTHERBOARD
-  // #define MOTHERBOARD BOARD_LONGER3D_LK
-  #define MOTHERBOARD BOARD_LONGER_LGT_KIT_V1
+  #if ANY(U20, U30, U20_PLUS, CUBE2, LK1, LK1_PLUS, LK2, LK4)
+    #define MOTHERBOARD BOARD_LONGER3D_LK          // motherboard for LKx(except for LK5), CUBE2
+    
+  #elif ANY(LK1_PRO, LK4_PRO, LK5_PRO, LK5)
+    #define MOTHERBOARD BOARD_LONGER_LGT_KIT_V1       // motherboard for LKxPro and LK5
+  #endif
 #endif
 
 #if MOTHERBOARD == BOARD_LONGER3D_LK
@@ -179,28 +193,35 @@
   #define LONGER_LKX_PRO
 #endif
 
-#define LK4_PRO
 
 // Name displayed in the LCD "Ready" message and Info menu
 //#define CUSTOM_MACHINE_NAME "3D Printer"
-#ifdef U20
-#define CUSTOM_MACHINE_NAME "Alfawise U20"
-#elif defined(U30)
-#define CUSTOM_MACHINE_NAME "Alfawise U30"
-#elif defined(U20_PLUS)
-#define CUSTOM_MACHINE_NAME "Alfawise U20+"
-#elif defined(LK1)
-#define CUSTOM_MACHINE_NAME "Longer3D LK1"
-#elif defined(LK1_PLUS)
-#define CUSTOM_MACHINE_NAME "Longer3D LK1 Plus"
-#elif defined(LK1_PRO)
-#define CUSTOM_MACHINE_NAME "Longer3D LK1 Pro"
-#elif defined(LK2)
-#define CUSTOM_MACHINE_NAME "Longer3D LK2"
-#elif defined(LK4)
-#define CUSTOM_MACHINE_NAME "Longer3D LK4"
-#elif defined(LK4_PRO)
-#define CUSTOM_MACHINE_NAME "Longer3D LK4 Pro"
+#if ENABLED(U20)
+  #define CUSTOM_MACHINE_NAME "Alfawise U20"
+#elif ENABLED(U30)
+  #define CUSTOM_MACHINE_NAME "Alfawise U30"
+#elif ENABLED(U20_PLUS)
+  #define CUSTOM_MACHINE_NAME "Alfawise U20 Plus"
+#elif ENABLED(CUBE2)
+  #define CUSTOM_MACHINE_NAME "Longer3D CUBE2"
+#elif ENABLED(LK1)
+  #define CUSTOM_MACHINE_NAME "Longer3D LK1"
+#elif ENABLED(LK1_PLUS)
+  #define CUSTOM_MACHINE_NAME "Longer3D LK1 Plus"
+#elif ENABLED(LK2)
+  #define CUSTOM_MACHINE_NAME "Longer3D LK2"
+#elif ENABLED(LK4)
+  #define CUSTOM_MACHINE_NAME "Longer3D LK4"
+
+//-----------------mega2560 board---------------------//
+#elif ENABLED(LK1_PRO)
+  #define CUSTOM_MACHINE_NAME "Longer3D LK1 Pro"
+#elif ENABLED(LK4_PRO)
+  #define CUSTOM_MACHINE_NAME "Longer3D LK4 Pro"
+#elif ENABLED(LK5_PRO)
+  #define CUSTOM_MACHINE_NAME "Longer3D LK5 Pro"
+#elif ENABLED(LK5)
+  #define CUSTOM_MACHINE_NAME "Longer3D LK5"
 #endif
 
 // Printer's unique ID, used by some programs to differentiate between machines.
@@ -618,27 +639,32 @@
   //#define DEFAULT_bedKi 1.41
   //#define DEFAULT_bedKd 1675.16
 
-#if defined(U30) || defined(LK2) || defined(LK4) || defined(LK4_PRO)
-  //From M303 command for Alfawise U30 :
-  #define DEFAULT_bedKp 338.46
-  #define DEFAULT_bedKi 63.96
-  #define DEFAULT_bedKd 447.78
-#endif
-
-#if defined(U20) || defined(LK1) || defined(LK1_PRO)
-  //From M303 command for Alfawise U20 :
-  #define DEFAULT_bedKp 841.68
-  #define DEFAULT_bedKi 152.12
-  #define DEFAULT_bedKd 1164.25
-#endif
-
-#if defined(U20_PLUS) || defined(LK1_PLUS)
-  // These PID setting MUST be updated.
-  // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
-  #define DEFAULT_bedKp 841.68
-  #define DEFAULT_bedKi 152.12
-  #define DEFAULT_bedKd 1164.25
-#endif
+  // 120x140 bed size
+  #if ENABLED(CUBE2)
+    // TODO: need update
+    #define DEFAULT_bedKp 338.46
+    #define DEFAULT_bedKi 63.96
+    #define DEFAULT_bedKd 447.78  
+  // 220x220 size bed
+  #elif ANY(U30, LK2, LK4, LK4_PRO)
+    //From M303 command for Alfawise U30 :
+    #define DEFAULT_bedKp 338.46
+    #define DEFAULT_bedKi 63.96
+    #define DEFAULT_bedKd 447.78
+  // 300x300 bed size
+  #elif ANY(U20, LK1, LK1_PRO, LK5_PRO, LK5)
+    //From M303 command for Alfawise U20 :
+    #define DEFAULT_bedKp 841.68
+    #define DEFAULT_bedKi 152.12
+    #define DEFAULT_bedKd 1164.25
+  // 400x400 bed size
+  #elif ANY(U20_PLUS, LK1_PLUS)
+    // These PID setting MUST be updated.
+    // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
+    #define DEFAULT_bedKp 841.68
+    #define DEFAULT_bedKi 152.12
+    #define DEFAULT_bedKd 1164.25
+  #endif
 
 #endif // PIDTEMPBED
 
@@ -1151,18 +1177,24 @@
 // @section machine
 
 // Invert the stepper direction. Change (or reverse the motor connector) if an axis goes the wrong way.
-#define INVERT_X_DIR true
-#define INVERT_Y_DIR false
-#define INVERT_Z_DIR true
+#if ANY(U20, U30, U20_PLUS, CUBE2, LK1, LK1_PLUS, LK2, LK4, LK1_PRO, LK4_PRO, LK5_PRO)
+  #define INVERT_X_DIR true
+  #define INVERT_Y_DIR false
+  #define INVERT_Z_DIR true
+#elif ENABLED(LK5)
+  #define INVERT_X_DIR false
+  #define INVERT_Y_DIR true
+  #define INVERT_Z_DIR false
+#endif
 
 // @section extruder
 
 // For direct drive extruder v9 set to true, for geared extruder set to false.
-#ifdef LK1_PRO
-	#define INVERT_E0_DIR false
-#else
-	#define INVERT_E0_DIR true
-#endif // LK1_Pro
+#if ANY(U20, U30, U20_PLUS, CUBE2, LK1, LK1_PLUS, LK2, LK4, LK1_PRO, LK4_PRO, LK5_PRO)
+  #define INVERT_E0_DIR false
+#elif ENABLED(LK5)
+  #define INVERT_E0_DIR true
+#endif
 
 #define INVERT_E1_DIR false
 #define INVERT_E2_DIR false
@@ -1191,22 +1223,22 @@
 
 // @section machine
 
-#if defined(U30) || defined(LK2) || defined(LK4) || defined(LK4_PRO)
-#define X_BED_SIZE 220
-#define Y_BED_SIZE 220
-#define Z_MACHINE_MAX 250
-#endif
-
-#if defined(U20) || defined(LK1) || defined(LK1_RRO)
-#define X_BED_SIZE 300
-#define Y_BED_SIZE 300
-#define Z_MACHINE_MAX 400
-#endif
-
-#if defined(U20_PLUS) || defined(LK1_PLUS)
-#define X_BED_SIZE 400
-#define Y_BED_SIZE 400
-#define Z_MACHINE_MAX 500
+#if ENABLED(CUBE2)
+  #define X_BED_SIZE 120
+  #define Y_BED_SIZE 140
+  #define Z_MACHINE_MAX 105
+#elif ANY(U30, LK2, LK4, LK4_PRO)
+  #define X_BED_SIZE 220
+  #define Y_BED_SIZE 220
+  #define Z_MACHINE_MAX 250
+#elif ANY(U20, LK1, LK1_PRO, LK5_PRO, LK5)
+  #define X_BED_SIZE 300
+  #define Y_BED_SIZE 300
+  #define Z_MACHINE_MAX 400
+#elif ANY(U20_PLUS, LK1_PLUS)
+  #define X_BED_SIZE 400
+  #define Y_BED_SIZE 400
+  #define Z_MACHINE_MAX 500
 #endif
 
 // Travel limits (mm) after homing, corresponding to endstop positions.
@@ -1263,11 +1295,13 @@
 
   // Set one or more commands to execute on filament runout.
   // (After 'M412 H' Marlin will ask the host to handle the process.)
- #if ENABLED(LGT_LCD_DW)
-  #define FILAMENT_RUNOUT_SCRIPT "M25\nM2003"
- #else
-  #define FILAMENT_RUNOUT_SCRIPT "M25"
- #endif
+  #if ENABLED(LGT_LCD_DW)
+    #define FILAMENT_RUNOUT_SCRIPT "M25\nM2003"
+  #elif ENABLED(LK5)
+    #define FILAMENT_RUNOUT_SCRIPT "M25 P\nM24"
+  #else
+    #define FILAMENT_RUNOUT_SCRIPT "M25"
+  #endif
   // After a runout is detected, continue printing this length of filament
   // before executing the runout script. Useful for a sensor at the end of
   // a feed tube. Requires 4 bytes SRAM per sensor, plus 4 bytes overhead.
