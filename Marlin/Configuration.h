@@ -99,8 +99,8 @@
   #define LGT_LCD_DW    // DWIN 4.3 inch LCD serial touch screen
 #endif
 
-// #define LK4_PRO
-#define LK5_PRO
+#define LK4_PRO
+// #define LK5_PRO
 
 #define SHORT_BUILD_VERSION       "V1.0-Marlin2.x"
 #define DEFAULT_MACHINE_NAME      "LONGER 3D Printer"   // override by  CUSTOM_MACHINE_NAME if any

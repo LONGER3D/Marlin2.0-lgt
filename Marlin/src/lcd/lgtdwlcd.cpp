@@ -1199,33 +1199,35 @@ void LGT_SCR_DW::processButton()
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					queue.enqueue_now_P(PSTR("G28 X0 Y0"));
+					queue.enqueue_one_P(PSTR("G28 X0 Y0"));
 					xy_home = true;
 				}
-				queue.enqueue_now_P(PSTR("G1 X50 Y50"));
+				queue.enqueue_one_P(PSTR("G1 X50 Y50"));
 			#elif defined(LK5_PRO)
 				if (xyz_home == false)
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					queue.enqueue_now_P(PSTR("G28"));
+					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
-				queue.enqueue_now_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_now_P(PSTR("G1 X50 Y50 F3000"));
-				queue.enqueue_now_P(PSTR("G1 Z0 F300"));		
+				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
+				queue.enqueue_one_P(PSTR("G1 X50 Y50 F3000"));
+				queue.enqueue_one_P(PSTR("G1 Z0 F300"));		
 			#else  //LK4_PRO
+			// if (queue.length >= BUFSIZE)
+			// 	break;
 				if (xyz_home == false)
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					queue.enqueue_now_P(PSTR("G28"));
+					queue.enqueue_one_P(PSTR("G28"));
 
 					xyz_home = true;
 				}
-				queue.enqueue_now_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_now_P(PSTR("G1 X30 Y30 F3000"));
-				queue.enqueue_now_P(PSTR("G1 Z0 F300"));
+				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
+				queue.enqueue_one_P(PSTR("G1 X30 Y30 F3000"));
+				queue.enqueue_one_P(PSTR("G1 Z0 F300"));
 			#endif
 			break;
 		case eBT_UTILI_LEVEL_CORNER_POS_2: //45 002D
@@ -1234,32 +1236,32 @@ void LGT_SCR_DW::processButton()
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					queue.enqueue_now_P(PSTR("G28 X0 Y0"));
+					queue.enqueue_one_P(PSTR("G28 X0 Y0"));
 					xy_home = true;
 				}
-				queue.enqueue_now_P(PSTR("G1 X250 Y50"));
+				queue.enqueue_one_P(PSTR("G1 X250 Y50"));
 			#elif defined(LK5_PRO)
 				if (xyz_home == false)
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					queue.enqueue_now_P(PSTR("G28"));
+					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
-				queue.enqueue_now_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_now_P(PSTR("G1 X250 Y50 F3000"));
-				queue.enqueue_now_P(PSTR("G1 Z0 F300"));				
+				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
+				queue.enqueue_one_P(PSTR("G1 X250 Y50 F3000"));
+				queue.enqueue_one_P(PSTR("G1 Z0 F300"));				
 			#else  //LK4_PRO
 				if (xyz_home == false)
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					queue.enqueue_now_P(PSTR("G28"));
+					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
-				queue.enqueue_now_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_now_P(PSTR("G1 X190 Y30 F3000"));
-				queue.enqueue_now_P(PSTR("G1 Z0 F300"));
+				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
+				queue.enqueue_one_P(PSTR("G1 X190 Y30 F3000"));
+				queue.enqueue_one_P(PSTR("G1 Z0 F300"));
 			#endif
 			break;
 		case eBT_UTILI_LEVEL_CORNER_POS_3:
@@ -1268,32 +1270,32 @@ void LGT_SCR_DW::processButton()
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					queue.enqueue_now_P(PSTR("G28 X0 Y0"));
+					queue.enqueue_one_P(PSTR("G28 X0 Y0"));
 					xy_home = true;
 				}
-				queue.enqueue_now_P(PSTR("G1 X250 Y250"));
+				queue.enqueue_one_P(PSTR("G1 X250 Y250"));
 			#elif defined(LK5_PRO)
 				if (xyz_home == false)
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					queue.enqueue_now_P(PSTR("G28"));
+					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
-				queue.enqueue_now_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_now_P(PSTR("G1 X250 Y250 F3000"));
-				queue.enqueue_now_P(PSTR("G1 Z0 F300"));					
+				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
+				queue.enqueue_one_P(PSTR("G1 X250 Y250 F3000"));
+				queue.enqueue_one_P(PSTR("G1 Z0 F300"));					
 			#else  //LK4_PRO
 				if (xyz_home == false)
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					queue.enqueue_now_P(PSTR("G28"));
+					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
-				queue.enqueue_now_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_now_P(PSTR("G1 X190 Y190 F3000"));
-				queue.enqueue_now_P(PSTR("G1 Z0 F300"));
+				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
+				queue.enqueue_one_P(PSTR("G1 X190 Y190 F3000"));
+				queue.enqueue_one_P(PSTR("G1 Z0 F300"));
 			#endif
 			break;
 		case eBT_UTILI_LEVEL_CORNER_POS_4:
@@ -1302,32 +1304,32 @@ void LGT_SCR_DW::processButton()
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					queue.enqueue_now_P(PSTR("G28 X0 Y0"));
+					queue.enqueue_one_P(PSTR("G28 X0 Y0"));
 					xy_home = true;
 				}
-				queue.enqueue_now_P(PSTR("G1 X50 Y250"));		
+				queue.enqueue_one_P(PSTR("G1 X50 Y250"));		
 			#elif defined(LK5_PRO)
 				if (xyz_home == false)
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					queue.enqueue_now_P(PSTR("G28"));
+					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
-				queue.enqueue_now_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_now_P(PSTR("G1 X50 Y250 F3000"));
-				queue.enqueue_now_P(PSTR("G1 Z0 F300"));				
+				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
+				queue.enqueue_one_P(PSTR("G1 X50 Y250 F3000"));
+				queue.enqueue_one_P(PSTR("G1 Z0 F300"));				
 			#else  //LK4_PRO
 				if (xyz_home == false)
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					queue.enqueue_now_P(PSTR("G28"));
+					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
-				queue.enqueue_now_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_now_P(PSTR("G1 X30 Y190 F3000"));
-				queue.enqueue_now_P(PSTR("G1 Z0 F300"));  
+				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
+				queue.enqueue_one_P(PSTR("G1 X30 Y190 F3000"));
+				queue.enqueue_one_P(PSTR("G1 Z0 F300"));  
 			#endif
 			break;
 		case eBT_UTILI_LEVEL_CORNER_POS_5:
@@ -1336,44 +1338,44 @@ void LGT_SCR_DW::processButton()
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					queue.enqueue_now_P(PSTR("G28 X0 Y0"));
+					queue.enqueue_one_P(PSTR("G28 X0 Y0"));
 					xy_home = true;
 				}
-				queue.enqueue_now_P(PSTR("G1 X150 Y150"));			
+				queue.enqueue_one_P(PSTR("G1 X150 Y150"));			
 			#elif defined(LK5_PRO)
 				if (xyz_home == false)
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					queue.enqueue_now_P(PSTR("G28"));
+					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
-				queue.enqueue_now_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_now_P(PSTR("G1 X150 Y150 F3000"));
-				queue.enqueue_now_P(PSTR("G1 Z0 F300"));				
+				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
+				queue.enqueue_one_P(PSTR("G1 X150 Y150 F3000"));
+				queue.enqueue_one_P(PSTR("G1 Z0 F300"));				
 			#else  //LK4_PRO
 				if (xyz_home == false)
 				{
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
-					queue.enqueue_now_P(PSTR("G28"));
+					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
-				queue.enqueue_now_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_now_P(PSTR("G1 X110 Y110 F3000"));
-				queue.enqueue_now_P(PSTR("G1 Z0 F300"));
+				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
+				queue.enqueue_one_P(PSTR("G1 X110 Y110 F3000"));
+				queue.enqueue_one_P(PSTR("G1 Z0 F300"));
 			#endif
 			break;
 		case eBT_UTILI_LEVEL_CORNER_BACK:
 			#ifdef LK1_PRO
 				if (xy_home) {
 					xy_home = false;
-					queue.enqueue_now_P(PSTR("G1 Z10 F500"));	//up 10mm to prevent from damaging bed
+					queue.enqueue_one_P(PSTR("G1 Z10 F500"));	//up 10mm to prevent from damaging bed
 				}
 			#else
 				if (xyz_home) {
 					xyz_home = false;
-					queue.enqueue_now_P(PSTR("G1 Z10 F500"));	//up 10mm to prevent from damaging bed
+					queue.enqueue_one_P(PSTR("G1 Z10 F500"));	//up 10mm to prevent from damaging bed
 				}
 			#endif
 			break;
