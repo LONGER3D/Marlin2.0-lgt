@@ -93,6 +93,10 @@ void LGT_SCR_DW::LGT_Power_Loss_Recovery_Resume() {
 
 void LGT_SCR_DW::LGT_Pause_Move()
 {
+	if (!all_axes_known() && !all_axes_homed())
+		return;
+	DEBUG_ECHOLN("pause move");
+
 	resume_x_position = current_position[X_AXIS];
 	resume_y_position = current_position[Y_AXIS];
 	resume_e_position = current_position[E_AXIS];
@@ -2083,6 +2087,13 @@ void LGT_SCR_DW::LGT_Print_Cause_Of_Kill(const char* error, const char *componen
 
 	LGT_Send_Data_To_Screen1(ADDR_KILL_REASON, msg);
 	LGT_Change_Page(ID_CRASH_KILLED);
+}
+
+
+void LGT_SCR_DW::pausePrint()
+{
+	LGT_is_printing = false;
+	status_type = PRINTER_PAUSE;
 }
 
 /*

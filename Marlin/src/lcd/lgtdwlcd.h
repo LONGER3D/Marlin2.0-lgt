@@ -121,6 +121,7 @@ public:
 	static void test();
 	inline bool hasDwScreen() { return ((_screenModel == SCREEN_DWIN_T5) || (_screenModel == SCREEN_DWIN_T5L)); }
 	inline bool hasJxScreen() { return (_screenModel == SCREEN_JX); }
+	void pausePrint();
 
 private:
 	void writeData(uint16_t addr, const uint8_t *data, uint8_t size, bool isRead=false);

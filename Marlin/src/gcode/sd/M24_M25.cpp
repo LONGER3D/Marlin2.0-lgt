@@ -48,6 +48,11 @@
   #include "../../longer3d/lgttftlcd.h"
 #endif
 
+#if ENABLED(LGT_LCD_DW)
+  #include "../../lcd/lgtdwlcd.h"
+#endif //ENABLED(LGT_LCD_DW)
+
+
 /**
  * M24: Start or Resume SD Print
  */
@@ -125,6 +130,11 @@ void GcodeSuite::M25() {
     #if ENABLED(LGT_LCD_TFT)
       lgtlcdtft.pausePrint();
     #endif
+
+    #if ENABLED(LGT_LCD_DW)
+      lgtLcdDw.pausePrint();
+    #endif
+
 
   #endif
 }

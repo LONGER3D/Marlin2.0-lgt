@@ -52,8 +52,10 @@
       SERIAL_ECHOLNPGM("run M2003");
       lgtLcdDw.LGT_Change_Page(ID_DIALOG_NO_FILA);
       status_type = PRINTER_PAUSE;
-      lgtLcdDw.LGT_Pause_Move();
-
+      // if(all_axes_known()) {
+        
+        lgtLcdDw.LGT_Pause_Move();
+      // }
   }
 
   // load filament
