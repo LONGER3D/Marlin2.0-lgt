@@ -1707,6 +1707,12 @@ void LGT_SCR_DW::LGT_Clean_DW_Display_Data(unsigned int addr)
 // abort sd printing
 void LGT_SCR_DW::LGT_Stop_Printing()
 {
+
+    #if ENABLED(SDSUPPORT)
+    //   wait_for_heatup = wait_for_user = false;
+    //   card.flag.abort_sd_printing = true;
+    #endif
+
 	card.endFilePrint(
       #if SD_RESORT
         true
@@ -1720,12 +1726,7 @@ void LGT_SCR_DW::LGT_Stop_Printing()
 	thermalManager.zero_fan_speeds();
 	wait_for_heatup = false;
 	#if ENABLED(POWER_LOSS_RECOVERY)
-		// card.openJobRecoveryFile();
-		// job_recovery_info.valid_head =0;
-		// job_recovery_info.valid_foot =0;
-		// (void)card.saveJobRecoveryInfo();
-		// card.closeJobRecoveryFile();
-		// job_recovery_commands_count = 0;
+		recovery.purge();
 	#endif
 	queue.enqueue_now_P(PSTR("G91"));
 	queue.enqueue_now_P(PSTR("G1 Z10"));
