@@ -411,6 +411,8 @@ void LGT_SCR_DW::LGT_Printer_Data_Updata()
 		LGT_Send_Data_To_Screen(ADDR_VAL_FLOW,planner.flow_percentage[eExtruder::E0]);
 		break;
 	case eMENU_PRINT_HOME:
+		if (card.sdprinting_done_state)
+			break;
 		progress_percent = card.percentDone();
 		if(progress_percent>0)
 			LGT_Send_Data_To_Screen(ADDR_VAL_HOME_PROGRESS, (uint16_t)progress_percent);
