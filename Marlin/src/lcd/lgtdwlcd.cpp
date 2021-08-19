@@ -982,7 +982,7 @@ void LGT_SCR_DW::processButton()
 	// ----- print home menu -----
 		case eBT_PRINT_HOME_PAUSE:
 			if (_btnPauseEnabled) {
-				DEBUG_ECHOLNPAIR_P("pause");
+				DEBUG_ECHOLN("pause");
 				LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
 				status_type = PRINTER_PAUSE;
 				LGT_is_printing = false;
@@ -993,21 +993,21 @@ void LGT_SCR_DW::processButton()
 			break;
 
 		case eBT_PRINT_HOME_RESUME:
-			DEBUG_ECHOLNPAIR_P("resume");
-				LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
-				// go to park posion
-			    do_blocking_move_to_xy(resume_x_position,resume_y_position,50); 
-				planner.synchronize();	// wait move done
+			DEBUG_ECHOLN("resume");
+			LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
+			// go to park posion
+			do_blocking_move_to_xy(resume_x_position,resume_y_position,50); 
+			planner.synchronize();	// wait move done
 
-				LGT_Change_Page(ID_MENU_PRINT_HOME);
-				DEBUG_ECHOLNPAIR_F("cur feedrate", feedrate_mm_s);
-				feedrate_mm_s = resume_feedrate;
-				card.startFileprint();
-				print_job_timer.start();
-				runout.reset();
-				menu_type = eMENU_PRINT_HOME;
-				status_type = PRINTER_PRINTING;
-				LGT_is_printing = true;	// need test
+			LGT_Change_Page(ID_MENU_PRINT_HOME);
+			DEBUG_ECHOLNPAIR_F("cur feedrate", feedrate_mm_s);
+			feedrate_mm_s = resume_feedrate;
+			card.startFileprint();
+			print_job_timer.start();
+			runout.reset();
+			menu_type = eMENU_PRINT_HOME;
+			status_type = PRINTER_PRINTING;
+			LGT_is_printing = true;	// need test
 			break;
 		case eBT_PRINT_HOME_ABORT:
 				DEBUG_ECHOLNPAIR_P("abort");
@@ -1150,11 +1150,14 @@ void LGT_SCR_DW::processButton()
 			}
 			break;
 		case eBT_PRINT_FILA_CHANGE_YES:
+
+			DEBUG_ECHOLN("pause");
 			if(menu_type==eMENU_PRINT_HOME)
 				LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
 			else if(menu_type== eMENU_TUNE)
 				LGT_Change_Page(ID_DIALOG_PRINT_TUNE_WAIT);
 			status_type = PRINTER_PAUSE;
+			LGT_is_printing = false;
 			card.pauseSDPrint();
 			print_job_timer.pause();
 			queue.inject_P(PSTR("M2006"));

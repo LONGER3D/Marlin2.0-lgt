@@ -75,6 +75,8 @@
   // filament change in printing
   void GcodeSuite::M2006()
   {
+
+      SERIAL_ECHOLNPGM("run M2006");
 		  lgtLcdDw.LGT_Pause_Move();
 		  lgtLcdDw.LGT_Change_Page(ID_MENU_HOME_FILA_0);
 		  menu_type = eMENU_HOME_FILA;
