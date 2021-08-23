@@ -1190,9 +1190,9 @@
 // @section extruder
 
 // For direct drive extruder v9 set to true, for geared extruder set to false.
-#if ANY(U20, U30, U20_PLUS, CUBE2, LK1, LK1_PLUS, LK2, LK4, LK1_PRO, LK4_PRO, LK5_PRO)
+#if ANY(U20, U30, U20_PLUS, CUBE2, LK1, LK1_PLUS, LK2, LK4, LK1_PRO)
   #define INVERT_E0_DIR false
-#elif ENABLED(LK5)
+#elif ANY(LK4_PRO, LK5_PRO, LK5)
   #define INVERT_E0_DIR true
 #endif
 
