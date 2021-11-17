@@ -207,8 +207,6 @@ bool GCodeQueue::process_injected_command() {
 
   // Execute command if non-blank
   if (i) {
-    MYSERIAL0.print("process P: ");
-    MYSERIAL0.println(cmd);
     parser.parse(cmd);
     gcode.process_parsed_command();
   }
@@ -223,10 +221,6 @@ bool GCodeQueue::process_injected_command() {
 bool GCodeQueue::process_injected_command_S() {
   if (injected_commands[0] == '\0') return false;
 
-  MYSERIAL0.print("start process S: ");
-  MYSERIAL0.println(injected_commands[0]);
-  MYSERIAL0.println(injected_commands);
-
   char c;
   size_t i = 0;
   while ((c = injected_commands[i]) && c != '\n') i++;
@@ -234,8 +228,6 @@ bool GCodeQueue::process_injected_command_S() {
   // Execute a non-blank command
   if (i) {
     injected_commands[i] = '\0';
-    MYSERIAL0.print("process S: ");
-    MYSERIAL0.println(injected_commands);
     parser.parse(injected_commands);
     gcode.process_parsed_command();
   }
@@ -266,14 +258,8 @@ void GCodeQueue::inject_P(PGM_P const pgcode) { injected_commands_P = pgcode; }
 void GCodeQueue::clearInject() 
 { 
   injected_commands_P = nullptr; 
-  // injected_commands[0] = '\0';
-  // injected_commands[1] = '\0';
-  // injected_commands[2] = '\0';
-  // injected_commands[3] = '\0';
   ZERO(injected_commands);
-  MYSERIAL0.println("clear inject");
-  MYSERIAL0.println(injected_commands[0]);
-  MYSERIAL0.println(injected_commands);
+  // MYSERIAL0.println("clear inject");
 }
 
 /**

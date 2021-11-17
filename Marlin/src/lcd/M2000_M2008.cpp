@@ -12,10 +12,15 @@
   // #include "../../module/stepper.h"
   // #include "../../module/endstops.h"
 
+  // #define DEBUG_M2000
+
+  #define DEBUG_OUT ENABLED(DEBUG_M2000)
+  #include "../core/debug_out.h"
+
   // abort printing and return to home menu
   void GcodeSuite::M2000()
   {
-      SERIAL_ECHOLNPGM("run M2000");
+      DEBUG_ECHOLNPGM("run M2000");
       relative_mode = false;
       M18_M84();
 		  if (leveling_sta!=2)
@@ -32,7 +37,7 @@
   // wait for printing pausing
   void GcodeSuite::M2001()
   {
-      SERIAL_ECHOLNPGM("run M2001");
+      DEBUG_ECHOLNPGM("run M2001");
       lgtLcdDw.LGT_Pause_Move();
 		  lgtLcdDw.LGT_Change_Page(ID_MENU_PRINT_HOME_PAUSE);
   }
@@ -49,7 +54,7 @@
   // save position and filament runout  move
   void GcodeSuite::M2003()
   {
-      SERIAL_ECHOLNPGM("run M2003");
+      DEBUG_ECHOLNPGM("run M2003");
       lgtLcdDw.LGT_Change_Page(ID_DIALOG_NO_FILA);
       status_type = PRINTER_PAUSE;
       // if(all_axes_known()) {
@@ -61,7 +66,7 @@
   // load filament
   void GcodeSuite::M2004()
   {
-    SERIAL_ECHOLNPGM("run M2004");
+    DEBUG_ECHOLNPGM("run M2004");
     lgtLcdDw.LGT_Change_Filament(LOAD_FILA_LEN);
 
   }
@@ -69,7 +74,7 @@
   // unload filament
   void GcodeSuite::M2005()
   {
-    SERIAL_ECHOLNPGM("run M2005");
+    DEBUG_ECHOLNPGM("run M2005");
     lgtLcdDw.LGT_Change_Filament(UNLOAD_FILA_LEN);
 
   }
@@ -78,7 +83,7 @@
   void GcodeSuite::M2006()
   {
 
-      SERIAL_ECHOLNPGM("run M2006");
+      DEBUG_ECHOLNPGM("run M2006");
 		  lgtLcdDw.LGT_Pause_Move();
 		  lgtLcdDw.LGT_Change_Page(ID_MENU_HOME_FILA_0);
 		  menu_type = eMENU_HOME_FILA;

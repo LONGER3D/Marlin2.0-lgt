@@ -13,7 +13,7 @@
 #include "../feature/powerloss.h"
 
 // debug define
-#define DEBUG_LGTDWLCD
+// #define DEBUG_LGTDWLCD
 #define DEBUG_OUT ENABLED(DEBUG_LGTDWLCD)
 #include "../core/debug_out.h"
 
@@ -1130,12 +1130,6 @@ void LGT_SCR_DW::processButton()
 		case eBT_PRINT_FILA_UNLOAD_OK:
 			DEBUG_ECHOLNPGM("unload ok");
 			if (menu_type == eMENU_UTILI_FILA)
-				queue.clear();
-			else if (menu_type == eMENU_HOME_FILA) 
-				queue.clearInject();
-			quickstop_stepper();
-			delay(5);
-			if (menu_type == eMENU_UTILI_FILA)
 			{
 				LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
 			}
@@ -1143,15 +1137,17 @@ void LGT_SCR_DW::processButton()
 			{
 				LGT_Change_Page(ID_MENU_HOME_FILA_0);
 			}
-			break;
-		case eBT_PRINT_FILA_LOAD_OK:
-			DEBUG_ECHOLNPGM("load ok");
+
 			if (menu_type == eMENU_UTILI_FILA)
 				queue.clear();
 			else if (menu_type == eMENU_HOME_FILA) 
 				queue.clearInject();
 			quickstop_stepper();
 			delay(5);
+
+			break;
+		case eBT_PRINT_FILA_LOAD_OK:
+			DEBUG_ECHOLNPGM("load ok");
 			if (menu_type == eMENU_UTILI_FILA)
 			{
 				LGT_Change_Page(ID_MENU_UTILI_FILA_0 + menu_fila_type_chk);
@@ -1160,6 +1156,13 @@ void LGT_SCR_DW::processButton()
 			{
 				LGT_Change_Page(ID_DIALOG_LOAD_FINISH);
 			}
+			if (menu_type == eMENU_UTILI_FILA)
+				queue.clear();
+			else if (menu_type == eMENU_HOME_FILA) 
+				queue.clearInject();
+			quickstop_stepper();
+			delay(5);
+
 			break;
 		case eBT_PRINT_FILA_CHANGE_YES:
 
@@ -1948,19 +1951,19 @@ void LGT_SCR_DW::readScreenModel()
 	// MYSERIAL0.print("fw: ");
 	// MYSERIAL0.println((char *)temp);
 
-	MYSERIAL0.print("Touch Screen: ");
-	if (temp[6] == 'D' && temp[7] == 'W') {	// DWIN T5 screen
-		MYSERIAL0.println("DWIN T5");
+	SERIAL_ECHOPGM("Detect touch screen: ");
+	if (temp[6] == 'D' && temp[7] == 'W') {	// DWIN T5 screen / TJC DWIN emulation
+		SERIAL_ECHOLNPGM("DWIN T5");
 		_screenModel = SCREEN_DWIN_T5;
 	} else if (temp[6] == 'J' && temp[7] == 'X') { // JX screen
-		MYSERIAL0.println("JX");
+		SERIAL_ECHOLNPGM("JX");
 		_screenModel = SCREEN_JX;
 	} else if (temp[6] == 'D' && temp[7] == 'L') {// DWIN T5L screen
-		MYSERIAL0.println("DWIN T5L");
+		SERIAL_ECHOLNPGM("DWIN T5L");
 		_screenModel = SCREEN_DWIN_T5L;
 	} else {
-		MYSERIAL0.print("unknown");
-		MYSERIAL0.println(", use default DWIN T5");
+		SERIAL_ECHOPGM("unknown");
+		SERIAL_ECHOLNPGM(", use default DWIN T5");
 		_screenModel = SCREEN_DWIN_T5;
 	}
 }
@@ -2077,7 +2080,7 @@ void LGT_SCR_DW::LGT_Print_Cause_Of_Kill(const char* error, const char *componen
 		TXT_ERR_HOMING_FAILED,
 		TXT_ERR_PROBING_FAILED
 	};
-
+	
 	DEBUG_PRINT_P(error);
 	DEBUG_ECHO(" ");
 	DEBUG_PRINT_P(component);
