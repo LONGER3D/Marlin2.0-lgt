@@ -73,6 +73,7 @@ public:
   static void inject_P(PGM_P const pgcode);
   #if ENABLED(LGT_LCD_DW)
     static void clearInject();
+    static void inject(char * const gcode);
   #endif
   /**
    * Enqueue and return only when commands are actually enqueued
@@ -150,6 +151,11 @@ private:
   // Process the next "immediate" command
   static bool process_injected_command();
 
+  #if ENABLED(LGT_LCD_DW)
+    // Process the next "immediate" command (SRAM)
+    static bool process_injected_command_S();
+  #endif
+  
   /**
    * Enqueue with Serial Echo
    * Return true on success

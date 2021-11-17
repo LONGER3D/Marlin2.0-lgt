@@ -102,7 +102,12 @@
 #define LK4_PRO
 // #define LK5_PRO
 
-#define SHORT_BUILD_VERSION       "V1.0-Marlin2.x"
+
+#define FW_TEST_TAG "T001"
+#ifndef FW_TEST_TAG
+	#define FW_TEST_TAG ""
+#endif
+#define SHORT_BUILD_VERSION       "0.3.6" FW_TEST_TAG "-Marlin2.x" 
 #define DEFAULT_MACHINE_NAME      "LONGER 3D Printer"   // override by  CUSTOM_MACHINE_NAME if any
 #define SOURCE_CODE_URL           "https://github.com/LONGER3D"
 #define STRING_DISTRIBUTION_DATE  "2021-06-18"

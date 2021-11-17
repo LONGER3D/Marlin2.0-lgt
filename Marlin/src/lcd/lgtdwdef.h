@@ -95,11 +95,7 @@
 #endif
 #define MANUAL_FEEDRATE { 50*60, 50*60, 4*60, 60 } // Feedrates for manual moves along X, Y, Z, E from panel
 
-#define FW_TEST_TAG "T001"
-#ifndef FW_TEST_TAG
-	#define FW_TEST_TAG ""
-#endif
-#define	BOARD_FW_VER    "0.3.5" FW_TEST_TAG "-Marlin" 
+#define	BOARD_FW_VER    SHORT_BUILD_VERSION
 
 
 // DWIN system variable address

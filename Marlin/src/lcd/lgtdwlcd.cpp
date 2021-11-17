@@ -1064,39 +1064,45 @@ void LGT_SCR_DW::processButton()
 				else
 				{
 					memset(cmd_E, 0, sizeof(cmd_E));
-					sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
 					if (menu_type == eMENU_UTILI_FILA) {
+						sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
 						LGT_Change_Page(ID_DIALOG_UTILI_FILA_WAIT);
 						queue.enqueue_one_now(cmd_E);
 						queue.enqueue_one_P(PSTR("M2004"));
 					} else if (menu_type == eMENU_HOME_FILA) {
+						sprintf_P(cmd_E, PSTR("M109 S%i\nM2004"), filament_temp);
 						LGT_Change_Page(ID_DIALOG_PRINT_FILA_WAIT);
-						queue.enqueue_one_now(cmd_E);
-						queue.enqueue_one_P(PSTR("M2004"));
+						queue.inject(cmd_E);
 					}
 				}
 			break;
 		case eBT_UTILI_FILA_UNLOAD:
 			if (thermalManager.degHotend(eExtruder::E0) >= (filament_temp - 5))
 			{
-				if (menu_type == eMENU_HOME_FILA)
+				if (menu_type == eMENU_HOME_FILA) {
 					queue.inject_P(PSTR("M2005"));
-				else if (menu_type == eMENU_UTILI_FILA)
+					DEBUG_ECHOLNPGM("inject M2005");
+				} else if (menu_type == eMENU_UTILI_FILA) {
 					queue.enqueue_now_P(PSTR("M2005"));
+					DEBUG_ECHOLNPGM("enqueue M2005");
+				}
 
 			}
 			else
 			{
 				memset(cmd_E, 0, sizeof(cmd_E));
-				LGT_Change_Page(ID_DIALOG_UTILI_FILA_WAIT);
-				sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
 				if (menu_type == eMENU_UTILI_FILA) {
+					sprintf_P(cmd_E, PSTR("M109 S%i"), filament_temp);
+					LGT_Change_Page(ID_DIALOG_UTILI_FILA_WAIT);
 					queue.enqueue_one_now(cmd_E);
 					queue.enqueue_one_P(PSTR("M2005"));
+					DEBUG_ECHOLNPGM("enqueue M109 M2005");
 				} else if (menu_type == eMENU_HOME_FILA) {
-					queue.enqueue_one_now(cmd_E);
-					queue.enqueue_one_P(PSTR("M2005"));
-				}	
+					sprintf_P(cmd_E, PSTR("M109 S%i\nM2005"), filament_temp);
+					LGT_Change_Page(ID_DIALOG_PRINT_FILA_WAIT);
+					queue.inject(cmd_E);
+					DEBUG_ECHOLNPGM("inject M109 M2005");
+				}
 			}
 			break;
 
@@ -1105,9 +1111,11 @@ void LGT_SCR_DW::processButton()
 			DEBUG_ECHOLNPGM("fila heating canceled");
 			if (menu_type == eMENU_UTILI_FILA)
 				queue.clear();
-			else if (menu_type == eMENU_HOME_FILA) 
+			else if (menu_type == eMENU_HOME_FILA)
 				queue.clearInject();
+
 			wait_for_heatup = false;
+
 			if (menu_type == eMENU_UTILI_FILA)
 			{
 				thermalManager.disable_all_heaters();

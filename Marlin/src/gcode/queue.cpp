@@ -97,6 +97,13 @@ bool send_ok[BUFSIZE];
  */
 static PGM_P injected_commands_P = nullptr;
 
+#if ENABLED(LGT_LCD_DW)
+/**
+ * Injected SRAM Commands
+ */
+static char injected_commands[64] = { 0 };
+#endif
+
 GCodeQueue::GCodeQueue() {
   // Send "ok" after commands by default
   LOOP_L_N(i, COUNT(send_ok)) send_ok[i] = true;
@@ -106,7 +113,11 @@ GCodeQueue::GCodeQueue() {
  * Check whether there are any commands yet to be executed
  */
 bool GCodeQueue::has_commands_queued() {
+#if ENABLED(LGT_LCD_DW)
+  return queue.length || injected_commands_P || injected_commands;
+#else
   return queue.length || injected_commands_P;
+#endif
 }
 
 /**
@@ -196,11 +207,49 @@ bool GCodeQueue::process_injected_command() {
 
   // Execute command if non-blank
   if (i) {
+    MYSERIAL0.print("process P: ");
+    MYSERIAL0.println(cmd);
     parser.parse(cmd);
     gcode.process_parsed_command();
   }
   return true;
 }
+
+#if ENABLED(LGT_LCD_DW)
+/**
+ * Process the next "immediate" command from SRAM.
+ * Return 'true' if any commands were processed.
+ */
+bool GCodeQueue::process_injected_command_S() {
+  if (injected_commands[0] == '\0') return false;
+
+  MYSERIAL0.print("start process S: ");
+  MYSERIAL0.println(injected_commands[0]);
+  MYSERIAL0.println(injected_commands);
+
+  char c;
+  size_t i = 0;
+  while ((c = injected_commands[i]) && c != '\n') i++;
+
+  // Execute a non-blank command
+  if (i) {
+    injected_commands[i] = '\0';
+    MYSERIAL0.print("process S: ");
+    MYSERIAL0.println(injected_commands);
+    parser.parse(injected_commands);
+    gcode.process_parsed_command();
+  }
+
+  // Copy the next command into place
+  for (
+    uint8_t d = 0, s = i + !!c;                     // dst, src
+    (injected_commands[d] = injected_commands[s]);  // copy, exit if 0
+    d++, s++                                        // next dst, src
+  );
+
+  return true;
+}
+#endif
 
 /**
  * Enqueue one or many commands to run from program memory.
@@ -214,7 +263,27 @@ void GCodeQueue::inject_P(PGM_P const pgcode) { injected_commands_P = pgcode; }
 /**
  * Clean injected command
  */
-void GCodeQueue::clearInject() { injected_commands_P = nullptr; }
+void GCodeQueue::clearInject() 
+{ 
+  injected_commands_P = nullptr; 
+  // injected_commands[0] = '\0';
+  // injected_commands[1] = '\0';
+  // injected_commands[2] = '\0';
+  // injected_commands[3] = '\0';
+  ZERO(injected_commands);
+  MYSERIAL0.println("clear inject");
+  MYSERIAL0.println(injected_commands[0]);
+  MYSERIAL0.println(injected_commands);
+}
+
+/**
+ * Enqueue command(s) to run from SRAM. Drained by process_injected_command().
+ * Aborts the current SRAM queue so only use for one or two commands.
+ */
+void GCodeQueue::inject(char * const gcode) {
+  strncpy(injected_commands, gcode, sizeof(injected_commands) - 1);
+}
+
 #endif
 
 /**
@@ -616,6 +685,10 @@ void GCodeQueue::advance() {
 
   // Process immediate commands
   if (process_injected_command()) return;
+
+  #if ENABLED(LGT_LCD_DW)
+    if (process_injected_command_S()) return;
+  #endif
 
   // Return if the G-code buffer is empty
   if (!length) return;
