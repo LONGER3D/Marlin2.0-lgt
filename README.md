@@ -5,9 +5,11 @@ Build tool: Microsoft VS Code + Platform IO extension
 ### LKx(Ux0) series([git master branch](https://github.com/LONGER3D/Marlin2.0-lgt/tree/master))
 - [x] basic printing function(by SD card and serial port).
 - [x] 2.8 inch TFT-LCD touch screen function.
+- [x] fix bugs 
 ### LKx(Ux0) Pro series([git LKx Pro branch](https://github.com/LONGER3D/Marlin2.0-lgt/tree/support-LKxPro))
 - [x] baisc printing function(by SD card and serial port).
 - [x] 4.3 inch serial touch screen function.
+- [x] fix bugs 
 
 ### Ask to us if you have any question via [Github issues](https://github.com/LONGER3D/Marlin2.0-lgt/issues) or [LONGER Offical Suppor E-mail](mailto:support@longer3d.com).
 ---
