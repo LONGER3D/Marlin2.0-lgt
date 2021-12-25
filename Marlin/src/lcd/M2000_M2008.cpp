@@ -21,7 +21,6 @@
   void GcodeSuite::M2000()
   {
       DEBUG_ECHOLNPGM("run M2000");
-      relative_mode = false;
       M18_M84();
 		  if (leveling_sta!=2)
 		  {
