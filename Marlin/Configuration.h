@@ -99,15 +99,15 @@
   #define LGT_LCD_DW    // DWIN 4.3 inch LCD serial touch screen
 #endif
 
-// #define LK4_PRO
-#define LK5_PRO
+#define LK4_PRO
+// #define LK5_PRO
 
 
-#define FW_TEST_TAG "T002"
+#define FW_TEST_TAG "T003"
 #ifndef FW_TEST_TAG
 	#define FW_TEST_TAG ""
 #endif
-#define SHORT_BUILD_VERSION       "0.3.6" FW_TEST_TAG "-Marlin2.x" 
+#define SHORT_BUILD_VERSION       "0.4.0" FW_TEST_TAG "-Marlin2.x" 
 #define DEFAULT_MACHINE_NAME      "LONGER 3D Printer"   // override by  CUSTOM_MACHINE_NAME if any
 #define SOURCE_CODE_URL           "https://github.com/LONGER3D"
 #define STRING_DISTRIBUTION_DATE  "2021-11-17"
