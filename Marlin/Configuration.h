@@ -69,50 +69,40 @@
 //
 
 //===========================================================================
-//============================= Longer 3D/Alfawise Printer ============================
+//============================= Longer 3D Printer ============================
 //===========================================================================
 
-// Forum link to help with a tutorial, in French! :
-// https://www.lesimprimantes3d.fr/forum/topic/18260-alfawise-u20x-u30-marlin-2x-firmware-alternatif/
-//
-// 1 - Select your Alfawise U30 or U20 or U20+ printer (NO MORE REQUIRED HERE)
-//     and the touchscreen version, either 1.1 or 1.2. Most recent in France are v1.2 (blue pcb)
-//     These defines are set in platformio.ini build parameters, sample for U20 -DU20 -DTS_V12
-//     U20_PLUS was not tested, as we do not have a printer to test. Print bed PID settings MUST be tuned for it.
+// uncomment or comment LKx_PRO definition to change model
+// NOTE: should only define one single model in the meantime
+#define LK4_PRO
+// #define LK5_PRO
 
-// Valid platformio.ini submodel values are U20_PLUS U20 U30 LK1 LK1_PLUS LK2 LK4
-
-// Valid platformio.ini touchscreens are TS_V11 TS_V12 TS_V19 TS_V20
-
-// 2 - Select the screen controller type. Most common is ILI9341 - First option. If your screen remains white,
-//     Try the alternate setting - this should enable ST7789V or ILI9328. For other LCDs... code is needed
-//     with the proper boot sequence to be developped.
-
-#define LCD_READ_ID   0xD3 // Read display identification information in reg ID4 0xD3, for ILI9341 screens
-//#define LCD_READ_ID 0x04 // Read display identification information in reg ID1 0x04 - ST7789V / ILI9328 or others
+// validate model definition for LKxPro printer
+#if defined(LK1_PRO) && !defined(LK4_PRO) && !defined(LK5_PRO)
+#elif !defined(LK1_PRO) && defined(LK4_PRO) && !defined(LK5_PRO)
+#elif !defined(LK1_PRO) && !defined(LK4_PRO) && defined(LK5_PRO)
+#elif !defined(LK1_PRO) && !defined(LK4_PRO) && !defined(LK5_PRO)
+  #error "Not define any one printer model"
+#else
+  #error "Defined more than one printer model at the same time"
+#endif
 
 // LGT(longer 3D Technology) definition
 #define LGT // comment to remove all code snippets from LGT(Longer 3D Technology)
 
 #if ENABLED(LGT)
-  //  #define LGT_LCD_TFT    // LCD 2.8 inch MCU TFT touch screen
   #define LGT_LCD_DW    // DWIN 4.3 inch LCD serial touch screen
 #endif
 
-#define LK4_PRO
-// #define LK5_PRO
-
-
-#define FW_TEST_TAG "T003"
+#define FW_TEST_TAG "T004"
 #ifndef FW_TEST_TAG
 	#define FW_TEST_TAG ""
 #endif
 #define SHORT_BUILD_VERSION       "0.4.0" FW_TEST_TAG "-Marlin2.x" 
 #define DEFAULT_MACHINE_NAME      "LONGER 3D Printer"   // override by  CUSTOM_MACHINE_NAME if any
 #define SOURCE_CODE_URL           "https://github.com/LONGER3D"
-#define STRING_DISTRIBUTION_DATE  "2021-11-17"
+#define STRING_DISTRIBUTION_DATE  "2021-12-28"
 #define WEBSITE_URL               "www.longer3d.com"    // full url: https://www.longer3d.com
-
 
 //===========================================================================
 
@@ -2317,7 +2307,7 @@
 // Use software PWM to drive the fan, as for the heaters. This uses a very low frequency
 // which is not as annoying as with the hardware PWM. On the other hand, if this frequency
 // is too low, you should also increment SOFT_PWM_SCALE.
-//#define FAN_SOFT_PWM
+#define FAN_SOFT_PWM
 
 // Incrementing this by 1 will double the software PWM frequency,
 // affecting heaters, and the fan if FAN_SOFT_PWM is enabled.

@@ -1728,6 +1728,7 @@ void Temperature::init() {
   #if HAS_FAN0
     #if ENABLED(LGT_LCD_DW)
       OUT_WRITE(FAN_PIN, HIGH); // turn on fan
+      thermalManager.soft_pwm_amount_fan[0] = FAN_MAX_PWM;
     #else
       INIT_FAN_PIN(FAN_PIN);
     #endif

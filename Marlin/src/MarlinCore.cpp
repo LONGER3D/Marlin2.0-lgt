@@ -1230,6 +1230,7 @@ void setup() {
 
   #if ENABLED(LGT_LCD_DW)
     WRITE(FAN_PIN, LOW);  // turn off fan
+    thermalManager.soft_pwm_amount_fan[0] = 0;
     lgtLcdDw.begin();
   #endif
 
