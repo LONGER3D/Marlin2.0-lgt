@@ -957,19 +957,34 @@ void LGT_SCR_DW::processButton()
 		case eBT_PRINT_FILE_OPEN_YES:
 			if (sel_fileid > -1)
 			{
-					card.getfilename_sorted(gcode_id[sel_fileid]);
-					card.openAndPrintFile(card.filename);	
-					LGT_MAC_Send_Filename(ADDR_TXT_HOME_FILE_NAME, gcode_id[sel_fileid]);
-					delay(5);
-					menu_type = eMENU_PRINT_HOME;
-					LGT_Printer_Data_Updata();
-					status_type = PRINTER_PRINTING;
-					LGT_is_printing = true;
-					LGT_Send_Data_To_Screen(ADDR_VAL_ICON_HIDE, int16_t(0));
-					idle();
-					LGT_Change_Page(ID_MENU_PRINT_HOME);
-					fila_type = 0;    //PLA
-					LGT_Save_Recovery_Filename(DW_CMD_VAR_W, DW_FH_1, ADDR_TXT_HOME_FILE_NAME,32);
+				// get filename
+				card.getfilename_sorted(gcode_id[sel_fileid]);
+				card.openAndPrintFile(card.filename);	
+				LGT_MAC_Send_Filename(ADDR_TXT_HOME_FILE_NAME, gcode_id[sel_fileid]);
+				delay(5);
+				
+				// prepare home data, then jumpt to home page
+				menu_type = eMENU_PRINT_HOME;
+				LGT_Printer_Data_Updata();
+				status_type = PRINTER_PRINTING;
+				LGT_is_printing = true;
+				LGT_Send_Data_To_Screen(ADDR_VAL_ICON_HIDE, int16_t(0));
+				// idle();
+				fila_type = 0;    //PLA
+
+				LGT_Change_Page(ID_MENU_PRINT_HOME);
+
+				// save filename to the flash of touch screen
+				LGT_Save_Recovery_Filename(DW_CMD_VAR_W, DW_FH_1, ADDR_TXT_HOME_FILE_NAME,32);
+
+				// filament runout handling
+				if (READ(FIL_RUNOUT_PIN) == FIL_RUNOUT_INVERTING) {
+					if(READ(FIL_RUNOUT_PIN) == FIL_RUNOUT_INVERTING) {
+						queue.enqueue_one_P(PSTR("M25"));
+				      	lgtLcdDw.LGT_Change_Page(ID_DIALOG_NO_FILA);
+						status_type = PRINTER_PAUSE;
+					}
+				}
 			}
 			break;
 		case eBT_PRINT_FILE_CLEAN: //Cleaning sel_fileid
@@ -1018,6 +1033,7 @@ void LGT_SCR_DW::processButton()
 				LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
 				wait_for_heatup = false;
 				LGT_stop_printing = true;
+				LGT_is_printing = false;
 				saveFinishTime();
 				LGT_Exit_Print_Page();
 			break;
