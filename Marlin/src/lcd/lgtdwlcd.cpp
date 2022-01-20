@@ -13,7 +13,7 @@
 #include "../feature/powerloss.h"
 
 // debug define
-// #define DEBUG_LGTDWLCD
+#define DEBUG_LGTDWLCD
 #define DEBUG_OUT ENABLED(DEBUG_LGTDWLCD)
 #include "../core/debug_out.h"
 
@@ -67,6 +67,8 @@ unsigned int filament_temp = 200;
 
 bool check_recovery = false; // for recovery dialog
 char leveling_sta = 0; // for leveling menu
+
+static int16_t old_tar_temp_end = 0, old_tar_temp_bed = 0;	// for leveling menu 
 
 // #define MYSERIAL1 customizedSerial2//MSerial2
 
@@ -1251,29 +1253,41 @@ void LGT_SCR_DW::processButton()
 			#elif defined(LK5_PRO)
 				if (xyz_home == false)
 				{
+					// save current tatgethotend
+					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+					old_tar_temp_bed = thermalManager.degTargetBed();
+
+					// zero temp for prevent from damaging bed or hot end
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
+
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
 				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_one_P(PSTR("G1 X50 Y50 F3000"));
+				queue.enqueue_one_P(PSTR("G1 X50 Y50 F5000"));
 				queue.enqueue_one_P(PSTR("G1 Z0 F300"));		
 			#else  //LK4_PRO
 			// if (queue.length >= BUFSIZE)
 			// 	break;
 				if (xyz_home == false)
 				{
+					// save current tatgethotend
+					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+					old_tar_temp_bed = thermalManager.degTargetBed();
+
+					// zero temp for prevent from damaging bed or hot end
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
+
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
 
 					xyz_home = true;
 				}
 				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_one_P(PSTR("G1 X30 Y30 F3000"));
+				queue.enqueue_one_P(PSTR("G1 X30 Y30 F5000"));
 				queue.enqueue_one_P(PSTR("G1 Z0 F300"));
 			#endif
 			break;
@@ -1290,26 +1304,38 @@ void LGT_SCR_DW::processButton()
 			#elif defined(LK5_PRO)
 				if (xyz_home == false)
 				{
+					// save current tatgethotend
+					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+					old_tar_temp_bed = thermalManager.degTargetBed();
+
+					// zero temp for prevent from damaging bed or hot end
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
+
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
 				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_one_P(PSTR("G1 X250 Y50 F3000"));
+				queue.enqueue_one_P(PSTR("G1 X250 Y50 F5000"));
 				queue.enqueue_one_P(PSTR("G1 Z0 F300"));				
 			#else  //LK4_PRO
 				if (xyz_home == false)
 				{
+					// save current tatgethotend
+					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+					old_tar_temp_bed = thermalManager.degTargetBed();
+
+					// zero temp for prevent from damaging bed or hot end
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
+
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
 				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_one_P(PSTR("G1 X190 Y30 F3000"));
+				queue.enqueue_one_P(PSTR("G1 X190 Y30 F5000"));
 				queue.enqueue_one_P(PSTR("G1 Z0 F300"));
 			#endif
 			break;
@@ -1326,26 +1352,38 @@ void LGT_SCR_DW::processButton()
 			#elif defined(LK5_PRO)
 				if (xyz_home == false)
 				{
+					// save current tatgethotend
+					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+					old_tar_temp_bed = thermalManager.degTargetBed();
+
+					// zero temp for prevent from damaging bed or hot end
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
+
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
 				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_one_P(PSTR("G1 X250 Y250 F3000"));
+				queue.enqueue_one_P(PSTR("G1 X250 Y250 F5000"));
 				queue.enqueue_one_P(PSTR("G1 Z0 F300"));					
 			#else  //LK4_PRO
 				if (xyz_home == false)
 				{
+					// save current tatgethotend
+					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+					old_tar_temp_bed = thermalManager.degTargetBed();
+
+					// zero temp for prevent from damaging bed or hot end
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
+
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
 				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_one_P(PSTR("G1 X190 Y190 F3000"));
+				queue.enqueue_one_P(PSTR("G1 X190 Y190 F5000"));
 				queue.enqueue_one_P(PSTR("G1 Z0 F300"));
 			#endif
 			break;
@@ -1362,26 +1400,38 @@ void LGT_SCR_DW::processButton()
 			#elif defined(LK5_PRO)
 				if (xyz_home == false)
 				{
+					// save current tatgethotend
+					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+					old_tar_temp_bed = thermalManager.degTargetBed();
+
+					// zero temp for prevent from damaging bed or hot end
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
+
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
 				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_one_P(PSTR("G1 X50 Y250 F3000"));
+				queue.enqueue_one_P(PSTR("G1 X50 Y250 F5000"));
 				queue.enqueue_one_P(PSTR("G1 Z0 F300"));				
 			#else  //LK4_PRO
 				if (xyz_home == false)
 				{
+					// save current tatgethotend
+					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+					old_tar_temp_bed = thermalManager.degTargetBed();
+
+					// zero temp for prevent from damaging bed or hot end
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
+
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
 				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_one_P(PSTR("G1 X30 Y190 F3000"));
+				queue.enqueue_one_P(PSTR("G1 X30 Y190 F5000"));
 				queue.enqueue_one_P(PSTR("G1 Z0 F300"));  
 			#endif
 			break;
@@ -1398,26 +1448,38 @@ void LGT_SCR_DW::processButton()
 			#elif defined(LK5_PRO)
 				if (xyz_home == false)
 				{
+					// save current tatgethotend
+					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+					old_tar_temp_bed = thermalManager.degTargetBed();
+
+					// zero temp for prevent from damaging bed or hot end
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
+
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
 				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_one_P(PSTR("G1 X150 Y150 F3000"));
+				queue.enqueue_one_P(PSTR("G1 X150 Y150 F5000"));
 				queue.enqueue_one_P(PSTR("G1 Z0 F300"));				
 			#else  //LK4_PRO
 				if (xyz_home == false)
 				{
+					// save current tatgethotend
+					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+					old_tar_temp_bed = thermalManager.degTargetBed();
+
+					// zero temp for prevent from damaging bed or hot end
 					thermalManager.setTargetHotend(0, eExtruder::E0);
 					thermalManager.setTargetBed(0);
+
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
 					xyz_home = true;
 				}
 				queue.enqueue_one_P(PSTR("G1 Z10 F500"));
-				queue.enqueue_one_P(PSTR("G1 X110 Y110 F3000"));
+				queue.enqueue_one_P(PSTR("G1 X110 Y110 F5000"));
 				queue.enqueue_one_P(PSTR("G1 Z0 F300"));
 			#endif
 			break;
@@ -1431,6 +1493,13 @@ void LGT_SCR_DW::processButton()
 				if (xyz_home) {
 					xyz_home = false;
 					queue.enqueue_one_P(PSTR("G1 Z10 F500"));	//up 10mm to prevent from damaging bed
+					
+					// retrive target temp
+					DEBUG_ECHOPAIR("\ntartemp_end", old_tar_temp_end);
+					DEBUG_ECHOPAIR("tartemp_bed", old_tar_temp_bed);
+					DEBUG_EOL();
+					thermalManager.setTargetHotend(old_tar_temp_end, eExtruder::E0);
+					thermalManager.setTargetBed(old_tar_temp_bed);
 				}
 			#endif
 			break;
