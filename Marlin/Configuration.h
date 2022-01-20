@@ -74,8 +74,8 @@
 
 // uncomment or comment LKx_PRO definition to change model
 // NOTE: should only define one single model in the meantime
-#define LK4_PRO
-// #define LK5_PRO
+// #define LK4_PRO
+#define LK5_PRO
 
 // validate model definition for LKxPro printer
 #if defined(LK1_PRO) && !defined(LK4_PRO) && !defined(LK5_PRO)

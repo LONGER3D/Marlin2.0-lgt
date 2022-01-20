@@ -976,6 +976,10 @@ void LGT_SCR_DW::processButton()
 
 				// save filename to the flash of touch screen
 				LGT_Save_Recovery_Filename(DW_CMD_VAR_W, DW_FH_1, ADDR_TXT_HOME_FILE_NAME,32);
+				
+				// set unhomed for prevent from some potential issues(resume after begining runout)
+				set_all_unhomed();
+				set_all_unknown();
 
 				// filament runout handling
 				if (READ(FIL_RUNOUT_PIN) == FIL_RUNOUT_INVERTING) {
@@ -1014,13 +1018,18 @@ void LGT_SCR_DW::processButton()
 		case eBT_PRINT_HOME_RESUME:
 			DEBUG_ECHOLN("resume");
 			LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
-			// go to park posion
-			do_blocking_move_to_xy(resume_x_position,resume_y_position,50); 
-			planner.synchronize();	// wait move done
 
+			if (all_axes_known() || all_axes_homed()) {
+				// go to original posion
+				do_blocking_move_to_xy(resume_x_position,resume_y_position,50); 
+				planner.synchronize();	// wait move done
+
+				DEBUG_ECHOLNPAIR_F("cur feedrate", feedrate_mm_s);
+				feedrate_mm_s = resume_feedrate;
+				// planner.set_e_position_mm((destination[E_AXIS] = current_position[E_AXIS] = (resume_e_position - 2))); resume in LGT_Change_Filament()
+			}
 			LGT_Change_Page(ID_MENU_PRINT_HOME);
-			DEBUG_ECHOLNPAIR_F("cur feedrate", feedrate_mm_s);
-			feedrate_mm_s = resume_feedrate;
+
 			card.startFileprint();
 			print_job_timer.start();
 			runout.reset();
