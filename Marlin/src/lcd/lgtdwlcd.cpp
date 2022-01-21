@@ -70,6 +70,9 @@ char leveling_sta = 0; // for leveling menu
 
 static int16_t old_tar_temp_end = 0, old_tar_temp_bed = 0;	// for leveling menu 
 
+bool is_abort_recovery_resume = false;
+bool is_recovery_resuming = false; // for recovery resume
+
 // #define MYSERIAL1 customizedSerial2//MSerial2
 
 static void LGT_Line_To_Current(AxisEnum axis) 
@@ -176,7 +179,7 @@ void LGT_SCR_DW::LGT_LCD_startup_settings()
                 menu_type = eMENU_HOME;
                 lgtLcdDw.LGT_Change_Page(ID_MENU_HOME);
             }
-            else	// goto recovery page
+            else	// recovery is true
             {
 				DEBUG_PRINT_P(PSTR("dw: go recovery"));
                 return_home = true;
@@ -1040,11 +1043,17 @@ void LGT_SCR_DW::processButton()
 			LGT_is_printing = true;	// need test
 			break;
 		case eBT_PRINT_HOME_ABORT:
-				DEBUG_ECHOLNPAIR_P("abort");
+				DEBUG_ECHOLNPGM("abort");
 				LGT_Change_Page(ID_DIALOG_PRINT_WAIT);
 				wait_for_heatup = false;
 				LGT_stop_printing = true;
 				LGT_is_printing = false;
+
+				// abort recovery resume if in recovery resuming
+				if (is_recovery_resuming) {
+					is_abort_recovery_resume = true;
+				}
+
 				saveFinishTime();
 				LGT_Exit_Print_Page();
 			break;
@@ -1218,6 +1227,7 @@ void LGT_SCR_DW::processButton()
 			LGT_Save_Recovery_Filename(DW_CMD_VAR_W, DW_FH_0, ADDR_TXT_HOME_FILE_NAME, 32);
 			queue.inject_P(PSTR("M1000"));		// == recovery.resume()
 			// LGT_Power_Loss_Recovery_Resume();	// recovery data write to UI
+			is_recovery_resuming = true;
 			menu_type = eMENU_PRINT_HOME;
 			LGT_Printer_Data_Updata();
 			LGT_Change_Page(ID_MENU_PRINT_HOME);
@@ -1717,11 +1727,6 @@ void LGT_SCR_DW::LGT_SDCard_Status_Update()
 				delay(2);
 				if (card.isMounted())
 				{
-					#if ENABLED(POWER_LOSS_RECOVERY)
-						recovery.check();
-					#endif
-					if (!check_recovery)
-					{
 						if (menu_type == eMENU_FILE)
 						{
 							if (ii_setup == (STARTUP_COUNTER + 1))
@@ -1729,14 +1734,6 @@ void LGT_SCR_DW::LGT_SDCard_Status_Update()
 								LGT_Change_Page(ID_MENU_PRINT_FILES_O);
 							}
 						}
-					}
-					else
-					{
-						return_home = true;
-						check_recovery = false;
-						ENABLE_AXIS_Z();  // lock z moter prevent from drop down
-						LGT_Change_Page(ID_DIALOG_PRINT_RECOVERY);
-					}
 					LGT_Display_Filename();
 				}
 			}
@@ -1852,11 +1849,18 @@ void LGT_SCR_DW::LGT_Stop_Printing()
 	#if ENABLED(POWER_LOSS_RECOVERY)
 		recovery.purge();
 	#endif
-	queue.enqueue_one_P(PSTR("G91"));
-	queue.enqueue_one_P(PSTR("G1 Z10"));
-	queue.enqueue_one_P(PSTR("G90"));
-	queue.enqueue_one_P(PSTR("G28 X0"));
-	queue.enqueue_one_P(PSTR("M2000"));
+
+	// end gcodes
+	if (is_recovery_resuming) {
+		is_recovery_resuming = false;
+	} else {
+		queue.enqueue_one_P(PSTR("G91"));
+		queue.enqueue_one_P(PSTR("G1 Z10"));
+		queue.enqueue_one_P(PSTR("G90"));
+		queue.enqueue_one_P(PSTR("G28 X0"));
+	}
+
+	queue.enqueue_one_P(PSTR("M2000"));	// goto home page
 }
 
 /*************************************

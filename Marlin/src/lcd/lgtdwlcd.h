@@ -156,5 +156,6 @@ extern LGT_SCR_DW lgtLcdDw;     // extern interface
 extern bool LGT_is_printing;
 extern char leveling_sta; 
 extern bool check_recovery; // for recovery dialog
-
+extern bool is_abort_recovery_resume; // for abort recovery resume
+extern bool is_recovery_resuming; // recovery resume
 #endif // LGT_LCD_DW

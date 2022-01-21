@@ -77,6 +77,13 @@ PrintJobRecovery recovery;
   #define POWER_LOSS_ZRAISE 2
 #endif
 
+#if ENABLED(LGT_LCD_DW)
+  // debug define
+  // #define DEBUG_LGTDWLCD
+  #define DEBUG_OUT ENABLED(DEBUG_LGTDWLCD)
+  #include "../core/debug_out.h"
+#endif
+
 /**
  * Clear the recovery info
  */
@@ -307,6 +314,15 @@ void PrintJobRecovery::write() {
  */
 void PrintJobRecovery::resume() {
 
+  #if ENABLED(LGT_LCD_DW)
+    // check if need abort recovery resume
+    if (is_abort_recovery_resume) {
+      is_abort_recovery_resume = false;
+      DEBUG_ECHOLNPGM("\nabort rec-resume");
+      return;
+    }
+  #endif // LGT_LCD_DW
+
   const uint32_t resume_sdpos = info.sdpos; // Get here before the stepper ISR overwrites it
 
   #if HAS_LEVELING
@@ -389,6 +405,15 @@ void PrintJobRecovery::resume() {
     }
   #endif
 
+  #if ENABLED(LGT_LCD_DW)
+    // check if need abort recovery resume
+    if (is_abort_recovery_resume) {
+      is_abort_recovery_resume = false;
+      DEBUG_ECHOLNPGM("\nabort rec-resume");
+      return;
+    }
+  #endif // LGT_LCD_DW
+
   // Restore all hotend temperatures
   #if HOTENDS
     HOTEND_LOOP() {
@@ -403,6 +428,15 @@ void PrintJobRecovery::resume() {
       }
     }
   #endif
+
+  #if ENABLED(LGT_LCD_DW)
+    // check if need abort recovery resume
+    if (is_abort_recovery_resume) {
+      is_abort_recovery_resume = false;
+      DEBUG_ECHOLNPGM("\nabort rec-resume");
+      return;
+    }
+  #endif // LGT_LCD_DW
 
 #if ENABLED(LGT)
   // Reset E, raise Z, home XY...
@@ -436,6 +470,16 @@ void PrintJobRecovery::resume() {
       #endif
     #endif
   ));
+
+  #if ENABLED(LGT_LCD_DW)
+    // check if need abort recovery resume
+    if (is_abort_recovery_resume) {
+      is_abort_recovery_resume = false;
+      DEBUG_ECHOLNPGM("\nabort rec-resume");
+      return;
+    }
+  #endif // LGT_LCD_DW
+
 #endif  // LGT
 
   // Restore print cooling fan speeds
@@ -528,6 +572,15 @@ void PrintJobRecovery::resume() {
     LOOP_XYZ(i) update_workspace_offset((AxisEnum)i);
   #endif
 
+  #if ENABLED(LGT_LCD_DW)
+    // check if need abort recovery resume
+    if (is_abort_recovery_resume) {
+      is_abort_recovery_resume = false;
+      DEBUG_ECHOLNPGM("\nabort rec-resume");
+      return;
+    }
+  #endif // LGT_LCD_DW
+
   // Resume the SD file from the last position
   char *fn = info.sd_filename;
   extern const char M23_STR[];
@@ -539,6 +592,12 @@ void PrintJobRecovery::resume() {
 #if ENABLED(LGT_LCD_TFT)
   // resume done, show abort button in lcd print menu
   lgtlcdtft.actAfterRecovery();
+#endif
+
+#if ENABLED(LGT_LCD_DW)
+  // recovery resume done
+  is_recovery_resuming = false;
+  is_abort_recovery_resume = false;
 #endif
 
 }
