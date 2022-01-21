@@ -45,7 +45,7 @@ bool xy_home = false;
 #if ANY(LK4_PRO, LK5_PRO)
 	bool xyz_home = false,z_home=false;
 #endif
-bool leveling_wait = false;
+// bool leveling_wait = false;
 int re_count = 0;
 E_MENU_TYPE menu_type= eMENU_IDLE;
 PRINTER_STATUS status_type= PRINTER_SETUP;
@@ -68,7 +68,11 @@ unsigned int filament_temp = 200;
 bool check_recovery = false; // for recovery dialog
 char leveling_sta = 0; // for leveling menu
 
-static int16_t old_tar_temp_end = 0, old_tar_temp_bed = 0;	// for leveling menu 
+// #define COOL_BEFORE_LEVELING			// cool hot-end and bed before leveling, and restore hot-end and bed temperature after leveling.
+
+#if ENABLED(COOL_BEFORE_LEVELING)
+	static int16_t old_tar_temp_end = 0, old_tar_temp_bed = 0;	// for leveling menu 
+#endif
 
 bool is_abort_recovery_resume = false;
 bool is_recovery_resuming = false; // for recovery resume
@@ -1263,13 +1267,15 @@ void LGT_SCR_DW::processButton()
 			#elif defined(LK5_PRO)
 				if (xyz_home == false)
 				{
-					// save current tatgethotend
-					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
-					old_tar_temp_bed = thermalManager.degTargetBed();
+					#if ENABLED(COOL_BEFORE_LEVELING)
+						// save current tatgethotend
+						old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+						old_tar_temp_bed = thermalManager.degTargetBed();
 
-					// zero temp for prevent from damaging bed or hot end
-					thermalManager.setTargetHotend(0, eExtruder::E0);
-					thermalManager.setTargetBed(0);
+						// zero temp for prevent from damaging bed or hot end
+						thermalManager.setTargetHotend(0, eExtruder::E0);
+						thermalManager.setTargetBed(0);
+					#endif // COOL_BEFORE_LEVELING
 
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
@@ -1283,13 +1289,15 @@ void LGT_SCR_DW::processButton()
 			// 	break;
 				if (xyz_home == false)
 				{
-					// save current tatgethotend
-					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
-					old_tar_temp_bed = thermalManager.degTargetBed();
+					#if ENABLED(COOL_BEFORE_LEVELING)
+						// save current tatgethotend
+						old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+						old_tar_temp_bed = thermalManager.degTargetBed();
 
-					// zero temp for prevent from damaging bed or hot end
-					thermalManager.setTargetHotend(0, eExtruder::E0);
-					thermalManager.setTargetBed(0);
+						// zero temp for prevent from damaging bed or hot end
+						thermalManager.setTargetHotend(0, eExtruder::E0);
+						thermalManager.setTargetBed(0);
+					#endif // COOL_BEFORE_LEVELING
 
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
@@ -1314,13 +1322,15 @@ void LGT_SCR_DW::processButton()
 			#elif defined(LK5_PRO)
 				if (xyz_home == false)
 				{
-					// save current tatgethotend
-					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
-					old_tar_temp_bed = thermalManager.degTargetBed();
+					#if ENABLED(COOL_BEFORE_LEVELING)
+						// save current tatgethotend
+						old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+						old_tar_temp_bed = thermalManager.degTargetBed();
 
-					// zero temp for prevent from damaging bed or hot end
-					thermalManager.setTargetHotend(0, eExtruder::E0);
-					thermalManager.setTargetBed(0);
+						// zero temp for prevent from damaging bed or hot end
+						thermalManager.setTargetHotend(0, eExtruder::E0);
+						thermalManager.setTargetBed(0);
+					#endif // COOL_BEFORE_LEVELING
 
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
@@ -1332,13 +1342,15 @@ void LGT_SCR_DW::processButton()
 			#else  //LK4_PRO
 				if (xyz_home == false)
 				{
-					// save current tatgethotend
-					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
-					old_tar_temp_bed = thermalManager.degTargetBed();
+					#if ENABLED(COOL_BEFORE_LEVELING)
+						// save current tatgethotend
+						old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+						old_tar_temp_bed = thermalManager.degTargetBed();
 
-					// zero temp for prevent from damaging bed or hot end
-					thermalManager.setTargetHotend(0, eExtruder::E0);
-					thermalManager.setTargetBed(0);
+						// zero temp for prevent from damaging bed or hot end
+						thermalManager.setTargetHotend(0, eExtruder::E0);
+						thermalManager.setTargetBed(0);
+					#endif // COOL_BEFORE_LEVELING
 
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
@@ -1362,13 +1374,15 @@ void LGT_SCR_DW::processButton()
 			#elif defined(LK5_PRO)
 				if (xyz_home == false)
 				{
-					// save current tatgethotend
-					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
-					old_tar_temp_bed = thermalManager.degTargetBed();
+					#if ENABLED(COOL_BEFORE_LEVELING)
+						// save current tatgethotend
+						old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+						old_tar_temp_bed = thermalManager.degTargetBed();
 
-					// zero temp for prevent from damaging bed or hot end
-					thermalManager.setTargetHotend(0, eExtruder::E0);
-					thermalManager.setTargetBed(0);
+						// zero temp for prevent from damaging bed or hot end
+						thermalManager.setTargetHotend(0, eExtruder::E0);
+						thermalManager.setTargetBed(0);
+					#endif // COOL_BEFORE_LEVELING
 
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
@@ -1380,13 +1394,15 @@ void LGT_SCR_DW::processButton()
 			#else  //LK4_PRO
 				if (xyz_home == false)
 				{
-					// save current tatgethotend
-					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
-					old_tar_temp_bed = thermalManager.degTargetBed();
+					#if ENABLED(COOL_BEFORE_LEVELING)
+						// save current tatgethotend
+						old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+						old_tar_temp_bed = thermalManager.degTargetBed();
 
-					// zero temp for prevent from damaging bed or hot end
-					thermalManager.setTargetHotend(0, eExtruder::E0);
-					thermalManager.setTargetBed(0);
+						// zero temp for prevent from damaging bed or hot end
+						thermalManager.setTargetHotend(0, eExtruder::E0);
+						thermalManager.setTargetBed(0);
+					#endif // COOL_BEFORE_LEVELING
 
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
@@ -1410,13 +1426,15 @@ void LGT_SCR_DW::processButton()
 			#elif defined(LK5_PRO)
 				if (xyz_home == false)
 				{
-					// save current tatgethotend
-					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
-					old_tar_temp_bed = thermalManager.degTargetBed();
+					#if ENABLED(COOL_BEFORE_LEVELING)
+						// save current tatgethotend
+						old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+						old_tar_temp_bed = thermalManager.degTargetBed();
 
-					// zero temp for prevent from damaging bed or hot end
-					thermalManager.setTargetHotend(0, eExtruder::E0);
-					thermalManager.setTargetBed(0);
+						// zero temp for prevent from damaging bed or hot end
+						thermalManager.setTargetHotend(0, eExtruder::E0);
+						thermalManager.setTargetBed(0);
+					#endif // COOL_BEFORE_LEVELING
 
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
@@ -1428,13 +1446,15 @@ void LGT_SCR_DW::processButton()
 			#else  //LK4_PRO
 				if (xyz_home == false)
 				{
-					// save current tatgethotend
-					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
-					old_tar_temp_bed = thermalManager.degTargetBed();
+					#if ENABLED(COOL_BEFORE_LEVELING)
+						// save current tatgethotend
+						old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+						old_tar_temp_bed = thermalManager.degTargetBed();
 
-					// zero temp for prevent from damaging bed or hot end
-					thermalManager.setTargetHotend(0, eExtruder::E0);
-					thermalManager.setTargetBed(0);
+						// zero temp for prevent from damaging bed or hot end
+						thermalManager.setTargetHotend(0, eExtruder::E0);
+						thermalManager.setTargetBed(0);
+					#endif // COOL_BEFORE_LEVELING
 
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
@@ -1458,13 +1478,15 @@ void LGT_SCR_DW::processButton()
 			#elif defined(LK5_PRO)
 				if (xyz_home == false)
 				{
-					// save current tatgethotend
-					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
-					old_tar_temp_bed = thermalManager.degTargetBed();
+					#if ENABLED(COOL_BEFORE_LEVELING)
+						// save current tatgethotend
+						old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+						old_tar_temp_bed = thermalManager.degTargetBed();
 
-					// zero temp for prevent from damaging bed or hot end
-					thermalManager.setTargetHotend(0, eExtruder::E0);
-					thermalManager.setTargetBed(0);
+						// zero temp for prevent from damaging bed or hot end
+						thermalManager.setTargetHotend(0, eExtruder::E0);
+						thermalManager.setTargetBed(0);
+					#endif // COOL_BEFORE_LEVELING
 
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
@@ -1476,13 +1498,15 @@ void LGT_SCR_DW::processButton()
 			#else  //LK4_PRO
 				if (xyz_home == false)
 				{
-					// save current tatgethotend
-					old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
-					old_tar_temp_bed = thermalManager.degTargetBed();
+					#if ENABLED(COOL_BEFORE_LEVELING)
+						// save current tatgethotend
+						old_tar_temp_end = thermalManager.degTargetHotend(eExtruder::E0);
+						old_tar_temp_bed = thermalManager.degTargetBed();
 
-					// zero temp for prevent from damaging bed or hot end
-					thermalManager.setTargetHotend(0, eExtruder::E0);
-					thermalManager.setTargetBed(0);
+						// zero temp for prevent from damaging bed or hot end
+						thermalManager.setTargetHotend(0, eExtruder::E0);
+						thermalManager.setTargetBed(0);
+					#endif // COOL_BEFORE_LEVELING
 
 					queue.enqueue_one_P(PSTR("G90"));
 					queue.enqueue_one_P(PSTR("G28"));
@@ -1499,17 +1523,19 @@ void LGT_SCR_DW::processButton()
 					xy_home = false;
 					queue.enqueue_one_P(PSTR("G1 Z10 F500"));	//up 10mm to prevent from damaging bed
 				}
-			#else //LK4_PRO LK5_PRO
+			#else //LK4_PRO or LK5_PRO
 				if (xyz_home) {
 					xyz_home = false;
 					queue.enqueue_one_P(PSTR("G1 Z10 F500"));	//up 10mm to prevent from damaging bed
 					
-					// retrive target temp
-					DEBUG_ECHOPAIR("\ntartemp_end", old_tar_temp_end);
-					DEBUG_ECHOPAIR("tartemp_bed", old_tar_temp_bed);
-					DEBUG_EOL();
-					thermalManager.setTargetHotend(old_tar_temp_end, eExtruder::E0);
-					thermalManager.setTargetBed(old_tar_temp_bed);
+					#if ENABLED(COOL_BEFORE_LEVELING)
+						// retrive target temp
+						DEBUG_ECHOPAIR("\ntartemp_end", old_tar_temp_end);
+						DEBUG_ECHOPAIR("tartemp_bed", old_tar_temp_bed);
+						DEBUG_EOL();
+						thermalManager.setTargetHotend(old_tar_temp_end, eExtruder::E0);
+						thermalManager.setTargetBed(old_tar_temp_bed);
+					#endif // COOL_BEFORE_LEVELING
 				}
 			#endif
 			break;
