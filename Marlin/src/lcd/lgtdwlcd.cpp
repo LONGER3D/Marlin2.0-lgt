@@ -13,7 +13,7 @@
 #include "../feature/powerloss.h"
 
 // debug define
-#define DEBUG_LGTDWLCD
+// #define DEBUG_LGTDWLCD
 #define DEBUG_OUT ENABLED(DEBUG_LGTDWLCD)
 #include "../core/debug_out.h"
 
