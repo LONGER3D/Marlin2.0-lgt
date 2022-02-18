@@ -94,7 +94,7 @@
   #define LGT_LCD_DW    // DWIN 4.3 inch LCD serial touch screen
 #endif
 
-#define FW_TEST_TAG "T005"
+// #define FW_TEST_TAG "T005"
 #ifndef FW_TEST_TAG
 	#define FW_TEST_TAG ""
 #endif
