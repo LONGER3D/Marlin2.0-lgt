@@ -94,14 +94,14 @@
   #define LGT_LCD_DW    // DWIN 4.3 inch LCD serial touch screen
 #endif
 
-#define FW_TEST_TAG "T005"
+// #define FW_TEST_TAG "T005"
 #ifndef FW_TEST_TAG
 	#define FW_TEST_TAG ""
 #endif
 #define SHORT_BUILD_VERSION       "0.4.0" FW_TEST_TAG "-Marlin2.x" 
 #define DEFAULT_MACHINE_NAME      "LONGER 3D Printer"   // override by  CUSTOM_MACHINE_NAME if any
 #define SOURCE_CODE_URL           "https://github.com/LONGER3D"
-#define STRING_DISTRIBUTION_DATE  "2021-12-28"
+#define STRING_DISTRIBUTION_DATE  "2022-02-18"
 #define WEBSITE_URL               "www.longer3d.com"    // full url: https://www.longer3d.com
 
 //===========================================================================
